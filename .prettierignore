@@ -1,0 +1,10 @@
+.nuxt
+.output
+.nitro
+.data
+dist
+node_modules
+pnpm-lock.yaml
+coverage
+playwright-report
+test-results
