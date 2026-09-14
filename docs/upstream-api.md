@@ -83,6 +83,31 @@ measured the same thing.
 Where a population size is needed for percentages, it comes from summing the
 facet buckets, not from `count`.
 
+## The two services disagree about product names
+
+The same barcode can carry a different name in each service, and the search
+index is not simply a stale copy: it holds a field the other does not.
+
+```
+3274080005003
+  v2:      product_name "isabelle"      product_name_en "Cristaline"
+  search:  product_name "Eau de source" product_name_en absent
+```
+
+Three names, of which "isabelle" is a contribution nobody reviewed and
+"Cristaline" is the brand repeated into the name field. A directory card and
+the product page it links to are therefore free to disagree, and they do.
+
+This is not fixable from our side. Picking "whichever looks most like a product
+name" is a heuristic over vandalism, and it would be wrong in both directions
+on a catalogue this size. Fetching the search document again on the product
+page would only move the inconsistency, not remove it.
+
+So the mapper applies one rule consistently, `product_name_en` then
+`product_name`, and the divergence is accepted as a property of the data. The
+end-to-end test for directory navigation asserts the barcode, not the heading,
+because the heading is genuinely allowed to differ.
+
 ## The query parser fails silently
 
 `q` is parsed as Lucene. Unescaped input does not raise an error, it changes

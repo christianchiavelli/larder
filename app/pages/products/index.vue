@@ -188,7 +188,7 @@ const showingFilters = computed(() => hasActiveFilters(query.value))
           Politely announced, so a screen reader hears the new count after a
           filter change instead of the results silently replacing themselves.
         -->
-        <p class="text-label text-ink-muted" aria-live="polite">
+        <p class="text-label text-ink-muted" aria-live="polite" data-testid="result-summary">
           <template v-if="totalLabel">
             <span data-numeric>{{ totalLabel }}</span>
             {{ result!.totalCount === 1 ? 'product' : 'products' }}

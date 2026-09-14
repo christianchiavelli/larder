@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# A new push to the same branch makes the in-flight run irrelevant. Cancelling
+# it frees the runner instead of paying for a result nobody will read.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '24'
+
+jobs:
+  # Lint, types and unit tests run as one job rather than three. They share an
+  # install and a Nuxt prepare that together cost more than any of the checks,
+  # so splitting them would triple the setup to parallelise the cheap part.
+  verify:
+    name: Lint, types and unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Format check
+        run: pnpm run format:check
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Types
+        run: pnpm run typecheck
+
+      - name: Unit tests
+        run: pnpm run test:coverage
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 7
+
+  e2e:
+    name: End-to-end
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    # Only after the cheap checks pass. A type error would fail every browser
+    # spec for the same reason, several minutes later and less legibly.
+    needs: verify
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # Only Chromium. The specs here check application behaviour and whether
+      # CSS utilities were generated at all, neither of which varies by engine,
+      # and a full matrix would triple the runtime to re-answer the same
+      # question.
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      # Production build, because the design-token regression these specs
+      # guard against involves Tailwind's source scanning, which behaves
+      # differently under the dev server.
+      - name: Build
+        run: pnpm run build
+
+      - name: End-to-end tests
+        run: pnpm run e2e
+
+      - name: Upload report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
