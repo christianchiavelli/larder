@@ -1,6 +1,28 @@
 @import 'tailwindcss';
 @import './tokens.css';
 
+/* Explicit source registration.
+ *
+ * Tailwind 4 discovers class names by scanning from the Vite root, and Nuxt
+ * sets that root to the app directory. Everything under `layers/` therefore
+ * falls outside the scan, and any utility used *only* inside the design system
+ * is never generated.
+ *
+ * The failure is completely silent, which is what makes it worth this comment:
+ * the class is present in the markup, the token resolves, the build succeeds,
+ * lint and types and tests all pass, and the element simply renders unstyled.
+ * It cost an afternoon to find that `bg-nutri-a` was transparent while
+ * `bg-surface-raised`, which the app also used, was fine.
+ *
+ * `app` is listed too: registering any source at all replaces auto-detection
+ * rather than adding to it, so naming only `layers` would break the app.
+ *
+ * e2e/design-tokens.spec.ts asserts these utilities actually resolve in a real
+ * browser, because nothing in the type system can.
+ */
+@source "../../../../../app";
+@source "../../../../../layers";
+
 /* `@theme inline` emits `var(--surface-base)` into the utility instead of
  * copying its computed value. That is what lets `.dark` swap one custom
  * property and have every `bg-surface` in the app follow, with no duplicate

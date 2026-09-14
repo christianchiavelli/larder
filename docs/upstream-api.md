@@ -64,6 +64,25 @@ is the `status` field alone. Both are checked.
 validation error: anything under `nutriments.*`. There is no server-side sort by
 sugar, salt or protein content.
 
+## Facet counts are exact; the hit count is not
+
+These two figures in the same response describe different populations, and
+mixing them produces a page that contradicts itself.
+
+```
+GET /search?page_size=24          -> count: 10000  (capped, is_count_exact: false)
+   facets.nutriscore_grade.items  -> sums to 3,585,939
+```
+
+Elasticsearch stops _tracking hits_ at the threshold but still aggregates over
+every matching document, so facet counts are real totals across the catalogue
+while `count` is a ceiling. A "products counted" tile fed from `count` sitting
+beside a chart fed from the facets states 10,000 and 3.5 million as if they
+measured the same thing.
+
+Where a population size is needed for percentages, it comes from summing the
+facet buckets, not from `count`.
+
 ## The query parser fails silently
 
 `q` is parsed as Lucene. Unescaped input does not raise an error, it changes

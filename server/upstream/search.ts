@@ -227,16 +227,27 @@ export function mapSearchHits(hits: readonly unknown[]): MappedHits {
  * language-prefixed ids while `brands_tags` returns bare slugs. Both go through
  * the taxonomy helper, which leaves a prefixed id alone and humanises a slug.
  */
+/**
+ * Facet buckets that are bookkeeping rather than values.
+ *
+ * `unknown` counts records missing the field. `--other--` is Elasticsearch's
+ * remainder bucket, holding everything outside the top N it returned.
+ *
+ * Neither is a tag any product carries, so neither can be filtered on: offering
+ * them would be offering a checkbox that returns nothing. `--other--` also
+ * distorts every chart it lands in, because the remainder of a long tail is
+ * necessarily larger than any single head value. Drawn as a bar it reads as
+ * "Other" being the largest category of food in the world, at six million
+ * products, dwarfing every real category beside it.
+ */
+const SENTINEL_FACET_KEYS = new Set(['unknown', '--other--', 'not-applicable', ''])
+
 export function mapFacet(items: readonly z.infer<typeof upstreamFacetItemSchema>[]): FacetItem[] {
-  return (
-    items
-      // Upstream emits an "unknown" bucket counting records missing the field.
-      // It is not something anyone can filter by, so it never becomes an option.
-      .filter((item) => item.key !== 'unknown' && item.key !== '')
-      .map((item) => ({
-        key: item.key,
-        label: toTaxonomyTag(item.key, item.name).label,
-        count: item.count,
-      }))
-  )
+  return items
+    .filter((item) => !SENTINEL_FACET_KEYS.has(item.key))
+    .map((item) => ({
+      key: item.key,
+      label: toTaxonomyTag(item.key, item.name).label,
+      count: item.count,
+    }))
 }

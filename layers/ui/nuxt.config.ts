@@ -4,10 +4,19 @@ import { join } from 'node:path'
 /**
  * UI layer.
  *
- * Owns the design system: tokens, primitives, and the chart theme. It knows
- * nothing about food, products, or the API. Anything in here should survive
- * being dropped into an unrelated product, which is the test we apply before
- * moving a component down into it.
+ * The design system for this product: tokens, primitives, and the chart theme.
+ *
+ * It is allowed to know the product's visual vocabulary, which includes public
+ * standards like Nutri-Score and NOVA, and it may depend on `#shared/domain`,
+ * because the domain is defined without reference to any API. What it must not
+ * know is where data comes from: no endpoints, no fetching, no upstream shapes,
+ * no Pinia Colada.
+ *
+ * That is the test applied before moving a component down into this layer. It
+ * is a narrower claim than "works in any product", and it is the one that
+ * actually holds: a badge that renders a regulated food label was never going
+ * to be reusable in a banking app, and pretending otherwise would just push the
+ * domain types somewhere less honest.
  */
 
 // Nuxt resolves `css` entries as module ids, not relative to the config file,
@@ -24,6 +33,10 @@ export default defineNuxtConfig({
       global: false,
     },
   ],
+
+  imports: {
+    dirs: [join(layerDir, 'app/composables')],
+  },
 
   css: [join(layerDir, 'app/assets/css/ui.css')],
 })

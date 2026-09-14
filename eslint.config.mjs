@@ -30,6 +30,18 @@ export default withNuxt(
     },
   },
   {
+    name: 'larder/ui-layer',
+    files: ['layers/ui/app/components/**/*.vue'],
+    rules: {
+      // The layer registers these with a `Ui` prefix (see layers/ui/nuxt.config.ts),
+      // so `chart.vue` is only ever resolvable as `UiChart`. The rule reads the
+      // filename and cannot see the configured prefix, which makes it report a
+      // collision risk that the prefix already rules out. It stays on for
+      // application components, which carry no prefix.
+      'vue/multi-word-component-names': 'off',
+    },
+  },
+  {
     name: 'larder/pages',
     files: ['app/pages/**/*.vue', 'app/layouts/**/*.vue', 'app/error.vue', 'app/app.vue'],
     rules: {

@@ -194,4 +194,30 @@ describe('mapFacet', () => {
 
     expect(facets.map((facet) => facet.key)).toEqual(['lu'])
   })
+
+  /**
+   * Elasticsearch's remainder bucket. It is not a tag, so it cannot be
+   * filtered on, and because it aggregates the entire long tail it outweighs
+   * every real value: left in, a category chart reports "Other" as the largest
+   * category of food at six million products.
+   */
+  it('drops the --other-- remainder bucket', () => {
+    const facets = mapFacet([
+      { key: '--other--', name: 'Other', count: 6_127_608 },
+      { key: 'en:snacks', name: 'Snacks', count: 290_398 },
+    ])
+
+    expect(facets.map((facet) => facet.key)).toEqual(['en:snacks'])
+  })
+
+  it('drops the not-applicable bucket', () => {
+    expect(mapFacet([{ key: 'not-applicable', name: 'not-applicable', count: 12 }])).toEqual([])
+  })
+
+  it('keeps a real value whose label happens to read like a sentinel', () => {
+    // The key is what identifies a sentinel, never the display label.
+    const facets = mapFacet([{ key: 'en:other-vegetables', name: 'Other vegetables', count: 40 }])
+
+    expect(facets).toHaveLength(1)
+  })
 })
