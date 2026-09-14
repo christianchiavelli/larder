@@ -1,0 +1,211 @@
+@import 'tailwindcss';
+@import './tokens.css';
+
+/* `@theme inline` emits `var(--surface-base)` into the utility instead of
+ * copying its computed value. That is what lets `.dark` swap one custom
+ * property and have every `bg-surface` in the app follow, with no duplicate
+ * `dark:` class anywhere in the markup. */
+@theme inline {
+  /* Surfaces */
+  --color-surface: var(--surface-base);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-overlay: var(--surface-overlay);
+  --color-surface-inverse: var(--surface-inverse);
+  --color-surface-accent: var(--surface-accent);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-active: var(--surface-active);
+
+  /* Borders and dividers */
+  --color-edge-subtle: var(--border-subtle);
+  --color-edge: var(--border-default);
+  --color-edge-strong: var(--border-strong);
+  --color-edge-accent: var(--border-accent);
+
+  /* Text and icons */
+  --color-ink: var(--content-primary);
+  --color-ink-muted: var(--content-secondary);
+  --color-ink-subtle: var(--content-tertiary);
+  --color-ink-inverse: var(--content-inverse);
+  --color-ink-accent: var(--content-accent);
+  --color-ink-on-accent: var(--content-on-accent);
+
+  /* Interactive */
+  --color-accent: var(--accent-solid);
+  --color-accent-hover: var(--accent-solid-hover);
+  --color-accent-muted: var(--accent-muted);
+  --color-focus: var(--focus-ring);
+
+  /* Status */
+  --color-danger-surface: var(--status-danger-surface);
+  --color-danger: var(--status-danger-content);
+  --color-warning-surface: var(--status-warning-surface);
+  --color-warning: var(--status-warning-content);
+  --color-info-surface: var(--status-info-surface);
+  --color-info: var(--status-info-content);
+
+  /* Domain: Nutri-Score */
+  --color-nutri-a: var(--nutriscore-a);
+  --color-nutri-a-ink: var(--nutriscore-a-content);
+  --color-nutri-b: var(--nutriscore-b);
+  --color-nutri-b-ink: var(--nutriscore-b-content);
+  --color-nutri-c: var(--nutriscore-c);
+  --color-nutri-c-ink: var(--nutriscore-c-content);
+  --color-nutri-d: var(--nutriscore-d);
+  --color-nutri-d-ink: var(--nutriscore-d-content);
+  --color-nutri-e: var(--nutriscore-e);
+  --color-nutri-e-ink: var(--nutriscore-e-content);
+  --color-nutri-unknown: var(--nutriscore-unknown);
+  --color-nutri-unknown-ink: var(--nutriscore-unknown-content);
+
+  /* Domain: NOVA processing scale */
+  --color-nova-1: var(--nova-1);
+  --color-nova-2: var(--nova-2);
+  --color-nova-3: var(--nova-3);
+  --color-nova-4: var(--nova-4);
+  --color-nova-unknown: var(--nova-unknown);
+
+  /* Charts */
+  --color-viz-1: var(--viz-1);
+  --color-viz-2: var(--viz-2);
+  --color-viz-3: var(--viz-3);
+  --color-viz-4: var(--viz-4);
+  --color-viz-5: var(--viz-5);
+  --color-viz-6: var(--viz-6);
+  --color-viz-7: var(--viz-7);
+  --color-viz-8: var(--viz-8);
+  --color-viz-grid: var(--viz-grid);
+  --color-viz-axis: var(--viz-axis);
+  --color-viz-track: var(--viz-track);
+}
+
+@theme {
+  /* One named step per role. There is no `text-lg` in this system: a size with
+   * no role attached is how a design system starts drifting. */
+  --text-display: 2.5rem;
+  --text-display--line-height: 1.1;
+  --text-display--letter-spacing: -0.02em;
+  --text-display--font-weight: 700;
+
+  --text-title: 1.75rem;
+  --text-title--line-height: 1.2;
+  --text-title--letter-spacing: -0.015em;
+  --text-title--font-weight: 650;
+
+  --text-heading: 1.25rem;
+  --text-heading--line-height: 1.3;
+  --text-heading--letter-spacing: -0.01em;
+  --text-heading--font-weight: 600;
+
+  --text-subheading: 1rem;
+  --text-subheading--line-height: 1.4;
+  --text-subheading--font-weight: 600;
+
+  --text-body: 0.9375rem;
+  --text-body--line-height: 1.55;
+
+  --text-label: 0.8125rem;
+  --text-label--line-height: 1.4;
+  --text-label--font-weight: 500;
+
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.35;
+
+  --text-overline: 0.6875rem;
+  --text-overline--line-height: 1.2;
+  --text-overline--letter-spacing: 0.08em;
+  --text-overline--font-weight: 600;
+
+  /* Numbers that carry meaning get their own step, always tabular */
+  --text-metric: 2rem;
+  --text-metric--line-height: 1.05;
+  --text-metric--letter-spacing: -0.02em;
+  --text-metric--font-weight: 650;
+
+  --text-metric-sm: 1.375rem;
+  --text-metric-sm--line-height: 1.1;
+  --text-metric-sm--letter-spacing: -0.015em;
+  --text-metric-sm--font-weight: 650;
+
+  --font-sans:
+    'Inter Variable', 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, 'SF Mono', 'Cascadia Code', monospace;
+
+  --radius-control: 0.5rem;
+  --radius-card: 0.875rem;
+  --radius-panel: 1.25rem;
+
+  --shadow-card: 0 1px 2px -1px rgb(0 0 0 / 0.08), 0 1px 3px 0 rgb(0 0 0 / 0.06);
+  --shadow-raised: 0 4px 6px -2px rgb(0 0 0 / 0.06), 0 10px 20px -6px rgb(0 0 0 / 0.1);
+  --shadow-overlay: 0 12px 24px -8px rgb(0 0 0 / 0.16), 0 4px 8px -4px rgb(0 0 0 / 0.1);
+
+  /* Height of the sticky app bar. Pages offset scroll anchors against this, so
+   * it has to be a token rather than a number repeated in a dozen places. */
+  --spacing-appbar: 3.5rem;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+    scroll-behavior: smooth;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Digits in a column must line up. Applied globally because in this product
+   * almost every number is one a reader compares against another. */
+  :is(td, th, [data-numeric]) {
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* Pointer users get no ring; keyboard users always do. */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  ::selection {
+    background-color: var(--color-accent-muted);
+    color: var(--color-ink);
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+}
+
+@utility skip-link {
+  position: absolute;
+  left: 0.5rem;
+  top: 0.5rem;
+  z-index: 100;
+  transform: translateY(-200%);
+  transition: transform 150ms ease;
+
+  &:focus-visible {
+    transform: translateY(0);
+  }
+}

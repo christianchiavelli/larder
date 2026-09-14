@@ -1,0 +1,191 @@
+/* Design tokens.
+ *
+ * Three layers, in order:
+ *   1. Primitives  raw scales, no meaning attached
+ *   2. Semantics   roles the product speaks in (surface, border, content)
+ *   3. Domain      values the food domain defines for us (Nutri-Score, NOVA)
+ *
+ * Only layer 2 is redefined for dark mode. Components reference layers 2 and 3,
+ * never layer 1, so a palette change never turns into a find-and-replace.
+ */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  /* 1. Primitives ------------------------------------------------------- */
+
+  /* Neutral: warm grey, hue borrowed from the brand so surfaces never read blue */
+  --primitive-neutral-0: oklch(1 0 0);
+  --primitive-neutral-50: oklch(0.985 0.002 155);
+  --primitive-neutral-100: oklch(0.967 0.004 155);
+  --primitive-neutral-200: oklch(0.925 0.006 155);
+  --primitive-neutral-300: oklch(0.868 0.008 155);
+  --primitive-neutral-400: oklch(0.708 0.01 155);
+  --primitive-neutral-500: oklch(0.556 0.012 155);
+  --primitive-neutral-600: oklch(0.442 0.012 155);
+  --primitive-neutral-700: oklch(0.362 0.011 155);
+  --primitive-neutral-800: oklch(0.269 0.009 155);
+  --primitive-neutral-900: oklch(0.205 0.008 155);
+  --primitive-neutral-950: oklch(0.145 0.006 155);
+
+  /* Brand: deep green, cool enough to read as analytical rather than organic */
+  --primitive-brand-50: oklch(0.971 0.021 155);
+  --primitive-brand-100: oklch(0.941 0.042 155);
+  --primitive-brand-200: oklch(0.885 0.073 155);
+  --primitive-brand-300: oklch(0.806 0.104 155);
+  --primitive-brand-400: oklch(0.711 0.125 155);
+  --primitive-brand-500: oklch(0.617 0.128 155);
+  --primitive-brand-600: oklch(0.518 0.113 155);
+  --primitive-brand-700: oklch(0.428 0.094 155);
+  --primitive-brand-800: oklch(0.349 0.075 155);
+  --primitive-brand-900: oklch(0.284 0.059 155);
+  --primitive-brand-950: oklch(0.195 0.042 155);
+
+  --primitive-danger-100: oklch(0.936 0.032 25);
+  --primitive-danger-500: oklch(0.637 0.208 25);
+  --primitive-danger-600: oklch(0.577 0.211 25);
+  --primitive-danger-900: oklch(0.312 0.104 25);
+
+  --primitive-warning-100: oklch(0.954 0.038 85);
+  --primitive-warning-500: oklch(0.769 0.152 70);
+  --primitive-warning-600: oklch(0.681 0.156 60);
+  --primitive-warning-900: oklch(0.359 0.086 65);
+
+  --primitive-info-100: oklch(0.932 0.032 240);
+  --primitive-info-500: oklch(0.623 0.152 250);
+  --primitive-info-600: oklch(0.546 0.166 253);
+  --primitive-info-900: oklch(0.312 0.092 252);
+
+  /* 2. Semantics: light ------------------------------------------------- */
+
+  --surface-base: var(--primitive-neutral-50);
+  --surface-raised: var(--primitive-neutral-0);
+  --surface-sunken: var(--primitive-neutral-100);
+  --surface-overlay: var(--primitive-neutral-0);
+  --surface-inverse: var(--primitive-neutral-900);
+  --surface-accent: var(--primitive-brand-50);
+  --surface-hover: var(--primitive-neutral-100);
+  --surface-active: var(--primitive-neutral-200);
+
+  --border-subtle: var(--primitive-neutral-200);
+  --border-default: var(--primitive-neutral-300);
+  --border-strong: var(--primitive-neutral-400);
+  --border-accent: var(--primitive-brand-500);
+
+  --content-primary: var(--primitive-neutral-900);
+  --content-secondary: var(--primitive-neutral-600);
+  --content-tertiary: var(--primitive-neutral-500);
+  --content-inverse: var(--primitive-neutral-50);
+  --content-accent: var(--primitive-brand-700);
+  --content-on-accent: var(--primitive-neutral-0);
+
+  --accent-solid: var(--primitive-brand-600);
+  --accent-solid-hover: var(--primitive-brand-700);
+  --accent-muted: var(--primitive-brand-100);
+
+  --status-danger-surface: var(--primitive-danger-100);
+  --status-danger-content: var(--primitive-danger-600);
+  --status-warning-surface: var(--primitive-warning-100);
+  --status-warning-content: var(--primitive-warning-600);
+  --status-info-surface: var(--primitive-info-100);
+  --status-info-content: var(--primitive-info-600);
+
+  --focus-ring: var(--primitive-brand-500);
+
+  /* 3. Domain ----------------------------------------------------------- */
+
+  /* Nutri-Score colours are set by the scheme's own guidelines, not by us.
+   * They stay fixed across themes: recolouring a regulated label would make
+   * the chart lie. Each grade ships the text colour that clears WCAG AA on it. */
+  --nutriscore-a: #038141;
+  --nutriscore-a-content: #ffffff;
+  --nutriscore-b: #85bb2f;
+  --nutriscore-b-content: #10240a;
+  --nutriscore-c: #fecb02;
+  --nutriscore-c-content: #2b2200;
+  --nutriscore-d: #ee8100;
+  --nutriscore-d-content: #1f1000;
+  --nutriscore-e: #e63e11;
+  --nutriscore-e-content: #ffffff;
+  --nutriscore-unknown: var(--primitive-neutral-300);
+  --nutriscore-unknown-content: var(--primitive-neutral-700);
+
+  /* NOVA is an ordinal 1..4 processing scale, so it gets a sequential ramp
+   * rather than the categorical palette. */
+  --nova-1: oklch(0.63 0.13 155);
+  --nova-2: oklch(0.75 0.13 110);
+  --nova-3: oklch(0.75 0.15 70);
+  --nova-4: oklch(0.62 0.19 30);
+  --nova-unknown: var(--primitive-neutral-300);
+
+  /* Categorical series palette. Ordered so that adjacent pairs sit far apart in
+   * hue, which keeps a two-series chart readable without making an eight-series
+   * one collapse. Checked against deuteranopia and protanopia simulation. */
+  --viz-1: oklch(0.55 0.13 155);
+  --viz-2: oklch(0.6 0.15 265);
+  --viz-3: oklch(0.7 0.15 55);
+  --viz-4: oklch(0.55 0.17 330);
+  --viz-5: oklch(0.65 0.12 200);
+  --viz-6: oklch(0.6 0.16 25);
+  --viz-7: oklch(0.7 0.12 120);
+  --viz-8: oklch(0.5 0.1 290);
+
+  --viz-grid: var(--primitive-neutral-200);
+  --viz-axis: var(--primitive-neutral-400);
+  --viz-track: var(--primitive-neutral-200);
+}
+
+.dark {
+  --surface-base: var(--primitive-neutral-950);
+  --surface-raised: var(--primitive-neutral-900);
+  --surface-sunken: oklch(0.115 0.006 155);
+  --surface-overlay: var(--primitive-neutral-800);
+  --surface-inverse: var(--primitive-neutral-50);
+  --surface-accent: oklch(0.24 0.045 155);
+  --surface-hover: var(--primitive-neutral-800);
+  --surface-active: var(--primitive-neutral-700);
+
+  --border-subtle: var(--primitive-neutral-800);
+  --border-default: var(--primitive-neutral-700);
+  --border-strong: var(--primitive-neutral-600);
+  --border-accent: var(--primitive-brand-400);
+
+  --content-primary: var(--primitive-neutral-100);
+  --content-secondary: var(--primitive-neutral-400);
+  --content-tertiary: var(--primitive-neutral-500);
+  --content-inverse: var(--primitive-neutral-900);
+  --content-accent: var(--primitive-brand-300);
+  --content-on-accent: var(--primitive-neutral-950);
+
+  --accent-solid: var(--primitive-brand-400);
+  --accent-solid-hover: var(--primitive-brand-300);
+  --accent-muted: oklch(0.28 0.05 155);
+
+  --status-danger-surface: oklch(0.26 0.07 25);
+  --status-danger-content: oklch(0.78 0.13 25);
+  --status-warning-surface: oklch(0.27 0.06 70);
+  --status-warning-content: oklch(0.83 0.12 80);
+  --status-info-surface: oklch(0.26 0.07 250);
+  --status-info-content: oklch(0.78 0.11 245);
+
+  --focus-ring: var(--primitive-brand-400);
+
+  --nutriscore-unknown: var(--primitive-neutral-700);
+  --nutriscore-unknown-content: var(--primitive-neutral-300);
+  --nova-unknown: var(--primitive-neutral-700);
+
+  /* Lifted for contrast against a dark plot area; hues held constant so a
+   * screenshot taken in either theme still maps a series to the same colour. */
+  --viz-1: oklch(0.7 0.13 155);
+  --viz-2: oklch(0.72 0.14 265);
+  --viz-3: oklch(0.79 0.14 55);
+  --viz-4: oklch(0.7 0.16 330);
+  --viz-5: oklch(0.76 0.11 200);
+  --viz-6: oklch(0.72 0.15 25);
+  --viz-7: oklch(0.8 0.12 120);
+  --viz-8: oklch(0.68 0.1 290);
+
+  --viz-grid: var(--primitive-neutral-800);
+  --viz-axis: var(--primitive-neutral-600);
+  --viz-track: var(--primitive-neutral-800);
+}
