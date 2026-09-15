@@ -132,12 +132,12 @@ test.describe('design tokens reach the browser', () => {
    * render, just uniformly and anonymously.
    */
   test('headings are serif and figures are sans', async ({ page }) => {
-    expect(await computeUtility(page, 'text-title', 'font-family')).toContain('Fraunces')
-    expect(await computeUtility(page, 'text-heading', 'font-family')).toContain('Fraunces')
-    expect(await computeUtility(page, 'text-body', 'font-family')).toContain('Public Sans')
-    // Fraunces' numerals are proportional, so a metric set in it could not line
-    // up in a column.
-    expect(await computeUtility(page, 'text-metric', 'font-family')).toContain('Public Sans')
+    expect(await computeUtility(page, 'text-title', 'font-family')).toContain('Lora')
+    expect(await computeUtility(page, 'text-heading', 'font-family')).toContain('Lora')
+    expect(await computeUtility(page, 'text-body', 'font-family')).toContain('Open Sans')
+    // Lora's numerals are old-style, so a metric set in it could not line up in
+    // a column.
+    expect(await computeUtility(page, 'text-metric', 'font-family')).toContain('Open Sans')
   })
 
   test('figures are tabular so columns line up', async ({ page }) => {

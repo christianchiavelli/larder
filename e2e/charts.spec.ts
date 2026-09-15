@@ -129,22 +129,28 @@ test.describe('charts', () => {
   /**
    * The root cause, asserted directly.
    *
-   * Pins down why the conversion has to rasterise rather than read a computed
-   * value. Both obvious shortcuts hand OKLCH straight back: a computed `color`
-   * preserves the authored colour space, and so does `ctx.fillStyle`. Only
-   * painting a pixel produces sRGB.
+   * zrender parses a colour to derive a hover state and understands only hex,
+   * rgb/rgba and hsl/hsla. Handed `oklch(...)` it fails, the derived fill comes
+   * out transparent, and the bar vanishes under the pointer while rendering
+   * normally everywhere else.
    *
-   * Worth asserting because the shortcuts look like they work. Swapping the
-   * rasteriser for `getComputedStyle` would leave every chart rendering
-   * perfectly, screenshot and all, and break hover.
+   * The palette is hex now, so the tokens would survive without any conversion.
+   * What is pinned here is the conversion itself, because it is what allows the
+   * token file to use a colour syntax newer than zrender without anyone having
+   * to know zrender exists. The probe is an explicit OKLCH value rather than a
+   * token, so this keeps testing the mechanism after the palette changes again.
+   *
+   * It also rules out both shortcuts: a computed `color` preserves the authored
+   * colour space, and so does `ctx.fillStyle`. Swapping the rasteriser for
+   * either would leave every chart rendering perfectly and break hover.
    */
-  test('the tokens are OKLCH and only rasterising converts them', async ({ page }) => {
+  test('a colour syntax zrender cannot parse survives the conversion', async ({ page }) => {
     const result = await page.evaluate(() => {
-      const raw = getComputedStyle(document.documentElement).getPropertyValue('--viz-1').trim()
+      const authored = 'oklch(0.6 0.15 250)'
 
       const probe = document.createElement('span')
       probe.style.cssText = 'position:absolute;visibility:hidden'
-      probe.style.color = raw
+      probe.style.color = authored
       document.body.append(probe)
       const viaComputedStyle = getComputedStyle(probe).color
       probe.remove()
@@ -153,18 +159,14 @@ test.describe('charts', () => {
       canvas.width = 1
       canvas.height = 1
       const context = canvas.getContext('2d', { willReadFrequently: true })!
-      context.fillStyle = raw
+      context.fillStyle = authored
       const viaFillStyle = String(context.fillStyle)
       context.fillRect(0, 0, 1, 1)
       const [r, g, b] = context.getImageData(0, 0, 1, 1).data
       const viaRaster = `rgb(${r}, ${g}, ${b})`
 
-      return { raw, viaComputedStyle, viaFillStyle, viaRaster }
+      return { viaComputedStyle, viaFillStyle, viaRaster }
     })
-
-    // The palette is authored in OKLCH. If this stops being true the whole
-    // conversion is unnecessary and should go.
-    expect(result.raw).toMatch(/^oklch\(/)
 
     // Neither shortcut converts.
     expect(result.viaComputedStyle).toMatch(/^oklch\(/)

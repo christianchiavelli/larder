@@ -113,29 +113,37 @@ Nutri-Score runs green to red. NOVA runs green to red beside it. That arc of the
 colour wheel already means something specific on every screen in this app, so a
 brand colour anywhere in it would be read as a grade.
 
-The accent is therefore deep teal, chosen by elimination rather than taste, and
-it is what makes the charts legible: a teal bar is obviously a quantity, and a
-green-to-red badge is obviously a rating. Series colours are picked for
-separation from the Nutri-Score ramp for the same reason.
+The accent is therefore a deep navy blue, chosen by elimination rather than by
+taste, and it is what keeps the charts readable: a blue bar is obviously a
+quantity, and a green-to-red badge is obviously a rating. Series colours are
+picked for separation from the Nutri-Score ramp for the same reason, and the two
+of them nearest that arc are deliberately last in the order.
 
-Everything else is warm — an off-white that reads as paper, an espresso chrome,
-greys carrying a trace of the same hue. It is a catalogue of food, and the
-surface should not feel like a spreadsheet.
+Everything else is a cool, blue-cast grey: a near-white page framed by near-black
+chrome. The dark theme is not a second palette but the same ramp read from the
+other end, plus the handful of steps it does not ship, each an OKLab
+interpolation between two neighbours with the fraction recorded beside the value.
+
+Two colours ignore the palette entirely. Nutri-Score and NOVA are defined
+elsewhere — one by regulation, one by a published classification — so recolouring
+them to suit a theme would make the badge misrepresent the thing it names. They
+are identical in both themes, and each step ships the ink that clears WCAG AA on
+it, because no single ink clears AA on a ramp that runs green to red.
 
 ### Typography carries the identity
 
-Headings are [Fraunces](https://fonts.google.com/specimen/Fraunces), a variable
-serif, used with its softness and "wonk" axes dialled to where it reads as
-editorial rather than decorative. Everything a reader scans or compares is
-[Public Sans](https://fonts.google.com/specimen/Public+Sans).
+Headings are [Lora](https://fonts.google.com/specimen/Lora), a serif with enough
+contrast between thick and thin to hold a page title without becoming
+decoration. Everything a reader scans or compares is
+[Open Sans](https://fonts.google.com/specimen/Open+Sans).
 
 That pairing is doing the work of a whole visual identity. It marks where a page
 begins without a rule or a coloured band, and it is most of the distance between
 a layout that reads as a product and one that reads as a starter template.
 
-Figures never use the serif: Fraunces' numerals are proportional, and a column
-of them cannot be compared. `text-metric` is sans and tabular, and an end-to-end
-test asserts both.
+Figures never use the serif: Lora's numerals are old-style, and a column of them
+cannot be compared. `text-metric` is sans and tabular, and an end-to-end test
+asserts both.
 
 ### Design system as a Nuxt layer
 
@@ -260,11 +268,19 @@ No API key or account is needed; Open Food Facts is open data under
 ```bash
 pnpm run lint        # ESLint (formatting is Prettier's alone)
 pnpm run typecheck   # vue-tsc
-pnpm run test        # Vitest, 189 specs
-pnpm run e2e         # Playwright, 17 specs, against a production build
+pnpm run test        # Vitest, 246 specs
+pnpm run e2e         # Playwright, 31 specs, against a production build
 ```
 
-`pnpm run ci` runs lint, types and unit tests together.
+`pnpm run ci` runs lint, types and unit tests with coverage.
+
+The two suites divide by what they can actually see. Vitest measures the domain,
+the services, the mappers and the URL state, and its coverage threshold is set
+at the measured figure rather than at a round number below it. Playwright owns
+everything only a browser can answer: whether a Tailwind utility resolves,
+whether a chart's hover state renders, whether a tree hydrates without a
+mismatch. Each of those is a bug this project has shipped, and not one of them
+is visible to a jsdom render.
 
 ---
 

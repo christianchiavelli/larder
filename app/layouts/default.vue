@@ -4,7 +4,7 @@ const { siteName } = useRuntimeConfig().public
 </script>
 
 <template>
-  <div class="flex min-h-dvh bg-surface">
+  <div class="flex min-h-dvh bg-chrome">
     <a
       href="#main"
       class="skip-link rounded-control bg-accent px-3 py-2 text-label text-ink-on-accent"
@@ -18,9 +18,7 @@ const { siteName } = useRuntimeConfig().public
       Dark in both themes, because its job is to frame the content and give the
       page an edge. A light rail against a light page is a divider, not a frame.
     -->
-    <div
-      class="fixed inset-y-0 left-0 z-40 flex w-rail flex-col items-center border-r border-chrome-edge bg-chrome py-3"
-    >
+    <div class="fixed inset-y-0 left-0 z-40 flex w-rail flex-col items-center bg-chrome py-3">
       <NuxtLink
         to="/"
         class="flex size-10 items-center justify-center rounded-control text-chrome-ink-strong transition-colors hover:bg-chrome-raised motion-reduce:transition-none"
@@ -122,7 +120,14 @@ const { siteName } = useRuntimeConfig().public
       </button>
     </div>
 
-    <div class="flex min-w-0 flex-1 flex-col pl-rail">
+    <!--
+      The page is a panel laid on the chrome, rounded where the two meet.
+
+      That corner is why this is a margin and not padding: a rounded edge needs
+      something behind it to round against, and with `pl-rail` the panel would
+      be rounding against its own background.
+    -->
+    <div class="ml-rail flex min-w-0 flex-1 flex-col rounded-tl-shell bg-surface">
       <main id="main" class="flex-1 px-5 py-7 sm:px-8 sm:py-9">
         <div class="mx-auto w-full max-w-[86rem]">
           <slot />

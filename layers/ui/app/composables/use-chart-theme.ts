@@ -40,26 +40,34 @@ export interface ChartTheme {
   nova: Record<1 | 2 | 3 | 4 | 'unknown', string>
 }
 
-/** Colours used before the DOM exists, on the server and the first paint. */
+/**
+ * Colours used before the DOM exists, on the server and the first paint.
+ *
+ * The light theme's values, because the server has no way to know the visitor's
+ * preference and a dark first paint under a light theme is the worse of the two
+ * mistakes. They are duplicated from tokens.css and there is no way around it:
+ * this runs where no stylesheet has been applied. test/ui/chart-theme.spec.ts
+ * resolves the real tokens and compares, so the copy cannot drift unnoticed.
+ */
 const SSR_FALLBACK: ChartTheme = {
-  series: ['#2b6b76', '#5a54a8', '#3f8a72', '#8d4a77', '#4d7aa8', '#3d6b4a', '#6b7fc4', '#4a7a8c'],
-  grid: '#e8e5e0',
-  axis: '#a9a49c',
-  track: '#e8e5e0',
-  ink: '#241f19',
-  inkMuted: '#6b6459',
-  surface: '#faf9f7',
+  series: ['#003cb2', '#ad7fe5', '#00a69b', '#ff547c', '#106076', '#009bee', '#b05223', '#968f88'],
+  grid: '#ebeff6',
+  axis: '#b2b9ca',
+  track: '#ebeff6',
+  ink: '#002244',
+  inkMuted: '#404e6c',
+  surface: '#f7f9fc',
   surfaceRaised: '#ffffff',
-  edge: '#d6d1c9',
+  edge: '#cfd3db',
   nutriScore: {
     a: '#038141',
     b: '#85bb2f',
     c: '#fecb02',
     d: '#ee8100',
     e: '#e63e11',
-    unknown: '#d6d1c9',
+    unknown: '#cfd3db',
   },
-  nova: { 1: '#3f8a5c', 2: '#b3a53a', 3: '#c4823a', 4: '#c0553a', unknown: '#d6d1c9' },
+  nova: { 1: '#40aa2a', 2: '#eeaf00', 3: '#d48013', 4: '#e51e56', unknown: '#cfd3db' },
 }
 
 let rasteriser: CanvasRenderingContext2D | null | undefined
@@ -67,20 +75,23 @@ let rasteriser: CanvasRenderingContext2D | null | undefined
 /**
  * Converts any colour the browser understands into `rgb()`.
  *
- * This is the whole reason the composable does not simply return
- * `getPropertyValue('--viz-1')`. The palette is authored in OKLCH and a canvas
- * accepts `oklch()` happily, so every chart renders correctly. But ECharts has
- * to *parse* a colour to derive its hover state, and zrender's parser predates
- * OKLCH and handles only hex, rgb/rgba and hsl/hsla. Given `oklch(...)` it
- * fails, the derived colour comes out transparent, and the bar under the
- * pointer vanishes. Rendering is fine; only emphasis breaks, which is exactly
- * the kind of bug that reaches a user rather than a test.
+ * ECharts has to *parse* a colour to derive its hover state, and zrender's
+ * parser handles only hex, rgb/rgba and hsl/hsla. Handed anything newer it
+ * fails, the derived fill comes out transparent, and the bar under the pointer
+ * vanishes. Rendering is unaffected, because a canvas accepts modern colour
+ * syntax happily, so the charts look perfect and only emphasis is broken. That
+ * is how this shipped once already, when the palette was authored in OKLCH.
  *
- * Painting one pixel and reading it back is the conversion, and it is not the
- * roundabout way of doing this, it is the only reliable one. Both of the
- * obvious shortcuts return OKLCH untouched: a computed `color` preserves the
- * colour space it was authored in, and so does `ctx.fillStyle`. Nothing hands
- * back sRGB until something actually rasterises, so that is what this does.
+ * The palette is hex today, so for every current token this conversion returns
+ * what it was given. It stays because the alternative is not less code, it is
+ * an unwritten rule that tokens.css may only contain colour syntax from before
+ * 2020, enforced by nothing and violated silently. Twenty lines here keep that
+ * constraint out of the file a palette is actually edited in.
+ *
+ * Painting one pixel and reading it back is not the roundabout way to convert,
+ * it is the only reliable one. Both obvious shortcuts hand the input straight
+ * back: a computed `color` preserves the colour space it was authored in, and
+ * so does `ctx.fillStyle`. Nothing yields sRGB until something rasterises.
  */
 function toRgb(value: string): string | null {
   if (rasteriser === undefined) {

@@ -46,12 +46,11 @@ export default defineNuxtConfig({
 
   fonts: {
     families: [
-      // Public Sans for anything a reader scans or compares, Fraunces for
-      // headings. Fraunces is variable: the SOFT and WONK axes are what make it
-      // read as editorial rather than as a default serif, and they only exist
-      // in the variable build.
-      { name: 'Public Sans', provider: 'google', weights: [400, 500, 600, 700] },
-      { name: 'Fraunces', provider: 'google', weights: [400, 600, 700] },
+      // Open Sans for anything a reader scans or compares, Lora for headings.
+      // Only the weights the type scale actually names are requested: a weight
+      // nothing uses is a font file downloaded for nothing.
+      { name: 'Open Sans', provider: 'google', weights: [400, 600, 700] },
+      { name: 'Lora', provider: 'google', weights: [400, 600] },
     ],
     defaults: {
       // Metric-adjusted local fallbacks, so the swap when the webfont lands

@@ -18,19 +18,27 @@ withDefaults(
   { withLabel: false },
 )
 
+/**
+ * Fill and ink together, never separately.
+ *
+ * The ramp runs green to red through two yellows, and no single ink clears AA
+ * on all four: white disappears on the yellows, dark disappears on the red. So
+ * each step ships the ink that works on it, exactly as the Nutri-Score badge
+ * does, and the pair is one token in one place so neither can be changed alone.
+ */
 const GROUP_CLASSES: Record<NovaGroup, string> = {
-  1: 'bg-nova-1',
-  2: 'bg-nova-2',
-  3: 'bg-nova-3',
-  4: 'bg-nova-4',
+  1: 'bg-nova-1 text-nova-1-ink',
+  2: 'bg-nova-2 text-nova-2-ink',
+  3: 'bg-nova-3 text-nova-3-ink',
+  4: 'bg-nova-4 text-nova-4-ink',
 }
 </script>
 
 <template>
   <span class="inline-flex items-center gap-1.5">
     <span
-      class="inline-flex size-5 shrink-0 items-center justify-center rounded-full text-caption font-semibold text-white"
-      :class="group === null ? 'bg-nova-unknown text-ink-muted' : GROUP_CLASSES[group]"
+      class="inline-flex size-5 shrink-0 items-center justify-center rounded-full text-caption font-semibold"
+      :class="group === null ? 'bg-nova-unknown text-nova-unknown-ink' : GROUP_CLASSES[group]"
       role="img"
       :aria-label="
         group === null
