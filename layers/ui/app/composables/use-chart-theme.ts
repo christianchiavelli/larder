@@ -36,8 +36,6 @@ export interface ChartTheme {
   surface: string
   surfaceRaised: string
   edge: string
-  nutriScore: Record<'a' | 'b' | 'c' | 'd' | 'e' | 'unknown', string>
-  nova: Record<1 | 2 | 3 | 4 | 'unknown', string>
 }
 
 /**
@@ -46,8 +44,9 @@ export interface ChartTheme {
  * The light theme's values, because the server has no way to know the visitor's
  * preference and a dark first paint under a light theme is the worse of the two
  * mistakes. They are duplicated from tokens.css and there is no way around it:
- * this runs where no stylesheet has been applied. test/ui/chart-theme.spec.ts
- * resolves the real tokens and compares, so the copy cannot drift unnoticed.
+ * this runs where no stylesheet has been applied.
+ * test/layers/ui/chart-theme.spec.ts resolves the real tokens and compares, so
+ * the copy cannot drift unnoticed.
  */
 const SSR_FALLBACK: ChartTheme = {
   series: ['#003cb2', '#ad7fe5', '#00a69b', '#ff547c', '#106076', '#009bee', '#b05223', '#968f88'],
@@ -59,15 +58,6 @@ const SSR_FALLBACK: ChartTheme = {
   surface: '#f7f9fc',
   surfaceRaised: '#ffffff',
   edge: '#cfd3db',
-  nutriScore: {
-    a: '#038141',
-    b: '#85bb2f',
-    c: '#fecb02',
-    d: '#ee8100',
-    e: '#e63e11',
-    unknown: '#cfd3db',
-  },
-  nova: { 1: '#40aa2a', 2: '#eeaf00', 3: '#d48013', 4: '#e51e56', unknown: '#cfd3db' },
 }
 
 let rasteriser: CanvasRenderingContext2D | null | undefined
@@ -142,43 +132,30 @@ function readTheme(): ChartTheme {
     surface: resolveColor(styles, '--surface-base', SSR_FALLBACK.surface),
     surfaceRaised: resolveColor(styles, '--surface-raised', SSR_FALLBACK.surfaceRaised),
     edge: resolveColor(styles, '--border-default', SSR_FALLBACK.edge),
-    nutriScore: {
-      a: resolveColor(styles, '--nutriscore-a', SSR_FALLBACK.nutriScore.a),
-      b: resolveColor(styles, '--nutriscore-b', SSR_FALLBACK.nutriScore.b),
-      c: resolveColor(styles, '--nutriscore-c', SSR_FALLBACK.nutriScore.c),
-      d: resolveColor(styles, '--nutriscore-d', SSR_FALLBACK.nutriScore.d),
-      e: resolveColor(styles, '--nutriscore-e', SSR_FALLBACK.nutriScore.e),
-      unknown: resolveColor(styles, '--nutriscore-unknown', SSR_FALLBACK.nutriScore.unknown),
-    },
-    nova: {
-      1: resolveColor(styles, '--nova-1', SSR_FALLBACK.nova[1]),
-      2: resolveColor(styles, '--nova-2', SSR_FALLBACK.nova[2]),
-      3: resolveColor(styles, '--nova-3', SSR_FALLBACK.nova[3]),
-      4: resolveColor(styles, '--nova-4', SSR_FALLBACK.nova[4]),
-      unknown: resolveColor(styles, '--nova-unknown', SSR_FALLBACK.nova.unknown),
-    },
   }
 }
 
 /**
- * The live chart palette.
+ * Bumps whenever the resolved value of a colour token could have changed.
  *
- * Shared across every chart on the page: resolving colours forces a style
- * recalculation, and doing it once per chart on every theme switch is work with
- * no payoff. The observer watches only the class attribute of the root element,
- * which is where the theme toggle writes.
+ * Shared, because resolving a token forces a style recalculation and doing it
+ * once per palette per theme switch is work with no payoff. It stays at zero
+ * until mount: the custom properties are not resolvable before styles apply,
+ * and starting at zero means the server and the first client render produce the
+ * same tree from the same fallback.
  */
-export function useChartTheme() {
-  const theme = useState<ChartTheme>('chart-theme', () => SSR_FALLBACK)
+function useThemeRevision() {
+  const revision = useState('ui:theme-revision', () => 0)
 
   onMounted(() => {
-    // The custom properties are only resolvable once styles have applied.
-    theme.value = readTheme()
+    revision.value++
 
     const observer = new MutationObserver(() => {
-      theme.value = readTheme()
+      revision.value++
     })
 
+    // Only the class attribute of the root element, which is where the theme
+    // toggle writes.
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ['class'],
@@ -187,7 +164,49 @@ export function useChartTheme() {
     onBeforeUnmount(() => observer.disconnect())
   })
 
-  return theme
+  return revision
+}
+
+/**
+ * Resolves a map of colour tokens, and re-resolves it when the theme changes.
+ *
+ * Generic on purpose. This layer knows how to read a colour token safely and
+ * hand it to a canvas; it does not know which tokens a product has. A palette
+ * whose members mean something in a particular domain is assembled by that
+ * domain's own code, which is what keeps this file free of any import from it.
+ */
+export function useThemeColors<K extends string>(
+  tokens: Readonly<Record<K, string>>,
+  fallback: Readonly<Record<K, string>>,
+) {
+  const revision = useThemeRevision()
+
+  return computed<Record<K, string>>(() => {
+    // Read so the palette re-resolves on a theme change. The number itself
+    // carries nothing.
+    void revision.value
+
+    if (revision.value === 0 || typeof document === 'undefined') return { ...fallback }
+
+    const styles = getComputedStyle(document.documentElement)
+    const entries = Object.entries(tokens) as [K, string][]
+
+    return Object.fromEntries(
+      entries.map(([key, token]) => [key, resolveColor(styles, token, fallback[key])]),
+    ) as Record<K, string>
+  })
+}
+
+/**
+ * The live chart palette: the generic half, which is the only half this layer
+ * has any business knowing about.
+ */
+export function useChartTheme() {
+  const revision = useThemeRevision()
+
+  return computed<ChartTheme>(() =>
+    revision.value === 0 || typeof document === 'undefined' ? SSR_FALLBACK : readTheme(),
+  )
 }
 
 export { SSR_FALLBACK as FALLBACK_CHART_THEME }

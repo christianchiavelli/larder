@@ -99,8 +99,8 @@ const nutrients = computed(() =>
     </dl>
 
     <div class="flex shrink-0 items-center gap-2 border-l border-edge-subtle pl-4 lg:pl-5">
-      <UiNutriScoreBadge :grade="product.nutriScore" />
-      <UiNovaBadge :group="product.novaGroup" />
+      <ProductNutriScoreBadge :grade="product.nutriScore" />
+      <ProductNovaBadge :group="product.novaGroup" />
     </div>
 
     <!-- Affordance only; the stretched link on the heading is what is actually

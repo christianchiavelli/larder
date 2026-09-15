@@ -97,7 +97,7 @@ const isNotFound = computed(
 
         <div v-if="!isLoading && product" class="flex shrink-0 gap-4">
           <div class="flex flex-col items-center gap-1">
-            <UiNutriScoreBadge :grade="product.nutriScore" size="lg" />
+            <ProductNutriScoreBadge :grade="product.nutriScore" size="lg" />
             <span class="text-caption text-ink-subtle">Nutri-Score</span>
           </div>
           <div class="flex flex-col items-center gap-1">

@@ -4,19 +4,22 @@ import { join } from 'node:path'
 /**
  * UI layer.
  *
- * The design system for this product: tokens, primitives, and the chart theme.
+ * The design system for this product: tokens, primitives, formatting and the
+ * chart theme.
  *
- * It is allowed to know the product's visual vocabulary, which includes public
- * standards like Nutri-Score and NOVA, and it may depend on `#shared/domain`,
- * because the domain is defined without reference to any API. What it must not
- * know is where data comes from: no endpoints, no fetching, no upstream shapes,
- * no Pinia Colada.
+ * The boundary is values, never meaning. Nothing here imports from
+ * `#shared/domain`, and nothing here knows what a Nutri-Score grade is or that
+ * food is being catalogued at all. It knows there is a surface, an ink, a
+ * series colour and a token called `--nutriscore-a`, in the same way a
+ * stylesheet does.
  *
- * That is the test applied before moving a component down into this layer. It
- * is a narrower claim than "works in any product", and it is the one that
- * actually holds: a badge that renders a regulated food label was never going
- * to be reusable in a banking app, and pretending otherwise would just push the
- * domain types somewhere less honest.
+ * So the test before a component moves down here is not "could another product
+ * use it". It is "does this file name a concept from the problem domain". A
+ * badge typed on `NutriScore` fails that and lives in `app/components/product`;
+ * the panel it sits on passes and lives here.
+ *
+ * It follows that no data reaches this layer either: no endpoints, no fetching,
+ * no upstream shapes, no Pinia Colada.
  */
 
 // Nuxt resolves `css` entries as module ids, not relative to the config file,
@@ -35,7 +38,7 @@ export default defineNuxtConfig({
   ],
 
   imports: {
-    dirs: [join(layerDir, 'app/composables')],
+    dirs: [join(layerDir, 'app/composables'), join(layerDir, 'app/utils')],
   },
 
   css: [join(layerDir, 'app/assets/css/ui.css')],

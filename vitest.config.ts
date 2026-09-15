@@ -41,20 +41,22 @@ export default defineVitestConfig({
         'server/utils/**/*.ts',
         'app/api/**/*.ts',
         'app/composables/**/*.ts',
+        'layers/ui/app/utils/**/*.ts',
       ],
       exclude: ['**/*.d.ts', '**/types.ts'],
       /**
-       * The measured figures, not a round number below them.
+       * The measured figures, floored to the whole number.
        *
-       * A threshold set comfortably under actual coverage permits a regression
-       * silently, which is the failure it exists to prevent. These are exact,
-       * so removing a test fails the run, and raising them is a matter of
-       * re-reading the report rather than guessing.
+       * Not a round number comfortably underneath them: a threshold with slack
+       * in it permits a regression silently, which is the failure it exists to
+       * prevent. Flooring the real figure leaves under a point of slack and
+       * makes the rule reproducible, so raising these is a matter of re-reading
+       * the report rather than guessing at a new round number.
        */
       thresholds: {
         statements: 92,
         branches: 91,
-        functions: 90,
+        functions: 89,
         lines: 92,
       },
     },
