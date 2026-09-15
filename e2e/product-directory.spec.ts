@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 
 /**
  * Directory behaviour, end to end.
@@ -173,5 +173,106 @@ test.describe('product directory', () => {
     await page.waitForLoadState('networkidle')
 
     expect(errors).toEqual([])
+  })
+})
+
+test.describe('filter suggestions', () => {
+  /**
+   * The search box is a combobox whose listbox offers filters, not search
+   * terms. Driven here with real key events, because the whole point of the
+   * pattern is the keyboard: the active option is pointed at rather than
+   * focused, so focus never leaves the input and typing keeps working while
+   * the list is open. None of that is observable without a browser.
+   */
+  const search = (page: Page) => page.getByRole('combobox', { name: 'Search products' })
+
+  test('suggests taxonomy filters once the term is long enough', async ({ page }) => {
+    await page.goto('/products')
+
+    const input = search(page)
+    await expect(input).toHaveAttribute('aria-expanded', 'false')
+
+    // One character matches most of a taxonomy, so the service declines to
+    // call upstream and the listbox stays shut.
+    await input.fill('c')
+    await expect(input).toHaveAttribute('aria-expanded', 'false')
+
+    await input.fill('choc')
+    await expect(page.getByRole('listbox', { name: 'Filter suggestions' })).toBeVisible()
+    await expect(input).toHaveAttribute('aria-expanded', 'true')
+    expect(await page.getByRole('option').count()).toBeGreaterThan(0)
+  })
+
+  test('mixes taxonomies instead of showing one of them', async ({ page }) => {
+    // Upstream ranks a multi-taxonomy request globally, so asking it for
+    // categories and brands together returns brands only. The service issues
+    // one call per taxonomy and interleaves, and this is the visible result.
+    await page.goto('/products')
+    await search(page).fill('choc')
+
+    await expect(page.getByRole('listbox')).toBeVisible()
+
+    const kinds = await page
+      .getByRole('option')
+      .evaluateAll((nodes) => nodes.map((node) => node.textContent?.trim().split(/\s+/).at(-1)))
+
+    expect(new Set(kinds).size).toBeGreaterThan(1)
+  })
+
+  test('applies a suggestion as a filter, by keyboard', async ({ page }) => {
+    await page.goto('/products')
+
+    const input = search(page)
+    await input.fill('choc')
+    await expect(page.getByRole('listbox')).toBeVisible()
+
+    await input.press('ArrowDown')
+    await expect(input).toHaveAttribute('aria-activedescendant', /option-0$/)
+
+    await input.press('Enter')
+
+    // Some filter dimension now carries a taxonomy id, and the term that was
+    // only ever typed in order to find it is gone.
+    await expect(page).toHaveURL(/(category|brand|country|label)=/)
+    await expect(page).not.toHaveURL(/[?&]q=/)
+    await expect(input).toHaveValue('')
+  })
+
+  test('applies a suggestion by pointer', async ({ page }) => {
+    await page.goto('/products')
+
+    await search(page).fill('choc')
+    await expect(page.getByRole('listbox')).toBeVisible()
+    await page.getByRole('option').first().click()
+
+    await expect(page).toHaveURL(/(category|brand|country|label)=/)
+  })
+
+  test('closes on Escape without applying anything', async ({ page }) => {
+    await page.goto('/products')
+
+    const input = search(page)
+    await input.fill('choc')
+    await expect(page.getByRole('listbox')).toBeVisible()
+
+    await input.press('Escape')
+
+    await expect(input).toHaveAttribute('aria-expanded', 'false')
+    // The term survives: Escape dismisses the suggestions, it does not undo
+    // the search the reader is in the middle of typing.
+    await expect(input).toHaveValue('choc')
+  })
+
+  test('leaves Enter to the free-text search when nothing is highlighted', async ({ page }) => {
+    await page.goto('/products')
+
+    const input = search(page)
+    await input.fill('choc')
+    await expect(page.getByRole('listbox')).toBeVisible()
+
+    await input.press('Enter')
+
+    await expect(page).toHaveURL(/q=choc/)
+    await expect(page).not.toHaveURL(/(category|brand|country|label)=/)
   })
 })

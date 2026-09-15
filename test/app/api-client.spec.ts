@@ -80,15 +80,15 @@ describe('fetchProduct', () => {
 })
 
 describe('fetchSuggestions', () => {
-  it('defaults to the category taxonomy', () => {
+  it('defaults to categories and brands', () => {
     fetchSuggestions('choc')
 
     expect(lastCall().path).toBe('/api/suggest')
-    expect(lastCall().options.query).toEqual({ q: 'choc', taxonomy: 'category', limit: 8 })
+    expect(lastCall().options.query).toEqual({ q: 'choc', taxonomy: 'category,brand', limit: 8 })
   })
 
-  it('passes an explicit taxonomy and limit through', () => {
-    fetchSuggestions('choc', 'brand', 3)
+  it('passes an explicit taxonomy list and limit through', () => {
+    fetchSuggestions('choc', ['brand'], 3)
 
     expect(lastCall().options.query).toEqual({ q: 'choc', taxonomy: 'brand', limit: 3 })
   })

@@ -25,9 +25,17 @@ export default defineCachedEventHandler(
       const term = String(query.q ?? '')
         .trim()
         .toLowerCase()
-      const taxonomy = String(query.taxonomy ?? 'category')
+      // Sorted, because `category,brand` and `brand,category` are the same
+      // request and an unsorted key would cache them separately, then serve
+      // whichever arrived first under a key the other one also matches.
+      const taxonomy = (Array.isArray(query.taxonomy) ? query.taxonomy : [query.taxonomy ?? ''])
+        .flatMap((entry) => String(entry).split(','))
+        .map((entry) => entry.trim())
+        .filter(Boolean)
+        .sort()
+        .join('-')
       const limit = String(query.limit ?? 8)
-      return `${taxonomy}__${limit}__${term}`.replace(/[^a-z0-9_-]/gi, '_')
+      return `${taxonomy || 'default'}__${limit}__${term}`.replace(/[^a-z0-9_-]/gi, '_')
     },
   }),
 )

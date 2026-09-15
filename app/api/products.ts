@@ -34,8 +34,12 @@ export function fetchProduct(code: string): Promise<ProductDetail> {
 
 export function fetchSuggestions(
   term: string,
-  taxonomy: TaxonomyName = 'category',
+  taxonomies: readonly TaxonomyName[] = ['category', 'brand'],
   limit = 8,
 ): Promise<Suggestion[]> {
-  return $fetch<Suggestion[]>('/api/suggest', { query: { q: term, taxonomy, limit } })
+  return $fetch<Suggestion[]>('/api/suggest', {
+    // Comma-joined rather than repeated, so the request line matches the cache
+    // key the route builds and a shared link is one string.
+    query: { q: term, taxonomy: [...taxonomies].join(','), limit },
+  })
 }

@@ -206,6 +206,13 @@ catalogue: the directory rendered empty while reporting 10,000 matches. Found by
 writing the test with a fixture copied from a real response instead of an
 invented one.
 
+**Upstream's multi-taxonomy autocomplete is unusable.** `/autocomplete` accepts
+a list of taxonomies, and ranks the whole list together, so the highest-scoring
+one fills the response: "choc" across categories, brands and labels comes back
+as eight brands and no category at all. The BFF issues one call per taxonomy and
+interleaves them with a quota, which is why the search box can suggest a
+category and a brand in the same list.
+
 **Filters could not be switched off.** The URL writer merged two serialised
 queries, and the serialiser omits anything at its default, including an empty
 list. A patch that emptied a dimension carried no key for it, so the old value
@@ -235,8 +242,8 @@ suite stayed green.
 ```bash
 pnpm run lint        # ESLint (formatting is Prettier's alone)
 pnpm run typecheck   # vue-tsc
-pnpm run test        # Vitest, 261 specs
-pnpm run e2e         # Playwright, 31 specs, against a production build
+pnpm run test        # Vitest, 274 specs
+pnpm run e2e         # Playwright, 37 specs, against a production build
 pnpm run ci          # lint, types, and unit tests with coverage
 ```
 
@@ -292,6 +299,13 @@ Edge ship it, Firefox has it behind a flag and Safari in Technology Preview;
 elsewhere the closed control is still styled and only the open list falls back
 to the platform's own.
 
+**No image proxy.** Open Food Facts renders every photograph at 100, 200 and
+400 pixels and serves them from its own CDN, so the elements carry a `srcset`
+over those and the browser picks by device pixel ratio. Running them through
+`@nuxt/image` and IPX instead would add a hop, move the bandwidth onto this
+server and lose upstream's caching, to arrive at files upstream had already
+made.
+
 **TypeScript pinned to 6.0.3.** typescript-eslint declines to load against
 TypeScript 7 (supported range `>=4.8.4 <6.1.0`), a transitive Nuxt dependency
 pulls 7 in, and pnpm's isolation meant the parser resolved that copy and failed
@@ -305,11 +319,6 @@ supports 7.
 
 Things a reviewer would find, listed so nobody has to.
 
-- **The suggest endpoint has no UI.** `/api/suggest`, its service and its typed
-  client all exist and are tested. Nothing calls them. The typeahead they were
-  built for is not written.
-- **`@nuxt/image` is installed and unused.** Product photographs come straight
-  from upstream through a plain `<img>`, unoptimised and unresized.
 - **English only.** The locale is fixed in `layers/ui/app/utils/format.ts`, while
   the catalogue is multilingual and mostly European. Switching separators without
   translating anything would be worse than leaving them.

@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
 import { getProductDetail } from '~~/server/services/product-detail'
-import { suggestTaxonomy } from '~~/server/services/suggest'
 import type { UpstreamClient } from '~~/server/utils/upstream-client'
 
 const PRODUCT_BASE = 'https://world.openfoodfacts.org'
@@ -72,74 +71,5 @@ describe('getProductDetail', () => {
     await expect(getProductDetail(client, '123', PRODUCT_BASE)).rejects.toMatchObject({
       statusCode: 404,
     })
-  })
-})
-
-describe('suggestTaxonomy', () => {
-  const OPTIONS = {
-    options: [
-      { id: 'en:chocolate-biscuits', text: 'Chocolate biscuits', taxonomy_name: 'category' },
-      { id: 'en:chocolate-bars', text: null, taxonomy_name: 'category' },
-    ],
-  }
-
-  it('maps upstream options into suggestions', async () => {
-    const suggestions = await suggestTaxonomy(stubClient(OPTIONS), { q: 'choc' })
-
-    expect(suggestions).toEqual([
-      { id: 'en:chocolate-biscuits', label: 'Chocolate biscuits', taxonomy: 'category' },
-      { id: 'en:chocolate-bars', label: 'Chocolate bars', taxonomy: 'category' },
-    ])
-  })
-
-  it('defaults to the category taxonomy', async () => {
-    const client = stubClient(OPTIONS)
-
-    await suggestTaxonomy(client, { q: 'choc' })
-
-    expect(client.get.mock.calls[0]![1].taxonomy_names).toBe('category')
-  })
-
-  it('forwards the requested taxonomy', async () => {
-    const client = stubClient(OPTIONS)
-
-    await suggestTaxonomy(client, { q: 'nest', taxonomy: 'brand' })
-
-    expect(client.get.mock.calls[0]![1].taxonomy_names).toBe('brand')
-  })
-
-  /**
-   * A one-character prefix matches most of a taxonomy and suggests nothing
-   * useful, so it is answered locally rather than spent against the endpoint
-   * with the tightest rate limit.
-   */
-  it.each([[''], ['c'], ['  ']])('answers %j locally without calling upstream', async (q) => {
-    const client = stubClient(OPTIONS)
-
-    await expect(suggestTaxonomy(client, { q })).resolves.toEqual([])
-    expect(client.get).not.toHaveBeenCalled()
-  })
-
-  it('rejects an unknown taxonomy rather than forwarding it', async () => {
-    const client = stubClient(OPTIONS)
-
-    await expect(suggestTaxonomy(client, { q: 'choc', taxonomy: 'nonsense' })).resolves.toEqual([])
-    expect(client.get).not.toHaveBeenCalled()
-  })
-
-  it('degrades to an empty dropdown when upstream changes shape', async () => {
-    await expect(
-      suggestTaxonomy(stubClient({ options: 'not a list' }), { q: 'choc' }),
-    ).resolves.toEqual([])
-  })
-
-  it('surfaces a transport failure, unlike a shape mismatch', async () => {
-    const client: UpstreamClient = {
-      get: vi
-        .fn()
-        .mockRejectedValue(Object.assign(new Error('down'), { response: { status: 503 } })),
-    }
-
-    await expect(suggestTaxonomy(client, { q: 'choc' })).rejects.toMatchObject({ statusCode: 502 })
   })
 })
