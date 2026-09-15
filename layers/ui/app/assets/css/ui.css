@@ -285,3 +285,142 @@
     transform: translateY(0);
   }
 }
+
+/* Select.
+ *
+ * Two layers of styling for one control. The first works everywhere and covers
+ * the closed state; the second only applies where the customizable select API
+ * exists and covers the open picker. Written in that order deliberately, so the
+ * fallback is the thing that always holds and the enhancement is additive.
+ */
+@layer components {
+  .ui-select {
+    appearance: none;
+    /* Room on the right for the arrow drawn by the component. */
+    padding: 0.4375rem 2rem 0.4375rem 0.75rem;
+    border: 1px solid var(--color-edge);
+    border-radius: var(--radius-control);
+    background-color: var(--color-surface-raised);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+      border-color 120ms ease,
+      background-color 120ms ease;
+  }
+
+  .ui-select:hover:not(:disabled) {
+    border-color: var(--color-edge-strong);
+    background-color: var(--color-surface-hover);
+  }
+
+  .ui-select:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ui-select {
+      transition: none;
+    }
+  }
+
+  /* From here down: only browsers that can style the picker itself. Everything
+   * above already gave them a correct control, so nothing here is required. */
+  @supports (appearance: base-select) {
+    .ui-select,
+    .ui-select::picker(select) {
+      appearance: base-select;
+    }
+
+    /* The engine draws its own arrow once the picker is stylable; the component
+     * already renders one that follows the theme. */
+    .ui-select::picker-icon {
+      display: none;
+    }
+
+    .ui-select:open {
+      border-color: var(--color-edge-accent);
+    }
+
+    .ui-select::picker(select) {
+      border: 1px solid var(--color-edge);
+      border-radius: var(--radius-card);
+      background-color: var(--color-surface-overlay);
+      box-shadow: var(--shadow-overlay);
+      padding: 0.25rem;
+      /* The picker is a popover in the top layer, so it inherits nothing. */
+      color: var(--color-ink);
+      font-family: var(--font-sans);
+      /* Anchored to the control rather than to the viewport. */
+      margin-block-start: 0.25rem;
+      min-width: anchor-size(width);
+
+      opacity: 0;
+      translate: 0 -0.25rem;
+      transition:
+        opacity 120ms ease,
+        translate 120ms ease,
+        overlay 120ms allow-discrete,
+        display 120ms allow-discrete;
+    }
+
+    .ui-select:open::picker(select) {
+      opacity: 1;
+      translate: 0 0;
+    }
+
+    /* Without this the picker animates out but jumps in. */
+    @starting-style {
+      .ui-select:open::picker(select) {
+        opacity: 0;
+        translate: 0 -0.25rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .ui-select::picker(select) {
+        transition: none;
+      }
+    }
+
+    .ui-select option {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4375rem 0.625rem;
+      border-radius: var(--radius-control);
+      font-size: 0.8125rem;
+      line-height: 1.4;
+      color: var(--color-ink);
+      cursor: pointer;
+    }
+
+    /* `:checked` is the selected value, `:hover`/`:focus` is where the pointer
+     * or the keyboard currently is. They are different states and the picker
+     * shows both at once, so they must not share a treatment. */
+    .ui-select option:hover,
+    .ui-select option:focus {
+      background-color: var(--color-surface-hover);
+      outline: none;
+    }
+
+    .ui-select option:checked {
+      color: var(--color-ink-accent);
+      font-weight: 600;
+    }
+
+    /* The tick the engine adds for the selected option. Sized and coloured
+     * rather than hidden: it is the only cue distinguishing the selected row
+     * from the one under the pointer. */
+    .ui-select option::checkmark {
+      order: 1;
+      margin-inline-start: auto;
+      color: var(--color-accent);
+      font-size: 0.75rem;
+    }
+  }
+}

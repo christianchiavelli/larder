@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { isDark, toggle } = useTheme()
+const { toggle } = useTheme()
 const { siteName } = useRuntimeConfig().public
 </script>
 
@@ -69,15 +69,28 @@ const { siteName } = useRuntimeConfig().public
         </AppRailLink>
       </nav>
 
+      <!--
+        Both icons are rendered and CSS picks one.
+
+        The server cannot know the visitor's theme: the preference lives in
+        their localStorage. Branching on `isDark` here therefore renders the
+        moon on the server and, for anyone using dark mode, the sun on the
+        client, which is a hydration mismatch that only that half of users ever
+        hits. Vue then discards and re-renders the subtree.
+
+        The inline bootstrap script has already put `.dark` on <html> before
+        first paint, so the `dark:` variants resolve correctly in the very first
+        frame with no JavaScript involved. `display: none` also removes an icon
+        from the accessibility tree, which is what lets each one carry its own
+        label without a screen reader announcing both.
+      -->
       <button
         type="button"
         class="mt-auto flex size-10 items-center justify-center rounded-control text-chrome-ink transition-colors hover:bg-chrome-raised hover:text-chrome-ink-strong motion-reduce:transition-none"
-        :aria-pressed="isDark"
-        :aria-label="isDark ? 'Switch to light theme' : 'Switch to dark theme'"
         @click="toggle()"
       >
         <svg
-          class="size-[1.15rem]"
+          class="size-[1.15rem] dark:hidden"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -86,14 +99,26 @@ const { siteName } = useRuntimeConfig().public
           stroke-linejoin="round"
           aria-hidden="true"
         >
-          <template v-if="isDark">
-            <circle cx="12" cy="12" r="4.2" />
-            <path
-              d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"
-            />
-          </template>
-          <path v-else d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />
+          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />
         </svg>
+        <span class="sr-only dark:hidden">Switch to dark theme</span>
+
+        <svg
+          class="hidden size-[1.15rem] dark:block"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="4.2" />
+          <path
+            d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"
+          />
+        </svg>
+        <span class="sr-only hidden dark:block">Switch to light theme</span>
       </button>
     </div>
 

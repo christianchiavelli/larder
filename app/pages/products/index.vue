@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { watchDebounced } from '@vueuse/core'
 import { NUTRI_SCORE_GRADES, NOVA_GROUPS, NOVA_SHORT_LABELS } from '#shared/domain/nutrition'
-import { SORT_OPTIONS, activeFilterCount, hasActiveFilters } from '#shared/domain/search'
+import {
+  SORT_OPTIONS,
+  activeFilterCount,
+  hasActiveFilters,
+  type SortOption,
+} from '#shared/domain/search'
 
 useHead({ title: 'Products' })
 
@@ -39,6 +44,18 @@ watchDebounced(
   },
   { debounce: 350 },
 )
+
+/**
+ * Writable so the select can bind to it directly. The getter reads the URL and
+ * the setter writes back through the router, which keeps the address bar as the
+ * only place this value lives.
+ */
+const sortValue = computed<SortOption>({
+  get: () => query.value.sort,
+  set: (value) => {
+    setSort(value)
+  },
+})
 
 const result = computed(() => state.value.data)
 const isLoading = computed(() => asyncStatus.value === 'loading')
@@ -176,19 +193,7 @@ const showingFilters = computed(() => hasActiveFilters(query.value))
             />
           </div>
 
-          <div class="flex items-center gap-2">
-            <label for="product-sort" class="shrink-0 text-label text-ink-muted">Sort</label>
-            <select
-              id="product-sort"
-              class="rounded-control border border-edge bg-surface-raised px-2 py-2 text-label text-ink"
-              :value="query.sort"
-              @change="setSort(($event.target as HTMLSelectElement).value as never)"
-            >
-              <option v-for="option in SORT_OPTIONS" :key="option.value" :value="option.value">
-                {{ option.label }}
-              </option>
-            </select>
-          </div>
+          <UiSelectField v-model="sortValue" label="Sort" :options="SORT_OPTIONS" />
         </div>
 
         <!--

@@ -44,7 +44,18 @@ export default defineConfig({
     : {
         command: `node .output/server/index.mjs`,
         url: BASE_URL,
-        reuseExistingServer: !process.env.CI,
+
+        /**
+         * Never reuse. A server left over from an earlier session keeps serving
+         * the build it started with, so a run after `pnpm run build` silently
+         * tests the previous output: assets 404, every page renders unstyled,
+         * and dozens of specs fail for a reason none of them is about. It has
+         * happened twice in this repository.
+         *
+         * The alternative is a few seconds per run, which is a good price for a
+         * suite whose failures mean what they say.
+         */
+        reuseExistingServer: false,
         timeout: 120_000,
         env: { PORT: String(PORT), NITRO_PORT: String(PORT) },
       },

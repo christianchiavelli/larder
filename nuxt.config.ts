@@ -20,6 +20,17 @@ export default defineNuxtConfig({
     plugins: [tailwindcss()],
   },
 
+  vue: {
+    compilerOptions: {
+      // `<selectedcontent>` is part of the customizable select API and is too
+      // new for Vue's element list, so without this the compiler treats it as
+      // an unknown component and renders nothing where the selected option's
+      // text should be. It has no hyphen, so the usual custom-element heuristic
+      // does not catch it either.
+      isCustomElement: (tag) => tag === 'selectedcontent',
+    },
+  },
+
   // Private by default. Only `public` reaches the browser, and the upstream
   // User-Agent must not: Open Food Facts identifies callers by it.
   runtimeConfig: {
