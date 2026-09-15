@@ -23,19 +23,6 @@ const props = withDefaults(
 )
 
 const theme = useChartTheme()
-const numberFormatter = new Intl.NumberFormat('en')
-
-/**
- * Axis ticks use compact notation because these counts run into the millions,
- * and "2,395,620" repeated across an axis overlaps into an unreadable smear at
- * any width this chart is given. Full precision stays in the tooltip, the bar
- * labels and the data table.
- */
-const compactFormatter = new Intl.NumberFormat('en', {
-  notation: 'compact',
-  maximumFractionDigits: 1,
-})
-
 const top = computed(() => [...props.items].sort((a, b) => b.count - a.count).slice(0, props.limit))
 
 /** Long taxonomy names need a ceiling, or the plot area disappears. */
@@ -51,7 +38,7 @@ const option = computed<EChartsOption>(() => ({
     type: 'value',
     axisLabel: {
       color: theme.value.inkMuted,
-      formatter: (value: number) => compactFormatter.format(value),
+      formatter: (value: number) => formatCompact(value),
     },
     splitLine: { lineStyle: { color: theme.value.grid, type: 'dashed' } },
   },
@@ -76,7 +63,7 @@ const option = computed<EChartsOption>(() => ({
       const item = first ? top.value[first.dataIndex] : undefined
       // The tooltip carries the untruncated label, which is the only place a
       // pointer user can read the full name.
-      return item ? `${item.label}<br>${numberFormatter.format(item.count)} products` : ''
+      return item ? `${item.label}<br>${formatCount(item.count)} products` : ''
     },
   },
   series: [
@@ -92,7 +79,7 @@ const option = computed<EChartsOption>(() => ({
         fontSize: 11,
         // `value` is typed as the whole union a dataset cell can hold, so it
         // is coerced rather than asserted.
-        formatter: (params) => compactFormatter.format(Number(params.value ?? 0)),
+        formatter: (params) => formatCompact(Number(params.value ?? 0)),
       },
     },
   ],
@@ -100,7 +87,7 @@ const option = computed<EChartsOption>(() => ({
 
 const dataTable = computed(() => ({
   columns: [props.title, 'Products'],
-  rows: top.value.map((item) => [item.label, numberFormatter.format(item.count)]),
+  rows: top.value.map((item) => [item.label, formatCount(item.count)]),
 }))
 </script>
 

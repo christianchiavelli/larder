@@ -19,6 +19,7 @@ const props = defineProps<{
 }>()
 
 const theme = useChartTheme()
+const grades = useNutriScorePalette()
 
 const ORDER: NutriScore[] = [...NUTRI_SCORE_GRADES, 'unknown']
 
@@ -28,23 +29,7 @@ const entries = computed(() =>
 
 const total = computed(() => entries.value.reduce((sum, entry) => sum + entry.count, 0))
 
-const numberFormatter = new Intl.NumberFormat('en')
-
-/**
- * Axis ticks use compact notation because these counts run into the millions,
- * and "2,395,620" repeated across an axis overlaps into an unreadable smear at
- * any width this chart is given. Full precision stays in the tooltip, the bar
- * labels and the data table.
- */
-const compactFormatter = new Intl.NumberFormat('en', {
-  notation: 'compact',
-  maximumFractionDigits: 1,
-})
-
-function share(count: number): string {
-  if (total.value === 0) return '0%'
-  return `${((count / total.value) * 100).toFixed(1)}%`
-}
+const share = (count: number) => formatShare(count, total.value)
 
 const option = computed<EChartsOption>(() => ({
   // The library's own accessibility layer is left off: it generates a prose
@@ -56,7 +41,7 @@ const option = computed<EChartsOption>(() => ({
     type: 'value',
     axisLabel: {
       color: theme.value.inkMuted,
-      formatter: (value: number) => compactFormatter.format(value),
+      formatter: (value: number) => formatCompact(value),
     },
     splitLine: { lineStyle: { color: theme.value.grid, type: 'dashed' } },
   },
@@ -85,7 +70,7 @@ const option = computed<EChartsOption>(() => ({
       const entry = first ? entries.value[first.dataIndex] : undefined
       if (!entry) return ''
       const name = entry.grade === 'unknown' ? 'No grade' : `Grade ${entry.grade.toUpperCase()}`
-      return `${name}<br>${numberFormatter.format(entry.count)} (${share(entry.count)})`
+      return `${name}<br>${formatCount(entry.count)} (${share(entry.count)})`
     },
   },
   series: [
@@ -95,7 +80,7 @@ const option = computed<EChartsOption>(() => ({
         value: entry.count,
         // Each bar carries the grade's own regulated colour, so the chart and
         // the badges on the cards below agree without a legend.
-        itemStyle: { color: theme.value.nutriScore[entry.grade], borderRadius: [0, 4, 4, 0] },
+        itemStyle: { color: grades.value[entry.grade], borderRadius: [0, 4, 4, 0] },
       })),
       barMaxWidth: 28,
       /**
@@ -111,7 +96,7 @@ const option = computed<EChartsOption>(() => ({
         fontSize: 11,
         // `value` is typed as the whole union a dataset cell can hold, so it
         // is coerced rather than asserted.
-        formatter: (params) => compactFormatter.format(Number(params.value ?? 0)),
+        formatter: (params) => formatCompact(Number(params.value ?? 0)),
       },
     },
   ],
@@ -121,7 +106,7 @@ const dataTable = computed(() => ({
   columns: ['Nutri-Score', 'Products', 'Share'],
   rows: entries.value.map((entry) => [
     entry.grade === 'unknown' ? 'No grade' : entry.grade.toUpperCase(),
-    numberFormatter.format(entry.count),
+    formatCount(entry.count),
     share(entry.count),
   ]),
 }))

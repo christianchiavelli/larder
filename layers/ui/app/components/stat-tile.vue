@@ -25,16 +25,8 @@ const props = withDefaults(
   { precision: 0, size: 'md', loading: false },
 )
 
-const formatter = computed(
-  () =>
-    new Intl.NumberFormat('en', {
-      minimumFractionDigits: props.precision,
-      maximumFractionDigits: props.precision,
-    }),
-)
-
 const formatted = computed(() =>
-  props.value === null ? null : formatter.value.format(props.value),
+  props.value === null ? null : formatMeasure(props.value, props.precision),
 )
 </script>
 
