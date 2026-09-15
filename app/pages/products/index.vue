@@ -62,17 +62,14 @@ const showingFilters = computed(() => hasActiveFilters(query.value))
 </script>
 
 <template>
-  <div class="flex flex-col gap-6">
-    <header class="flex flex-col gap-1">
-      <h1 class="text-title text-ink">Products</h1>
-      <p class="text-body text-ink-muted">
-        Search a public catalogue of packaged food by category, brand, nutrition grade and
-        processing level.
-      </p>
-    </header>
+  <div>
+    <UiPageHeader
+      title="Products"
+      description="Search a public catalogue of packaged food by category, brand, nutrition grade and processing level."
+    />
 
     <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
-      <aside class="flex shrink-0 flex-col gap-5 lg:w-64" aria-label="Filters">
+      <aside class="flex shrink-0 flex-col gap-5 lg:w-[17rem]" aria-label="Filters">
         <div class="flex items-center justify-between gap-2">
           <h2 class="text-subheading text-ink">
             Filters
@@ -156,8 +153,18 @@ const showingFilters = computed(() => hasActiveFilters(query.value))
         />
       </aside>
 
-      <div class="flex min-w-0 flex-1 flex-col gap-4">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <!--
+        The results live on a raised panel, and the rows sit on the recessed
+        surface inside it. Three levels rather than two: without the middle one
+        a white row on a white panel has only its border to separate it, and the
+        list reads as a single block of text.
+      -->
+      <div
+        class="flex min-w-0 flex-1 flex-col overflow-hidden rounded-card border border-edge-subtle bg-surface-raised shadow-card"
+      >
+        <div
+          class="flex flex-col gap-3 border-b border-edge-subtle p-3 sm:flex-row sm:items-center"
+        >
           <div class="flex-1">
             <label for="product-search" class="sr-only">Search products</label>
             <input
@@ -188,7 +195,11 @@ const showingFilters = computed(() => hasActiveFilters(query.value))
           Politely announced, so a screen reader hears the new count after a
           filter change instead of the results silently replacing themselves.
         -->
-        <p class="text-label text-ink-muted" aria-live="polite" data-testid="result-summary">
+        <p
+          class="border-b border-edge-subtle bg-surface px-3 py-2 text-caption text-ink-muted"
+          aria-live="polite"
+          data-testid="result-summary"
+        >
           <template v-if="totalLabel">
             <span data-numeric>{{ totalLabel }}</span>
             {{ result!.totalCount === 1 ? 'product' : 'products' }}
@@ -199,56 +210,62 @@ const showingFilters = computed(() => hasActiveFilters(query.value))
           <UiSkeleton v-else class="h-4 w-32" />
         </p>
 
-        <UiEmptyState
-          v-if="error"
-          tone="error"
-          title="Could not load products"
-          :description="error.message"
-          @retry="refresh()"
-        />
+        <div class="flex flex-1 flex-col gap-2 bg-surface p-2">
+          <UiEmptyState
+            v-if="error"
+            tone="error"
+            title="Could not load products"
+            :description="error.message"
+            @retry="refresh()"
+          />
 
-        <UiEmptyState
-          v-else-if="result && result.items.length === 0"
-          title="No products match these filters"
-          description="Try removing a filter or searching for a broader term."
-        >
-          <button
-            v-if="showingFilters"
-            type="button"
-            class="mt-2 rounded-control border border-edge-strong px-3 py-1.5 text-label text-ink hover:bg-surface-hover"
-            @click="clearFilters()"
+          <UiEmptyState
+            v-else-if="result && result.items.length === 0"
+            title="No products match these filters"
+            description="Try removing a filter or searching for a broader term."
           >
-            Clear all filters
-          </button>
-        </UiEmptyState>
+            <button
+              v-if="showingFilters"
+              type="button"
+              class="mt-2 rounded-control border border-edge-strong px-3 py-1.5 text-label text-ink hover:bg-surface-hover"
+              @click="clearFilters()"
+            >
+              Clear all filters
+            </button>
+          </UiEmptyState>
 
-        <template v-else>
-          <!--
+          <template v-else>
+            <!--
             Dimmed rather than replaced while refetching. `placeholderData`
-            holds the previous page, so the grid keeps its height and the
+            holds the previous page, so the list keeps its height and the
             reader keeps their place instead of the layout collapsing.
           -->
-          <ul
-            class="grid grid-cols-1 gap-3 transition-opacity sm:grid-cols-2 xl:grid-cols-3 motion-reduce:transition-none"
-            :class="isLoading && 'opacity-60'"
-          >
-            <li v-for="product in result?.items ?? []" :key="product.code">
-              <ProductCard :product="product" />
-            </li>
+            <ul
+              class="flex flex-col gap-1.5 transition-opacity motion-reduce:transition-none"
+              :class="isLoading && 'opacity-60'"
+            >
+              <li v-for="product in result?.items ?? []" :key="product.code">
+                <ProductRow :product="product" />
+              </li>
 
-            <li v-for="index in result ? 0 : 6" :key="`skeleton-${index}`">
-              <UiSkeleton rounded="card" class="h-44 w-full" />
-            </li>
-          </ul>
+              <li v-for="index in result ? 0 : 8" :key="`skeleton-${index}`">
+                <UiSkeleton rounded="card" class="h-[4.5rem] w-full" />
+              </li>
+            </ul>
+          </template>
+        </div>
 
+        <div
+          v-if="result && result.pageCount > 1"
+          class="border-t border-edge-subtle bg-surface-raised p-3"
+        >
           <UiPagination
-            v-if="result"
             :page="result.page"
             :page-count="result.pageCount"
             :disabled="isLoading"
             @change="setPage"
           />
-        </template>
+        </div>
       </div>
     </div>
   </div>

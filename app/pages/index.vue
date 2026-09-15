@@ -52,13 +52,10 @@ const scored = computed(() => {
 
 <template>
   <div class="flex flex-col gap-6">
-    <header class="flex flex-col gap-1">
-      <h1 class="text-display text-ink">Larder</h1>
-      <p class="max-w-prose text-body text-ink-muted">
-        Nutrition, processing and labelling across a public catalogue of packaged food. Data comes
-        from Open Food Facts, where every record is contributed by the public.
-      </p>
-    </header>
+    <UiPageHeader
+      title="Catalogue overview"
+      description="Nutrition, processing and labelling across a public catalogue of packaged food."
+    />
 
     <UiEmptyState
       v-if="error"
@@ -70,8 +67,12 @@ const scored = computed(() => {
 
     <template v-else>
       <UiSurfaceCard>
-        <div class="grid gap-6 sm:grid-cols-3">
+        <!-- Divided rather than merely spaced: three figures in a row read as one
+             sentence without a rule between them, and these measure different
+             things. -->
+        <div class="grid gap-6 sm:grid-cols-3 sm:gap-0 sm:divide-x sm:divide-edge-subtle">
           <UiStatTile
+            class="sm:pr-6"
             label="Products graded"
             :value="catalogueSize"
             size="lg"
@@ -79,6 +80,7 @@ const scored = computed(() => {
             caption="Across the whole catalogue"
           />
           <UiStatTile
+            class="sm:px-6"
             label="Carry a Nutri-Score"
             :value="scored"
             unit="%"
@@ -88,6 +90,7 @@ const scored = computed(() => {
             caption="The rest have no grade on record"
           />
           <UiStatTile
+            class="sm:pl-6"
             label="Categories represented"
             :value="result?.facets.categories_tags?.length ?? null"
             size="lg"

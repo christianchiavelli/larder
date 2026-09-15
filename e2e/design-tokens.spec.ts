@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 
 /**
  * Guards against a class of failure nothing else in this repository can see.
@@ -15,21 +15,45 @@ import { expect, test } from '@playwright/test'
  * also used, was fine. The fix is the `@source` block in ui.css; this spec is
  * what will notice if it is ever removed or the paths drift.
  *
- * Asserting on computed styles is usually a smell, because it tests the
- * framework rather than the code. Here the framework's output *is* the
- * contract: a design token that does not reach the page is a broken token.
+ * Asserting on generated CSS is usually a smell, because it tests the framework
+ * rather than the code. Here the framework's output *is* the contract: a design
+ * token that does not reach the page is a broken token.
  */
 
-/** Resolves a utility by applying it to a throwaway element. */
-async function computeUtility(
-  page: import('@playwright/test').Page,
-  className: string,
-  property: string,
-): Promise<string> {
+/** Every rule selector in the document, flattened. */
+async function selectors(page: Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const found: string[] = []
+
+    const walk = (rules: CSSRuleList) => {
+      for (const rule of rules) {
+        if (rule instanceof CSSStyleRule) found.push(rule.selectorText)
+        // Utilities can be nested inside @layer or @media.
+        else if ('cssRules' in rule) walk((rule as CSSGroupingRule).cssRules)
+      }
+    }
+
+    for (const sheet of document.styleSheets) {
+      try {
+        walk(sheet.cssRules)
+      } catch {
+        // A cross-origin sheet cannot be read. None of ours are, so an
+        // unreadable sheet is simply not one we are asserting about.
+      }
+    }
+
+    return found
+  })
+}
+
+/** Resolves a utility by applying it to an element outside the layout flow. */
+async function computeUtility(page: Page, className: string, property: string): Promise<string> {
   return page.evaluate(
     ([cls, prop]) => {
       const probe = document.createElement('div')
       probe.className = cls!
+      probe.style.position = 'absolute'
+      probe.style.visibility = 'hidden'
       document.body.append(probe)
       const value = getComputedStyle(probe).getPropertyValue(prop!)
       probe.remove()
@@ -57,6 +81,11 @@ test.describe('design tokens reach the browser', () => {
     }
   })
 
+  test('the chrome palette resolves', async ({ page }) => {
+    expect(await computeUtility(page, 'bg-chrome', 'background-color')).not.toBe(TRANSPARENT)
+    expect(await computeUtility(page, 'bg-chrome-raised', 'background-color')).not.toBe(TRANSPARENT)
+  })
+
   test('layer-only sizing utilities resolve', async ({ page }) => {
     // Only tokens something actually uses. Tailwind generates on demand, so
     // asserting on an unused one tests nothing about source scanning and fails
@@ -67,15 +96,21 @@ test.describe('design tokens reach the browser', () => {
   })
 
   /**
-   * A typography token that does not exist falls back to the inherited size
-   * with no warning anywhere, which makes it invisible in review.
+   * Asserts the rule was generated, not that each step has a unique size.
+   *
+   * Two steps are allowed to share a font size and differ only in weight, which
+   * `text-subheading` and `text-body` do. Comparing computed sizes would call
+   * that a failure. What actually matters is whether the utility exists at all,
+   * so this looks for the rule itself.
    */
-  test('every named typography step resolves to its own size', async ({ page }) => {
+  test('every named typography step is generated', async ({ page }) => {
+    const rules = await selectors(page)
+
     const steps = [
-      'text-display',
       'text-title',
       'text-heading',
       'text-subheading',
+      'text-body',
       'text-label',
       'text-caption',
       'text-overline',
@@ -83,19 +118,32 @@ test.describe('design tokens reach the browser', () => {
       'text-metric-sm',
     ]
 
-    const sizes = new Map<string, string>()
     for (const step of steps) {
-      sizes.set(step, await computeUtility(page, step, 'font-size'))
+      expect(
+        rules.some((selector) => selector.split(/[\s,>]+/).includes(`.${step}`)),
+        `.${step} was never generated`,
+      ).toBe(true)
     }
+  })
 
-    const bodySize = await computeUtility(page, 'text-body', 'font-size')
+  /**
+   * The pairing is the identity: headings are serif, anything a reader scans or
+   * compares is sans. If a step silently lost its family the page would still
+   * render, just uniformly and anonymously.
+   */
+  test('headings are serif and figures are sans', async ({ page }) => {
+    expect(await computeUtility(page, 'text-title', 'font-family')).toContain('Fraunces')
+    expect(await computeUtility(page, 'text-heading', 'font-family')).toContain('Fraunces')
+    expect(await computeUtility(page, 'text-body', 'font-family')).toContain('Public Sans')
+    // Fraunces' numerals are proportional, so a metric set in it could not line
+    // up in a column.
+    expect(await computeUtility(page, 'text-metric', 'font-family')).toContain('Public Sans')
+  })
 
-    for (const [step, size] of sizes) {
-      // A missing token inherits, so equalling the body size is the signature
-      // of a token that was never generated.
-      if (step === 'text-body') continue
-      expect(size, `${step} fell back to the inherited size`).not.toBe(bodySize)
-    }
+  test('figures are tabular so columns line up', async ({ page }) => {
+    expect(await computeUtility(page, 'text-metric', 'font-variant-numeric')).toContain(
+      'tabular-nums',
+    )
   })
 
   test('Nutri-Score keeps its regulated colours rather than the theme palette', async ({

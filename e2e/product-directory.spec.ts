@@ -22,7 +22,7 @@ test.describe('product directory', () => {
     await page.goto('/products')
 
     await expect(page.getByRole('heading', { name: 'Products', level: 1 })).toBeVisible()
-    await expect(page.locator('article').first()).toBeVisible()
+    await expect(page.getByTestId('product-row').first()).toBeVisible()
 
     await context.close()
   })
@@ -110,7 +110,9 @@ test.describe('product directory', () => {
   test('navigates to the product the card links to', async ({ page }) => {
     await page.goto('/products')
 
-    const firstProduct = page.locator('article h3 a').first()
+    // Addressed by test id rather than by tag: whether a result is a card or a
+    // row is a layout decision, and a spec about navigation should survive it.
+    const firstProduct = page.getByTestId('product-row').first().locator('h3 a')
     const href = await firstProduct.getAttribute('href')
     await firstProduct.click()
 

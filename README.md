@@ -107,6 +107,36 @@ catalogue, "not reported" and "none" are different facts, and a reader cannot
 tell them apart after the fact. The same rule governs "unknown" Nutri-Score and
 NOVA values: they are first-class states in the type, not errors to recover from.
 
+### The palette had to work around the data
+
+Nutri-Score runs green to red. NOVA runs green to red beside it. That arc of the
+colour wheel already means something specific on every screen in this app, so a
+brand colour anywhere in it would be read as a grade.
+
+The accent is therefore deep teal, chosen by elimination rather than taste, and
+it is what makes the charts legible: a teal bar is obviously a quantity, and a
+green-to-red badge is obviously a rating. Series colours are picked for
+separation from the Nutri-Score ramp for the same reason.
+
+Everything else is warm — an off-white that reads as paper, an espresso chrome,
+greys carrying a trace of the same hue. It is a catalogue of food, and the
+surface should not feel like a spreadsheet.
+
+### Typography carries the identity
+
+Headings are [Fraunces](https://fonts.google.com/specimen/Fraunces), a variable
+serif, used with its softness and "wonk" axes dialled to where it reads as
+editorial rather than decorative. Everything a reader scans or compares is
+[Public Sans](https://fonts.google.com/specimen/Public+Sans).
+
+That pairing is doing the work of a whole visual identity. It marks where a page
+begins without a rule or a coloured band, and it is most of the distance between
+a layout that reads as a product and one that reads as a starter template.
+
+Figures never use the serif: Fraunces' numerals are proportional, and a column
+of them cannot be compared. `text-metric` is sans and tabular, and an end-to-end
+test asserts both.
+
 ### Design system as a Nuxt layer
 
 `layers/ui` holds tokens, primitives and the chart theme. Being a layer rather
@@ -150,7 +180,7 @@ used _only_ in the design system was never generated.
 
 `bg-nutri-a` computed to transparent while `bg-surface-raised`, which the app
 also used, was fine. The class was in the markup, the token resolved, the build
-succeeded, and lint, types and 180-odd unit tests all passed.
+succeeded, and lint, types and the whole unit suite all passed.
 
 Fixed with an explicit `@source`. `e2e/design-tokens.spec.ts` now asserts these
 utilities resolve in a real browser, because nothing in the type system can.
@@ -231,7 +261,7 @@ No API key or account is needed; Open Food Facts is open data under
 pnpm run lint        # ESLint (formatting is Prettier's alone)
 pnpm run typecheck   # vue-tsc
 pnpm run test        # Vitest, 189 specs
-pnpm run e2e         # Playwright against a production build
+pnpm run e2e         # Playwright, 17 specs, against a production build
 ```
 
 `pnpm run ci` runs lint, types and unit tests together.

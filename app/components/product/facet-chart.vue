@@ -53,14 +53,16 @@ const option = computed<EChartsOption>(() => ({
       color: theme.value.inkMuted,
       formatter: (value: number) => compactFormatter.format(value),
     },
-    splitLine: { lineStyle: { color: theme.value.grid } },
+    splitLine: { lineStyle: { color: theme.value.grid, type: 'dashed' } },
   },
   yAxis: {
     type: 'category',
     inverse: true,
     data: top.value.map((item) => truncate(item.label)),
     axisLabel: { color: theme.value.ink },
-    axisLine: { lineStyle: { color: theme.value.axis } },
+    // No axis rule and no ticks. The category labels already anchor the bars,
+    // and a heavy vertical line competes with the data it is supposed to frame.
+    axisLine: { show: false },
     axisTick: { show: false },
   },
   tooltip: {

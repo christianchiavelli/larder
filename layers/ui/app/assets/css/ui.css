@@ -33,10 +33,16 @@
   --color-surface-raised: var(--surface-raised);
   --color-surface-sunken: var(--surface-sunken);
   --color-surface-overlay: var(--surface-overlay);
-  --color-surface-inverse: var(--surface-inverse);
   --color-surface-accent: var(--surface-accent);
   --color-surface-hover: var(--surface-hover);
   --color-surface-active: var(--surface-active);
+
+  /* Application chrome: sidebar and top bar. Dark in both themes. */
+  --color-chrome: var(--chrome-base);
+  --color-chrome-raised: var(--chrome-raised);
+  --color-chrome-ink: var(--chrome-content);
+  --color-chrome-ink-strong: var(--chrome-content-strong);
+  --color-chrome-edge: var(--chrome-edge);
 
   /* Borders and dividers */
   --color-edge-subtle: var(--border-subtle);
@@ -92,77 +98,126 @@
   --color-viz-2: var(--viz-2);
   --color-viz-3: var(--viz-3);
   --color-viz-4: var(--viz-4);
-  --color-viz-5: var(--viz-5);
-  --color-viz-6: var(--viz-6);
-  --color-viz-7: var(--viz-7);
-  --color-viz-8: var(--viz-8);
   --color-viz-grid: var(--viz-grid);
   --color-viz-axis: var(--viz-axis);
   --color-viz-track: var(--viz-track);
 }
 
 @theme {
-  /* One named step per role. There is no `text-lg` in this system: a size with
-   * no role attached is how a design system starts drifting. */
-  --text-display: 2.5rem;
-  --text-display--line-height: 1.1;
-  --text-display--letter-spacing: -0.02em;
-  --text-display--font-weight: 700;
+  /* Fraunces is a variable serif with optical-size, softness and "wonk" axes.
+   * Used with restraint it reads as editorial rather than decorative, which is
+   * the register a food catalogue wants and the one a UI-default sans cannot
+   * reach. Public Sans carries everything a reader has to scan or compare. */
+  --font-serif: 'Fraunces', 'Fraunces Fallback', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Public Sans', 'Public Sans Fallback', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', monospace;
 
-  --text-title: 1.75rem;
-  --text-title--line-height: 1.2;
-  --text-title--letter-spacing: -0.015em;
-  --text-title--font-weight: 650;
+  --radius-control: 0.375rem;
+  --radius-card: 0.625rem;
+  --radius-pill: 999px;
 
-  --text-heading: 1.25rem;
-  --text-heading--line-height: 1.3;
-  --text-heading--letter-spacing: -0.01em;
-  --text-heading--font-weight: 600;
+  --shadow-card: 0 1px 2px -1px rgb(28 20 12 / 0.06), 0 1px 3px 0 rgb(28 20 12 / 0.05);
+  --shadow-raised: 0 4px 6px -2px rgb(28 20 12 / 0.05), 0 10px 20px -6px rgb(28 20 12 / 0.09);
+  --shadow-overlay: 0 12px 24px -8px rgb(28 20 12 / 0.15), 0 4px 8px -4px rgb(28 20 12 / 0.09);
 
-  --text-subheading: 1rem;
-  --text-subheading--line-height: 1.4;
-  --text-subheading--font-weight: 600;
-
-  --text-body: 0.9375rem;
-  --text-body--line-height: 1.55;
-
-  --text-label: 0.8125rem;
-  --text-label--line-height: 1.4;
-  --text-label--font-weight: 500;
-
-  --text-caption: 0.75rem;
-  --text-caption--line-height: 1.35;
-
-  --text-overline: 0.6875rem;
-  --text-overline--line-height: 1.2;
-  --text-overline--letter-spacing: 0.08em;
-  --text-overline--font-weight: 600;
-
-  /* Numbers that carry meaning get their own step, always tabular */
-  --text-metric: 2rem;
-  --text-metric--line-height: 1.05;
-  --text-metric--letter-spacing: -0.02em;
-  --text-metric--font-weight: 650;
-
-  --text-metric-sm: 1.375rem;
-  --text-metric-sm--line-height: 1.1;
-  --text-metric-sm--letter-spacing: -0.015em;
-  --text-metric-sm--font-weight: 650;
-
-  --font-sans:
-    'Inter Variable', 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: 'JetBrains Mono Variable', ui-monospace, 'SF Mono', 'Cascadia Code', monospace;
-
-  --radius-control: 0.5rem;
-  --radius-card: 0.875rem;
-
-  --shadow-card: 0 1px 2px -1px rgb(0 0 0 / 0.08), 0 1px 3px 0 rgb(0 0 0 / 0.06);
-  --shadow-raised: 0 4px 6px -2px rgb(0 0 0 / 0.06), 0 10px 20px -6px rgb(0 0 0 / 0.1);
-  --shadow-overlay: 0 12px 24px -8px rgb(0 0 0 / 0.16), 0 4px 8px -4px rgb(0 0 0 / 0.1);
-
-  /* Height of the sticky app bar. Pages offset scroll anchors against this, so
-   * it has to be a token rather than a number repeated in a dozen places. */
+  /* Chrome dimensions. Tokens rather than repeated numbers, because the sticky
+   * header and the sidebar have to agree on them in several places. */
   --spacing-appbar: 3.5rem;
+  --spacing-rail: 3.75rem;
+}
+
+/* Type scale.
+ *
+ * Declared as utilities rather than `--text-*` theme entries because a step has
+ * to carry its family as well as its size. The whole point of this scale is
+ * that headings are serif and everything a reader scans or compares is sans,
+ * and `--text-*` has no slot for a font family.
+ *
+ * There is no `text-lg` here. A size with no role attached is how a design
+ * system starts drifting. For the same reason there is no step without a
+ * consumer: Tailwind generates a utility only when it finds the class name, so
+ * an unused step is not merely dead, it does not exist, and the first component
+ * to reach for it would render unstyled with nothing reporting why.
+ */
+
+@utility text-title {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  font-weight: 600;
+  font-variation-settings:
+    'SOFT' 18,
+    'WONK' 1,
+    'opsz' 32;
+}
+
+@utility text-heading {
+  font-family: var(--font-serif);
+  font-size: 1.3125rem;
+  line-height: 1.3;
+  letter-spacing: -0.008em;
+  font-weight: 600;
+  font-variation-settings:
+    'SOFT' 12,
+    'WONK' 0,
+    'opsz' 20;
+}
+
+@utility text-subheading {
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  font-weight: 600;
+  letter-spacing: -0.004em;
+}
+
+@utility text-body {
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+@utility text-label {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+@utility text-caption {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+@utility text-overline {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  letter-spacing: 0.07em;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Figures a reader compares. Always tabular, never serif: Fraunces' numerals
+ * are proportional and lovely, and unusable in a column. */
+@utility text-metric {
+  font-family: var(--font-sans);
+  font-size: 2.125rem;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+@utility text-metric-sm {
+  font-family: var(--font-sans);
+  font-size: 1.4375rem;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 @layer base {
@@ -185,8 +240,8 @@
     background-color: var(--color-surface);
     color: var(--color-ink);
     font-family: var(--font-sans);
-    font-size: var(--text-body);
-    line-height: var(--text-body--line-height);
+    font-size: 0.9375rem;
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }

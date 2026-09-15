@@ -29,7 +29,23 @@ defineEmits<{ toggle: [key: string] }>()
 
 const expanded = ref(false)
 
-const countFormatter = new Intl.NumberFormat('en')
+/**
+ * Facet counts are magnitudes, not figures anyone reads precisely. "484,736"
+ * and "485K" carry the same decision, and the compact form gives the label
+ * beside it the room it needs: at full precision the two together fill the
+ * sidebar to within a pixel and the list reads as cramped.
+ *
+ * Below ten thousand the exact number is short enough to keep.
+ */
+const exactFormatter = new Intl.NumberFormat('en')
+const compactFormatter = new Intl.NumberFormat('en', {
+  notation: 'compact',
+  maximumFractionDigits: 0,
+})
+
+function formatCount(count: number): string {
+  return count >= 10_000 ? compactFormatter.format(count) : exactFormatter.format(count)
+}
 
 const visible = computed(() => {
   const selectedSet = new Set(props.selected)
@@ -74,8 +90,13 @@ const hiddenCount = computed(() => Math.max(0, props.items.length - props.limit)
           <span class="min-w-0 flex-1 truncate text-label text-ink" :title="item.label">
             {{ item.label }}
           </span>
-          <span v-if="item.count > 0" class="shrink-0 text-caption text-ink-subtle" data-numeric>
-            {{ countFormatter.format(item.count) }}
+          <span
+            v-if="item.count > 0"
+            class="shrink-0 text-caption text-ink-subtle tabular-nums"
+            :title="`${exactFormatter.format(item.count)} products`"
+            data-numeric
+          >
+            {{ formatCount(item.count) }}
           </span>
         </label>
       </li>

@@ -88,12 +88,9 @@ const isNotFound = computed(
 
           <ul v-if="product?.categories.length" class="mt-1 flex flex-wrap gap-1.5">
             <li v-for="category in product.categories.slice(-4)" :key="category.id">
-              <NuxtLink
-                :to="{ path: '/products', query: { category: category.id } }"
-                class="inline-block rounded-full border border-edge-subtle px-2 py-0.5 text-caption text-ink-muted hover:border-edge hover:text-ink"
-              >
+              <UiChip tone="neutral" :to="`/products?category=${encodeURIComponent(category.id)}`">
                 {{ category.label }}
-              </NuxtLink>
+              </UiChip>
             </li>
           </ul>
         </div>
@@ -162,12 +159,8 @@ const isNotFound = computed(
                 <dt class="text-overline text-ink-subtle uppercase">Additives</dt>
                 <dd>
                   <ul v-if="product?.additives.length" class="flex flex-wrap gap-1">
-                    <li
-                      v-for="additive in product.additives"
-                      :key="additive.id"
-                      class="rounded-full bg-surface-sunken px-2 py-0.5 text-caption text-ink-muted"
-                    >
-                      {{ additive.label }}
+                    <li v-for="additive in product.additives" :key="additive.id">
+                      <UiChip tone="muted">{{ additive.label }}</UiChip>
                     </li>
                   </ul>
                   <span v-else class="text-ink-subtle">None listed</span>
@@ -178,12 +171,8 @@ const isNotFound = computed(
                 <dt class="text-overline text-ink-subtle uppercase">Labels</dt>
                 <dd>
                   <ul class="flex flex-wrap gap-1">
-                    <li
-                      v-for="label in product.labels"
-                      :key="label.id"
-                      class="rounded-full bg-surface-accent px-2 py-0.5 text-caption text-ink-accent"
-                    >
-                      {{ label.label }}
+                    <li v-for="label in product.labels" :key="label.id">
+                      <UiChip tone="accent">{{ label.label }}</UiChip>
                     </li>
                   </ul>
                 </dd>

@@ -1,0 +1,37 @@
+<script setup lang="ts">
+/**
+ * One destination in the navigation rail.
+ *
+ * The rail is icon-only, which means the accessible name has to come from
+ * somewhere other than the visible label. It carries a real `aria-label`, and
+ * the tooltip is presentational only, so a screen reader announces the
+ * destination once rather than twice.
+ */
+defineProps<{
+  to: string
+  label: string
+}>()
+</script>
+
+<template>
+  <NuxtLink
+    :to="to"
+    :aria-label="label"
+    class="group relative flex size-10 items-center justify-center rounded-control text-chrome-ink transition-colors hover:bg-chrome-raised hover:text-chrome-ink-strong motion-reduce:transition-none"
+    active-class="bg-chrome-raised text-chrome-ink-strong"
+  >
+    <slot />
+
+    <!--
+      Pure decoration: the link already has an accessible name, so announcing
+      this as well would read the destination twice. It exists for pointer
+      users, who otherwise have only an icon to go on.
+    -->
+    <span
+      aria-hidden="true"
+      class="pointer-events-none absolute left-full z-50 ml-2 origin-left scale-95 rounded-control bg-chrome-raised px-2 py-1 text-caption whitespace-nowrap text-chrome-ink-strong opacity-0 shadow-overlay transition group-hover:scale-100 group-hover:opacity-100 motion-reduce:transition-none"
+    >
+      {{ label }}
+    </span>
+  </NuxtLink>
+</template>

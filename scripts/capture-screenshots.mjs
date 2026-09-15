@@ -45,6 +45,32 @@ for (const shot of SHOTS) {
   // catch them mid-draw.
   await page.waitForTimeout(1200)
 
+  /**
+   * Refuse to capture an unstyled page.
+   *
+   * Rebuilding while the production server is already running leaves it serving
+   * HTML that points at asset hashes the build has replaced, so every
+   * stylesheet 404s. The page still renders, the script still succeeds, and the
+   * README quietly gains a screenshot of the site with no CSS. Failing loudly
+   * here is the difference between a five-second fix and shipping that.
+   */
+  const styled = await page.evaluate(() => {
+    const probe = document.createElement('div')
+    probe.className = 'bg-chrome'
+    probe.style.position = 'absolute'
+    document.body.append(probe)
+    const applied = getComputedStyle(probe).backgroundColor !== 'rgba(0, 0, 0, 0)'
+    probe.remove()
+    return applied
+  })
+
+  if (!styled) {
+    throw new Error(
+      `${shot.name}: the page loaded without stylesheets. Restart the production ` +
+        `server so it picks up the current build, then run this again.`,
+    )
+  }
+
   await page.screenshot({ path: `${OUT_DIR}/${shot.name}.png`, fullPage: shot.fullPage })
   console.log(`captured ${shot.name}`)
 

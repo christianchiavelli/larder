@@ -1,18 +1,10 @@
 <script setup lang="ts">
 const { isDark, toggle } = useTheme()
-
-const NAV = [
-  { to: '/', label: 'Overview' },
-  { to: '/products', label: 'Products' },
-] as const
+const { siteName } = useRuntimeConfig().public
 </script>
 
 <template>
-  <div class="flex min-h-dvh flex-col">
-    <!--
-      Lets a keyboard user reach the content without tabbing the whole header.
-      Positioned off-screen until focused; see the skip-link utility in ui.css.
-    -->
+  <div class="flex min-h-dvh bg-surface">
     <a
       href="#main"
       class="skip-link rounded-control bg-accent px-3 py-2 text-label text-ink-on-accent"
@@ -20,82 +12,116 @@ const NAV = [
       Skip to content
     </a>
 
-    <header
-      class="sticky top-0 z-40 h-appbar border-b border-edge-subtle bg-surface-raised/85 backdrop-blur"
+    <!--
+      Navigation rail.
+
+      Dark in both themes, because its job is to frame the content and give the
+      page an edge. A light rail against a light page is a divider, not a frame.
+    -->
+    <div
+      class="fixed inset-y-0 left-0 z-40 flex w-rail flex-col items-center border-r border-chrome-edge bg-chrome py-3"
     >
-      <div class="mx-auto flex h-full max-w-7xl items-center gap-4 px-4 sm:px-6">
-        <NuxtLink to="/" class="flex items-center gap-2 text-subheading text-ink">
-          <span
-            class="inline-flex size-6 items-center justify-center rounded-control bg-accent text-caption font-bold text-ink-on-accent"
-            aria-hidden="true"
-          >
-            L
-          </span>
-          Larder
-        </NuxtLink>
-
-        <nav aria-label="Primary" class="flex items-center gap-1">
-          <NuxtLink
-            v-for="item in NAV"
-            :key="item.to"
-            :to="item.to"
-            class="rounded-control px-2.5 py-1.5 text-label text-ink-muted transition-colors hover:bg-surface-hover hover:text-ink motion-reduce:transition-none"
-            active-class="bg-surface-accent text-ink-accent"
-          >
-            {{ item.label }}
-          </NuxtLink>
-        </nav>
-
-        <button
-          type="button"
-          class="ml-auto rounded-control border border-edge-subtle p-1.5 text-ink-muted transition-colors hover:bg-surface-hover hover:text-ink motion-reduce:transition-none"
-          :aria-pressed="isDark"
-          :aria-label="isDark ? 'Switch to light theme' : 'Switch to dark theme'"
-          @click="toggle()"
+      <NuxtLink
+        to="/"
+        class="flex size-10 items-center justify-center rounded-control text-chrome-ink-strong transition-colors hover:bg-chrome-raised motion-reduce:transition-none"
+        :aria-label="`${siteName}, home`"
+      >
+        <!--
+          The mark is the letterform itself, set in the same serif as every
+          heading. A glyph in a rounded coloured square is the house style of
+          software that has no house style.
+        -->
+        <span class="font-serif text-[1.65rem] leading-none font-semibold" aria-hidden="true"
+          >L</span
         >
+      </NuxtLink>
+
+      <nav aria-label="Primary" class="mt-4 flex flex-col items-center gap-1">
+        <AppRailLink to="/" label="Overview">
           <svg
-            class="size-4"
+            class="size-5"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            stroke-width="2"
+            stroke-width="1.6"
             stroke-linecap="round"
+            stroke-linejoin="round"
             aria-hidden="true"
           >
-            <template v-if="isDark">
-              <circle cx="12" cy="12" r="4" />
-              <path
-                d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
-              />
-            </template>
-            <path v-else d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />
+            <path d="M4 19V11M9.33 19V5M14.67 19v-6M20 19V8" />
           </svg>
-        </button>
-      </div>
-    </header>
+        </AppRailLink>
 
-    <main id="main" class="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 sm:py-8">
-      <slot />
-    </main>
+        <AppRailLink to="/products" label="Products">
+          <svg
+            class="size-5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M3.5 7.5 12 3l8.5 4.5v9L12 21l-8.5-4.5z" />
+            <path d="M3.5 7.5 12 12m0 9v-9m8.5-4.5L12 12" />
+          </svg>
+        </AppRailLink>
+      </nav>
 
-    <footer class="border-t border-edge-subtle px-4 py-6 sm:px-6">
-      <div
-        class="mx-auto flex max-w-7xl flex-wrap items-center gap-x-2 gap-y-1 text-caption text-ink-subtle"
+      <button
+        type="button"
+        class="mt-auto flex size-10 items-center justify-center rounded-control text-chrome-ink transition-colors hover:bg-chrome-raised hover:text-chrome-ink-strong motion-reduce:transition-none"
+        :aria-pressed="isDark"
+        :aria-label="isDark ? 'Switch to light theme' : 'Switch to dark theme'"
+        @click="toggle()"
       >
-        <span>Data from</span>
-        <a
-          href="https://world.openfoodfacts.org"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="text-ink-muted underline underline-offset-2 hover:text-ink"
+        <svg
+          class="size-[1.15rem]"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
         >
-          Open Food Facts
-        </a>
-        <span
-          >, licensed under ODbL. Product information is contributed by the public and may be
-          incomplete.</span
+          <template v-if="isDark">
+            <circle cx="12" cy="12" r="4.2" />
+            <path
+              d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"
+            />
+          </template>
+          <path v-else d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="flex min-w-0 flex-1 flex-col pl-rail">
+      <main id="main" class="flex-1 px-5 py-7 sm:px-8 sm:py-9">
+        <div class="mx-auto w-full max-w-[86rem]">
+          <slot />
+        </div>
+      </main>
+
+      <footer class="border-t border-edge-subtle px-5 py-5 sm:px-8">
+        <div
+          class="mx-auto flex max-w-[86rem] flex-wrap items-baseline gap-x-2 gap-y-1 text-caption text-ink-subtle"
         >
-      </div>
-    </footer>
+          <span class="font-serif text-label font-semibold text-ink-muted">{{ siteName }}</span>
+          <span aria-hidden="true">·</span>
+          <span>Data from</span>
+          <a
+            href="https://world.openfoodfacts.org"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-ink-muted underline decoration-edge-strong underline-offset-2 hover:text-ink-accent hover:decoration-current"
+          >
+            Open Food Facts
+          </a>
+          <span>under ODbL. Records are contributed by the public and may be incomplete.</span>
+        </div>
+      </footer>
+    </div>
   </div>
 </template>
