@@ -152,8 +152,8 @@
   --nutriscore-d-content: #1f1000;
   --nutriscore-e: #e63e11;
   --nutriscore-e-content: #ffffff;
-  --nutriscore-unknown: var(--primitive-grey-100);
-  --nutriscore-unknown-content: var(--primitive-grey-300);
+  --nutriscore-ungraded: var(--primitive-grey-100);
+  --nutriscore-ungraded-content: var(--primitive-grey-300);
 
   /* NOVA is an ordinal 1..4 processing scale, so it gets a sequential ramp
    * rather than the categorical palette.
@@ -235,8 +235,8 @@
 
   --focus-ring: var(--primitive-blue-100);
 
-  --nutriscore-unknown: var(--primitive-cool-400);
-  --nutriscore-unknown-content: var(--primitive-cool-100);
+  --nutriscore-ungraded: var(--primitive-cool-400);
+  --nutriscore-ungraded-content: var(--primitive-cool-100);
   --nova-unknown: var(--primitive-cool-400);
   --nova-unknown-content: var(--primitive-cool-100);
 

@@ -110,8 +110,16 @@ them.
 
 A nutrient nobody reported shows an em-dash, never a zero. In a community-edited
 catalogue "not reported" and "none" are different facts, and a reader cannot
-tell them apart afterwards. Unknown Nutri-Score and NOVA values work the same
+tell them apart afterwards. Absent Nutri-Score and NOVA values work the same
 way: they are states in the type, not errors to recover from.
+
+Nutri-Score carries the rule one step further, because upstream reports two
+reasons a product has no grade. `unknown` is a product nobody has graded yet and
+may well carry a letter tomorrow; `not-applicable` is one the scheme excludes by
+design, such as a beer or a vinegar, and never will. Two thirds of the catalogue
+is one or the other, split 65% to 2%. They are separate values, separate badges
+(`?` and `N/A`), separate bars on the overview and separate filters, because
+collapsing them would report a deliberate exclusion as missing data.
 
 ---
 
@@ -218,18 +226,25 @@ everything.** "No Nutri-Score" is the largest thing in the catalogue, larger
 than every grade combined, and the query schema dropped it as an invalid value.
 A dropped filter narrows nothing, so the request came back as the whole
 unfiltered catalogue: the control read as applied and the results were of
-everything. It is a value now, and the index spells it two ways (`unknown` for
-ungraded, `not-applicable` for products the scheme does not cover), so the
-filter selects both, matching the bucket the overview already sums.
+everything.
+
+The first fix made it one value that expanded into the index's two keys, which
+was right about the population and wrong about the question. `unknown` and
+`not-applicable` are different facts, the boundary was flattening one into the
+other, and nothing downstream could recover the difference: a reader looking for
+products that ought to carry a grade got every beer and vinegar mixed in. The
+distinction is preserved from the upstream mapping through to the badge now, and
+each is a filter of its own.
 
 **Escaping a hyphen made a filter match nothing.** Enum values went through the
 free-text escaper, which escapes `-` because it is Lucene's NOT operator. It
 only is at the start of a term, and `nutriscore_grade:not\-applicable` matches
 zero documents. Every grade until then had been a single letter, so the escaper
-had never had a character to get wrong. The failure would also have hidden: that
-clause is OR'd with one that exceeds the tracked ceiling on its own, so the
-count would have read the same with seventy-one thousand products missing. Enum
-values are quoted now, as taxonomy ids already were.
+had never had a character to get wrong. The failure also hid: at the time that
+clause was OR'd with one exceeding the tracked ceiling on its own, so the count
+would have read the same with seventy-one thousand products missing. Enum values
+are quoted now, as taxonomy ids already were, and the value is reachable on its
+own, where the same bug would empty the page instead of hiding in a total.
 
 **Brands are stored differently from every other dimension.** The categories,
 countries and labels facets return language-prefixed ids (`en:beverages`), the

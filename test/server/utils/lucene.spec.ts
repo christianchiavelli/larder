@@ -145,33 +145,42 @@ describe('buildProductQuery', () => {
 
 describe('the ungraded filter', () => {
   /**
-   * The index spells the absence two ways: `unknown` for a product nobody has
-   * graded, and `not-applicable` for one the scheme does not cover, such as
-   * coffee beans or spirits. The overview counts them as a single bucket, so
-   * the filter has to select the same population the chart drew.
+   * The index spells the absence two ways, and so does the filter. They used to
+   * be one value here, expanded into both keys on the way out, which selected
+   * the right population for the wrong reason: a reader asking for products
+   * nobody has graded got every beer and vinegar as well.
    */
-  it('expands the absence into both keys upstream uses', () => {
-    expect(buildProductQuery(query({ nutriScore: 'unknown' })).q).toBe(
-      '(nutriscore_grade:"unknown" OR nutriscore_grade:"not-applicable")',
-    )
-  })
-
-  it('leaves a real grade alone', () => {
-    expect(buildProductQuery(query({ nutriScore: 'a' })).q).toBe('nutriscore_grade:"a"')
+  it.each([
+    ['unknown', 'nutriscore_grade:"unknown"'],
+    ['not-applicable', 'nutriscore_grade:"not-applicable"'],
+    ['a', 'nutriscore_grade:"a"'],
+  ])('sends %s straight through as the key upstream uses', (value, expected) => {
+    expect(buildProductQuery(query({ nutriScore: value })).q).toBe(expected)
   })
 
   /**
    * The hyphen is the reason these are quoted rather than escaped. Escaped, it
-   * reads as the NOT operator and upstream matches nothing, which an OR with a
-   * ten-thousand-hit sibling hides completely.
+   * reads as the NOT operator and upstream matches nothing at all.
+   *
+   * It stayed invisible while this value was reachable only as half of an OR
+   * whose other half returned more than the tracked ceiling. Now that it is a
+   * filter of its own, the same bug would empty the page instead.
    */
   it('does not escape the hyphen out of existence', () => {
-    expect(buildProductQuery(query({ nutriScore: 'unknown' })).q).not.toContain(String.raw`\-`)
+    expect(buildProductQuery(query({ nutriScore: 'not-applicable' })).q).not.toContain(
+      String.raw`\-`,
+    )
   })
 
-  it('combines the absence with a grade', () => {
+  it('combines an absence with a grade', () => {
     expect(buildProductQuery(query({ nutriScore: ['a', 'unknown'] })).q).toBe(
-      '(nutriscore_grade:"a" OR nutriscore_grade:"unknown" OR nutriscore_grade:"not-applicable")',
+      '(nutriscore_grade:"a" OR nutriscore_grade:"unknown")',
+    )
+  })
+
+  it('takes both absences at once, which is what the old single value meant', () => {
+    expect(buildProductQuery(query({ nutriScore: ['unknown', 'not-applicable'] })).q).toBe(
+      '(nutriscore_grade:"unknown" OR nutriscore_grade:"not-applicable")',
     )
   })
 })

@@ -96,7 +96,7 @@ test.describe('filters round-trip', () => {
   })
 
   test.describe('grades and groups return what was asked for', () => {
-    for (const grade of ['a', 'b', 'c', 'd', 'e', 'unknown']) {
+    for (const grade of ['a', 'b', 'c', 'd', 'e', 'unknown', 'not-applicable']) {
       test(`nutriScore=${grade}`, async ({ request }) => {
         const result = await json(request, `/api/products?nutriScore=${grade}`)
 

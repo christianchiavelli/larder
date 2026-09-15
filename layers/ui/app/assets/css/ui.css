@@ -78,8 +78,8 @@
   --color-nutri-d-ink: var(--nutriscore-d-content);
   --color-nutri-e: var(--nutriscore-e);
   --color-nutri-e-ink: var(--nutriscore-e-content);
-  --color-nutri-unknown: var(--nutriscore-unknown);
-  --color-nutri-unknown-ink: var(--nutriscore-unknown-content);
+  --color-nutri-ungraded: var(--nutriscore-ungraded);
+  --color-nutri-ungraded-ink: var(--nutriscore-ungraded-content);
 
   /* Domain: NOVA processing scale */
   --color-nova-1: var(--nova-1);

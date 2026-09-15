@@ -80,35 +80,41 @@ test.describe('product directory', () => {
   })
 
   /**
-   * The ungraded bucket, which is the largest thing in the catalogue and was
-   * not reachable at all: the schema dropped the value, and a dropped filter
-   * narrows nothing, so the page answered with everything.
+   * The two ungraded buckets, which together are most of the catalogue.
+   *
+   * Neither was reachable at first: the schema dropped the value, and a dropped
+   * filter narrows nothing, so the page answered with everything. Then they
+   * were one control that selected both, which was worse in a quieter way, as
+   * it is impossible to tell a product nobody has graded from a beer the scheme
+   * will never grade. Each is asserted on its own here for that reason.
    */
-  test('filters to the products with no grade', async ({ page }) => {
-    await page.goto('/products')
+  for (const { label, value } of [
+    { label: 'Nutri-Score not reported', value: 'unknown' },
+    { label: 'Nutri-Score not applicable', value: 'not-applicable' },
+  ]) {
+    test(`filters to the products marked ${value}`, async ({ page }) => {
+      await page.goto('/products')
 
-    await page
-      .getByRole('button', { name: /Nutri-Score not available/ })
-      .first()
-      .click()
-    await expect(page).toHaveURL(/nutriScore=unknown/)
+      await page.getByRole('button', { name: label }).first().click()
+      await expect(page).toHaveURL(new RegExp(`nutriScore=${value}`))
 
-    /*
-     * Polled rather than read once. The directory holds the previous page on
-     * screen while the next one loads, which is deliberate and means a single
-     * read lands on the rows from before the filter was applied.
-     */
-    const rows = page.getByTestId('product-row')
-    const ungraded = rows.getByRole('img', { name: 'Nutri-Score not available' })
+      /*
+       * Polled rather than read once. The directory holds the previous page on
+       * screen while the next one loads, which is deliberate and means a single
+       * read lands on the rows from before the filter was applied.
+       */
+      const rows = page.getByTestId('product-row')
+      const matching = rows.getByRole('img', { name: label })
 
-    await expect(rows.first()).toBeVisible()
-    await expect
-      .poll(async () => {
-        const [total, absent] = await Promise.all([rows.count(), ungraded.count()])
-        return total > 0 && total === absent
-      })
-      .toBe(true)
-  })
+      await expect(rows.first()).toBeVisible()
+      await expect
+        .poll(async () => {
+          const [total, absent] = await Promise.all([rows.count(), matching.count()])
+          return total > 0 && total === absent
+        })
+        .toBe(true)
+    })
+  }
 
   test('restores state from a pasted link without visiting the page first', async ({ page }) => {
     await page.goto('/products?nutriScore=a&sort=popularity')

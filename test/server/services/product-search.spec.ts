@@ -109,7 +109,7 @@ describe('searchProducts', () => {
     warn.mockRestore()
   })
 
-  it('sums upstream buckets that collapse into our single unknown grade', async () => {
+  it('reports the two ungraded buckets apart, and sums only synonyms', async () => {
     const client = stubClient(
       upstreamResponse({
         facets: {
@@ -119,6 +119,8 @@ describe('searchProducts', () => {
               { key: 'a', name: 'a', count: 10 },
               { key: 'unknown', name: 'unknown', count: 5 },
               { key: 'not-applicable', name: 'not-applicable', count: 3 },
+              // A spelling of "nobody graded this" that is not the word itself.
+              { key: '', name: '', count: 2 },
             ],
           },
         },
@@ -127,7 +129,11 @@ describe('searchProducts', () => {
 
     const result = await searchProducts(client, query())
 
-    expect(result.nutriScoreDistribution).toEqual({ a: 10, unknown: 8 })
+    expect(result.nutriScoreDistribution).toEqual({
+      a: 10,
+      unknown: 7,
+      'not-applicable': 3,
+    })
   })
 
   it('exposes only the facet dimensions the directory filters on', async () => {

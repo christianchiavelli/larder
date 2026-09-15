@@ -13,21 +13,59 @@ export const NUTRI_SCORE_GRADES = ['a', 'b', 'c', 'd', 'e'] as const
 export type NutriScoreGrade = (typeof NUTRI_SCORE_GRADES)[number]
 
 /**
- * A large share of the catalogue has no grade at all, and upstream spells that
- * absence four different ways. "unknown" is a value the UI renders, not an
- * error it recovers from, so it belongs in the type.
+ * Why a product carries no grade.
+ *
+ * Two facts, not one absence. `unknown` is a product nobody has graded yet, and
+ * it may well carry a letter tomorrow: what is missing is the data.
+ * `not-applicable` is a product the scheme excludes by design, such as a beer,
+ * a wine or a vinegar, and no amount of community editing will ever give it
+ * one.
+ *
+ * Together they are two thirds of the catalogue, and upstream reports them as
+ * separate buckets. Folding them into a single absence throws away the only
+ * thing that tells a gap in the data apart from a deliberate exclusion, which
+ * is also the difference between "nobody has looked at this yet" and "there is
+ * nothing to look at".
  */
-export const nutriScoreSchema = z.enum([...NUTRI_SCORE_GRADES, 'unknown'])
+export const UNGRADED_REASONS = ['unknown', 'not-applicable'] as const
+export type UngradedReason = (typeof UNGRADED_REASONS)[number]
 
 /**
- * Everything the directory can filter a Nutri-Score by, including the absence.
- *
- * The ungraded bucket is the largest thing in the catalogue, larger than every
- * grade combined, so leaving it out of the filter meant the biggest bar in the
- * overview was the one nobody could click.
+ * Every value a Nutri-Score takes, which is also everything the directory can
+ * filter by. One vocabulary, so a filter cannot ask for something a product
+ * cannot be.
  */
-export const NUTRI_SCORE_FILTER_VALUES = [...NUTRI_SCORE_GRADES, 'unknown'] as const
+export const NUTRI_SCORE_VALUES = [...NUTRI_SCORE_GRADES, ...UNGRADED_REASONS] as const
+
+export const nutriScoreSchema = z.enum(NUTRI_SCORE_VALUES)
 export type NutriScore = z.infer<typeof nutriScoreSchema>
+
+/** What fits in a badge or on a chart axis, where there is room for a glyph. */
+export const NUTRI_SCORE_SHORT_LABELS: Record<NutriScore, string> = {
+  a: 'A',
+  b: 'B',
+  c: 'C',
+  d: 'D',
+  e: 'E',
+  unknown: '?',
+  'not-applicable': 'N/A',
+}
+
+/** What goes in a tooltip, a data table or an accessible name. */
+export const NUTRI_SCORE_LABELS: Record<NutriScore, string> = {
+  a: 'Grade A',
+  b: 'Grade B',
+  c: 'Grade C',
+  d: 'Grade D',
+  e: 'Grade E',
+  unknown: 'Not reported',
+  'not-applicable': 'Not applicable',
+}
+
+/** True for a value that is an absence rather than a grade. */
+export function isUngraded(value: NutriScore): value is UngradedReason {
+  return (UNGRADED_REASONS as readonly string[]).includes(value)
+}
 
 /** NOVA food processing classification, 1 (unprocessed) through 4 (ultra-processed). */
 export const NOVA_GROUPS = [1, 2, 3, 4] as const

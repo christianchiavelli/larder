@@ -7,7 +7,12 @@ import {
 } from '#shared/domain/search'
 import type { NutriScore } from '#shared/domain/nutrition'
 import { buildProductQuery } from '~~/server/utils/lucene'
-import { mapFacet, mapSearchHits, upstreamSearchResponseSchema } from '~~/server/upstream/search'
+import {
+  mapFacet,
+  mapNutriScore,
+  mapSearchHits,
+  upstreamSearchResponseSchema,
+} from '~~/server/upstream/search'
 import { toContractError, toUpstreamError } from '~~/server/utils/upstream-error'
 import type { UpstreamClient } from '~~/server/utils/upstream-client'
 
@@ -46,13 +51,6 @@ const REQUESTED_FIELDS = [
 const REQUESTED_FACETS = [...FACET_FIELDS, 'nutriscore_grade'].join(',')
 
 const CONTEXT = { service: 'search-a-licious', operation: 'GET /search' }
-
-function toNutriScoreKey(rawKey: string): NutriScore {
-  const grade = rawKey.toLowerCase()
-  return grade === 'a' || grade === 'b' || grade === 'c' || grade === 'd' || grade === 'e'
-    ? grade
-    : 'unknown'
-}
 
 export async function searchProducts(
   client: UpstreamClient,
@@ -100,11 +98,12 @@ export async function searchProducts(
     if (facet) facets[field] = mapFacet(facet.items)
   }
 
-  // Several upstream buckets ("unknown", "not-applicable") collapse into our
-  // single unknown, so counts are summed rather than assigned.
+  // Summed rather than assigned: upstream spells a missing grade more than one
+  // way, and the two that mean "nobody has graded this" have to land on the
+  // same key. The two that mean different things no longer do.
   const distribution: Partial<Record<NutriScore, number>> = {}
   for (const item of response.facets?.nutriscore_grade?.items ?? []) {
-    const key = toNutriScoreKey(item.key)
+    const key = mapNutriScore(item.key)
     distribution[key] = (distribution[key] ?? 0) + item.count
   }
 

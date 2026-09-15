@@ -94,7 +94,13 @@ export function useProductQuery() {
     return apply({ [dimension]: next } as Partial<ProductQuery>)
   }
 
-  /** Takes the absence as well as a grade: it is the largest bucket there is. */
+  /**
+   * Takes an absence as readily as a grade.
+   *
+   * Between them the two absences are most of the catalogue, and they are asked
+   * for separately: someone hunting for products that ought to carry a grade
+   * wants the ungraded ones without the beers and vinegars mixed in.
+   */
   function toggleNutriScore(grade: NutriScore) {
     const current = query.value.nutriScore
     return apply({

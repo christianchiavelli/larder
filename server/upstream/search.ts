@@ -126,13 +126,21 @@ export function mapNutriments(raw: Record<string, unknown> | null | undefined): 
   return profile
 }
 
-/** Upstream spells "no grade" four ways across its endpoints. */
+/**
+ * Upstream spells "no grade" four ways, and means two things by it.
+ *
+ * `not-applicable` is the scheme excluding a product; a missing field, an empty
+ * string and the literal `unknown` all mean nobody has graded it. Everything
+ * unrecognised lands on `unknown` too, because an absence we cannot explain is
+ * a gap and not an exclusion, and guessing the other way would invent a rule
+ * the scheme does not have.
+ */
 export function mapNutriScore(raw: string | null): NutriScore {
   if (!raw) return 'unknown'
-  const grade = raw.toLowerCase()
-  if (grade === 'a' || grade === 'b' || grade === 'c' || grade === 'd' || grade === 'e')
-    return grade
-  return 'unknown'
+  const value = raw.toLowerCase()
+  if (value === 'a' || value === 'b' || value === 'c' || value === 'd' || value === 'e')
+    return value
+  return value === 'not-applicable' ? 'not-applicable' : 'unknown'
 }
 
 export function mapNovaGroup(

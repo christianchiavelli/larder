@@ -171,7 +171,6 @@ describe('mapNutriScore', () => {
     ['a', 'a'],
     ['E', 'e'],
     ['unknown', 'unknown'],
-    ['not-applicable', 'unknown'],
     ['', 'unknown'],
   ])('maps %s to %s', (input, expected) => {
     expect(mapNutriScore(input)).toBe(expected)
@@ -179,6 +178,24 @@ describe('mapNutriScore', () => {
 
   it('maps a missing grade to unknown', () => {
     expect(mapNutriScore(null)).toBe('unknown')
+  })
+
+  /**
+   * The one absence upstream states rather than implies, and the one that
+   * cannot change: the scheme excludes these products, so no amount of
+   * community editing will give them a letter. It used to be flattened into
+   * `unknown` here, which is where the distinction was lost for good.
+   */
+  it('keeps not-applicable apart from a grade nobody has entered', () => {
+    expect(mapNutriScore('not-applicable')).toBe('not-applicable')
+  })
+
+  /**
+   * An absence we cannot explain is a gap, not an exclusion. Guessing the other
+   * way would invent a rule the scheme does not have.
+   */
+  it('reads an unrecognised value as ungraded rather than excluded', () => {
+    expect(mapNutriScore('not-computed')).toBe('unknown')
   })
 })
 

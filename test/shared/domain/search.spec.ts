@@ -208,12 +208,23 @@ describe('the Nutri-Score filter', () => {
    * anything, so the request came back as the entire unfiltered catalogue: the
    * checkbox read as applied and the results were of everything.
    */
-  it('accepts the absence as a value', () => {
-    expect(productQuerySchema.parse({ nutriScore: 'unknown' }).nutriScore).toEqual(['unknown'])
+  it.each(['a', 'b', 'c', 'd', 'e', 'unknown', 'not-applicable'])('accepts %s', (value) => {
+    expect(productQuerySchema.parse({ nutriScore: value }).nutriScore).toEqual([value])
   })
 
-  it.each(['a', 'b', 'c', 'd', 'e'])('accepts grade %s', (grade) => {
-    expect(productQuerySchema.parse({ nutriScore: grade }).nutriScore).toEqual([grade])
+  /**
+   * The two absences are asked for separately, which is the point of splitting
+   * them: a reader looking for products that ought to carry a grade wants the
+   * ungraded ones without the beers and vinegars the scheme excludes.
+   */
+  it('takes the two absences independently', () => {
+    expect(productQuerySchema.parse({ nutriScore: ['unknown'] }).nutriScore).toEqual(['unknown'])
+    expect(productQuerySchema.parse({ nutriScore: ['not-applicable'] }).nutriScore).toEqual([
+      'not-applicable',
+    ])
+    expect(
+      productQuerySchema.parse({ nutriScore: ['unknown', 'not-applicable'] }).nutriScore,
+    ).toEqual(['unknown', 'not-applicable'])
   })
 
   it('still drops a value that is neither', () => {
