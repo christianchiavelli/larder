@@ -12,7 +12,6 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
     '@nuxt/eslint',
     '@nuxt/fonts',
-    '@nuxt/image',
     '@nuxt/test-utils/module',
   ],
 

@@ -31,8 +31,15 @@ export const REQUESTED_FIELDS = [
   'categories_tags',
   'nutriscore_grade',
   'nova_groups',
+  // Every published width, and the non-front fallback for each. The row draws
+  // at 48px and asking for only the 400px original, which is what this list
+  // used to do, downloads sixteen times the pixels that get painted.
+  'image_front_thumb_url',
   'image_front_small_url',
   'image_front_url',
+  'image_thumb_url',
+  'image_small_url',
+  'image_url',
   'nutriments',
 ].join(',')
 

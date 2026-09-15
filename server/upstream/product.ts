@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { normaliseBrands, type ProductDetail } from '#shared/domain/product'
 import { toTaxonomyTag } from '#shared/domain/taxonomy'
+import { mapProductImage } from './image'
 import { mapNovaGroup, mapNutriments, mapNutriScore } from './search'
 
 /**
@@ -52,7 +53,11 @@ const upstreamProductSchema = z.looseObject({
   nova_group: looseNumber,
   nova_groups: looseNumber,
   ecoscore_grade: looseString,
+  image_front_thumb_url: looseString,
+  image_front_small_url: looseString,
   image_front_url: looseString,
+  image_thumb_url: looseString,
+  image_small_url: looseString,
   image_url: looseString,
   nutriments: z.record(z.string(), z.unknown()).nullish(),
   quantity: looseString,
@@ -89,7 +94,12 @@ export const PRODUCT_FIELDS = [
   'nutriscore_grade',
   'nova_group',
   'ecoscore_grade',
+  'image_front_thumb_url',
+  'image_front_small_url',
   'image_front_url',
+  'image_thumb_url',
+  'image_small_url',
+  'image_url',
   'nutriments',
   'quantity',
   'serving_size',
@@ -109,8 +119,6 @@ export function mapProductDetail(
   raw: z.infer<typeof upstreamProductSchema>,
   productBase: string,
 ): ProductDetail {
-  const imageUrl = raw.image_front_url ?? raw.image_url
-
   return {
     code: raw.code,
     name: raw.product_name_en ?? raw.product_name ?? '',
@@ -124,7 +132,7 @@ export function mapProductDetail(
     // Upstream renamed Eco-Score to Green Score but kept the field name. Same
     // letter scale as Nutri-Score, measuring something entirely different.
     ecoScore: mapNutriScore(raw.ecoscore_grade),
-    imageUrl: imageUrl && URL.canParse(imageUrl) ? imageUrl : null,
+    image: mapProductImage(raw),
     nutrients: mapNutriments(raw.nutriments),
     quantity: raw.quantity,
     servingSize: raw.serving_size,

@@ -82,7 +82,7 @@ describe('mapProductDetail', () => {
     expect(product.categories).toEqual([])
     expect(product.nutriScore).toBe('unknown')
     expect(product.novaGroup).toBeNull()
-    expect(product.imageUrl).toBeNull()
+    expect(product.image).toBeNull()
     expect(product.quantity).toBeNull()
     expect(product.ingredientsText).toBeNull()
     expect(product.ingredientCount).toBeNull()
@@ -100,7 +100,20 @@ describe('mapProductDetail', () => {
   })
 
   it('rejects a malformed image URL instead of rendering a broken element', () => {
-    expect(parse({ ...RAW_NUTELLA, image_front_url: '/images/relative.jpg' }).imageUrl).toBeNull()
+    // Upstream occasionally stores a bare path. Every width here is one, so
+    // there is no image at all rather than an element pointing at nothing.
+    expect(parse({ ...RAW_NUTELLA, image_front_url: '/images/relative.jpg' }).image).toBeNull()
+  })
+
+  it('discards only the width that is malformed', () => {
+    const image = parse({
+      ...RAW_NUTELLA,
+      image_front_url: '/images/relative.jpg',
+      image_front_thumb_url: 'https://images.example/front.100.jpg',
+    }).image
+
+    expect(image?.large).toBeNull()
+    expect(image?.thumb).toBe('https://images.example/front.100.jpg')
   })
 
   it('rounds a fractional ingredient count and never returns a negative one', () => {

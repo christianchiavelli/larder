@@ -42,6 +42,7 @@ const RICH_HIT = {
   categories_tags: ['en:breakfasts', 'en:spreads', 'en:sweet-spreads'],
   nutriscore_grade: 'e',
   nova_groups: '4',
+  image_front_thumb_url: 'https://images.openfoodfacts.org/images/products/front_en.100.jpg',
   image_front_small_url: 'https://images.openfoodfacts.org/images/products/front_en.200.jpg',
   image_front_url: 'https://images.openfoodfacts.org/images/products/front_en.400.jpg',
   nutriments: {
@@ -68,7 +69,7 @@ describe('mapSearchHits', () => {
     expect(product!.name).toBe('Granola')
     expect(product!.categories).toEqual([])
     expect(product!.novaGroup).toBeNull()
-    expect(product!.imageUrl).toBeNull()
+    expect(product!.image).toBeNull()
     expect(product!.nutriScore).toBe('unknown')
   })
 
@@ -83,9 +84,36 @@ describe('mapSearchHits', () => {
     expect(product!.nutrients.sugars).toBe(56.3)
   })
 
-  it('prefers the small image so a 24-row page does not pull full-size JPEGs', () => {
+  /**
+   * Every width upstream publishes, so the consumer can choose.
+   *
+   * A single URL forces one size on every context. The directory draws these
+   * at 48 pixels and the deep dive at 112, and both used to receive the same
+   * file.
+   */
+  it('carries the front image at each published width', () => {
     const { items } = mapSearchHits([RICH_HIT])
-    expect(items[0]!.imageUrl).toContain('.200.jpg')
+
+    expect(items[0]!.image).toEqual({
+      thumb: expect.stringContaining('.100.jpg'),
+      small: expect.stringContaining('.200.jpg'),
+      large: expect.stringContaining('.400.jpg'),
+    })
+  })
+
+  it('falls back per width rather than per product', () => {
+    // A product can have a front thumbnail and no front original, so the
+    // decision has to be made one width at a time.
+    const { items } = mapSearchHits([
+      {
+        ...RICH_HIT,
+        image_front_small_url: null,
+        image_small_url: 'https://images.example/any.200.jpg',
+      },
+    ])
+
+    expect(items[0]!.image?.small).toBe('https://images.example/any.200.jpg')
+    expect(items[0]!.image?.thumb).toContain('.100.jpg')
   })
 
   it('drops only the malformed record, keeping the rest of the page', () => {

@@ -11,6 +11,32 @@ import { taxonomyTagSchema } from './taxonomy'
  * The summary is what a list costs; the detail is what a page costs.
  */
 
+/**
+ * The front-of-pack photograph, at the widths upstream publishes.
+ *
+ * Three URLs rather than one, because upstream already renders each product at
+ * 100, 200 and 400 pixels and serves them from its own CDN. A single URL would
+ * mean every consumer picks one size for every context: the directory draws
+ * these at 48 pixels and the deep dive at 112, and the difference between
+ * sending the 400 to both and sending the right one is most of the weight of a
+ * directory page.
+ *
+ * Deriving the other two by rewriting the number in the path would also work,
+ * and would break silently the first time upstream changes its filenames.
+ */
+export const productImageSchema = z
+  .object({
+    /** 100px. */
+    thumb: z.url().nullable(),
+    /** 200px. */
+    small: z.url().nullable(),
+    /** 400px. The largest upstream offers outside the original upload. */
+    large: z.url().nullable(),
+  })
+  .nullable()
+
+export type ProductImage = z.infer<typeof productImageSchema>
+
 export const productSummarySchema = z.object({
   /** Barcode. The primary key everywhere, kept as a string: leading zeros matter. */
   code: z.string().min(1),
@@ -20,7 +46,7 @@ export const productSummarySchema = z.object({
   categories: z.array(taxonomyTagSchema),
   nutriScore: nutriScoreSchema,
   novaGroup: novaGroupSchema.nullable(),
-  imageUrl: z.url().nullable(),
+  image: productImageSchema,
   /** Per 100g or 100ml. Individually nullable, see NutrientProfile. */
   nutrients: nutrientProfileSchema,
 })

@@ -46,10 +46,25 @@ const nutrients = computed(() =>
     <div
       class="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-control border border-edge-subtle bg-surface"
     >
+      <!--
+        Drawn at 48px, so the 100px variant covers a standard display and the
+        200px one covers a retina display. Handing the browser the 400px
+        original, which is what a single `src` used to do, downloads roughly
+        sixteen times the pixels that get painted, two dozen times per page.
+      -->
       <img
-        v-if="product.imageUrl"
-        :src="product.imageUrl"
+        v-if="product.image"
+        :src="product.image.thumb ?? product.image.small ?? product.image.large ?? undefined"
+        :srcset="
+          srcSet([
+            { url: product.image.thumb, width: 100 },
+            { url: product.image.small, width: 200 },
+          ])
+        "
+        sizes="48px"
         alt=""
+        width="48"
+        height="48"
         loading="lazy"
         decoding="async"
         class="size-full object-contain"

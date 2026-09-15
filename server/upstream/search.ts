@@ -8,6 +8,7 @@ import {
 } from '#shared/domain/nutrition'
 import { normaliseBrands, type ProductSummary } from '#shared/domain/product'
 import { toTaxonomyTag } from '#shared/domain/taxonomy'
+import { mapProductImage } from './image'
 import type { FacetItem } from '#shared/domain/search'
 
 /**
@@ -73,8 +74,11 @@ const upstreamHitSchema = z.looseObject({
   /** Both spellings exist on the same document and disagree often enough to matter. */
   nova_group: looseNumber,
   nova_groups: looseNumber,
+  image_front_thumb_url: looseString,
   image_front_small_url: looseString,
   image_front_url: looseString,
+  image_thumb_url: looseString,
+  image_small_url: looseString,
   image_url: looseString,
   nutriments: z.record(z.string(), z.unknown()).nullish(),
 })
@@ -163,20 +167,6 @@ export function mapNovaGroup(
   return rounded === 1 || rounded === 2 || rounded === 3 || rounded === 4 ? rounded : null
 }
 
-/**
- * Prefers the smallest image upstream offers.
- *
- * A directory page renders two dozen of these at thumbnail size, and the full
- * `image_url` is a 400px-plus JPEG. Picking the small variant here is worth
- * more than any amount of lazy loading downstream.
- */
-function pickThumbnail(hit: UpstreamHit): string | null {
-  const candidate = hit.image_front_small_url ?? hit.image_front_url ?? hit.image_url
-  if (!candidate) return null
-  // Upstream occasionally stores a bare path or a malformed entry.
-  return URL.canParse(candidate) ? candidate : null
-}
-
 function mapHit(hit: UpstreamHit): ProductSummary {
   return {
     code: hit.code,
@@ -187,7 +177,7 @@ function mapHit(hit: UpstreamHit): ProductSummary {
     categories: hit.categories_tags.map((id) => toTaxonomyTag(id)),
     nutriScore: mapNutriScore(hit.nutriscore_grade),
     novaGroup: mapNovaGroup(hit),
-    imageUrl: pickThumbnail(hit),
+    image: mapProductImage(hit),
     nutrients: mapNutriments(hit.nutriments),
   }
 }

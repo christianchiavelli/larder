@@ -67,10 +67,26 @@ const isNotFound = computed(
           class="flex size-28 shrink-0 items-center justify-center overflow-hidden rounded-card border border-edge-subtle bg-surface-sunken"
         >
           <UiSkeleton v-if="isLoading" class="size-full" />
+          <!--
+            Drawn at 112px. The 200px variant covers a standard display and the
+            400px one a retina display, and there is exactly one of these on the
+            page, so it is not lazy: it is above the fold and part of what the
+            reader came for.
+          -->
           <img
-            v-else-if="product?.imageUrl"
-            :src="product.imageUrl"
+            v-else-if="product?.image"
+            :src="product.image.small ?? product.image.large ?? product.image.thumb ?? undefined"
+            :srcset="
+              srcSet([
+                { url: product.image.small, width: 200 },
+                { url: product.image.large, width: 400 },
+              ])
+            "
+            sizes="112px"
             :alt="`Packaging of ${title}`"
+            width="112"
+            height="112"
+            decoding="async"
             class="size-full object-contain"
           />
           <span v-else class="text-caption text-ink-subtle">No image</span>
