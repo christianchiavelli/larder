@@ -295,14 +295,24 @@ server/
   utils/           HTTP client, Lucene builder, error mapping, cache policy.
 app/
   api/             Typed client for our own API.
-  composables/     URL-backed filter state, Pinia Colada queries.
-  components/      Domain components.
+  composables/     URL-backed filter state, queries, the domain palette.
+  components/
+    chrome/        Navigation rail. The frame, not the content.
+    product/       Everything that knows what a product is.
   pages/           Overview, directory, product deep dive.
-layers/ui/         Design system. Tokens, primitives, chart theme.
-test/              Unit specs.
+layers/ui/         Design system. Tokens, primitives, formatting, chart theme.
+test/              Unit specs, mirroring the tree above.
 e2e/               Playwright specs.
 docs/              Upstream API findings.
 ```
+
+The one boundary worth stating: `layers/ui` holds values, never meaning. It
+knows there is a surface, an ink, a series colour and a token spelled
+`--nutriscore-a`, in the same way a stylesheet does. It does not know that food
+is being catalogued, and nothing in it imports from `shared/domain`. So the test
+for moving a component down into it is not "could another product use this", it
+is "does this file name a concept from the problem domain". A badge typed on
+`NutriScore` fails that; the panel it sits on passes.
 
 ---
 
