@@ -46,6 +46,39 @@ test.describe('product directory', () => {
     )
   })
 
+  /**
+   * Removing a filter, which is a different operation from applying one.
+   *
+   * The URL writer merged two serialised queries, and the serialiser omits
+   * anything at its default, so a patch that emptied a dimension simply had no
+   * key for it and the previous value survived the merge. Applying a filter
+   * worked; switching it off did nothing, and neither did Clear all. Every
+   * existing test here applied a filter, so the whole suite was green.
+   */
+  test('switches a filter back off again', async ({ page }) => {
+    await page.goto('/products')
+
+    const grade = page.getByRole('button', { name: /Nutri-Score A,/ }).first()
+
+    await grade.click()
+    await expect(page).toHaveURL(/nutriScore=a/)
+
+    await grade.click()
+    await expect(page).not.toHaveURL(/nutriScore/)
+    await expect(grade).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  test('clears every filter at once', async ({ page }) => {
+    await page.goto('/products?nutriScore=a&nova=4&sort=popularity')
+
+    await page.getByRole('button', { name: /clear all/i }).click()
+
+    await expect(page).not.toHaveURL(/nutriScore|nova/)
+    // Sort is how the user chose to read the list, not what they chose to look
+    // at, so clearing the filters must not reset it.
+    await expect(page).toHaveURL(/sort=popularity/)
+  })
+
   test('restores state from a pasted link without visiting the page first', async ({ page }) => {
     await page.goto('/products?nutriScore=a&sort=popularity')
 

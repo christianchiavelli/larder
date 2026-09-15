@@ -1,3 +1,4 @@
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   productQuerySchema,
@@ -37,14 +38,20 @@ export function useProductQuery() {
   /**
    * Writes a patch to the URL.
    *
+   * The patch is merged onto the parsed query, never onto its serialised form.
+   * `toQueryParams` omits anything at its default, so merging two serialised
+   * objects cannot express removal: emptying a dimension drops its key from the
+   * patch, and the earlier value survives the spread. Clearing the filters left
+   * every one of them applied.
+   *
    * Any filter change resets to page one. Keeping the page number while
    * narrowing the results is how a user lands on an empty page 8 of a result
    * set that now has 3, and then reasonably concludes the filter is broken.
    */
   function apply(patch: Partial<ProductQuery>, options: { keepPage?: boolean } = {}) {
     const next = productQuerySchema.parse({
-      ...toQueryParams(query.value),
-      ...toQueryParams(productQuerySchema.parse({ ...query.value, ...patch })),
+      ...query.value,
+      ...patch,
       ...(options.keepPage ? {} : { page: 1 }),
     })
 
