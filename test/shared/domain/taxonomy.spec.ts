@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { humanizeTagId, mostSpecificTag, parseTagId, toTaxonomyTag } from '#shared/domain/taxonomy'
+import {
+  toFilterValue,
+  humanizeTagId,
+  mostSpecificTag,
+  parseTagId,
+  toTaxonomyTag,
+} from '#shared/domain/taxonomy'
 
 describe('parseTagId', () => {
   it('splits a language-prefixed id', () => {
@@ -88,4 +94,30 @@ describe('mostSpecificTag', () => {
   it('returns null for a product with no categories', () => {
     expect(mostSpecificTag([])).toBeNull()
   })
+})
+
+describe('toFilterValue', () => {
+  /**
+   * The one dimension upstream stores differently.
+   *
+   * The categories facet returns `en:beverages` and the brands facet returns
+   * `carrefour`, but autocomplete prefixes everything. A brand suggestion
+   * therefore arrives as `en:olivari` and matches no product, which presents as
+   * an applied filter over an empty catalogue rather than as an error.
+   */
+  it('strips the language prefix from a brand', () => {
+    expect(toFilterValue('brand', 'en:olivari')).toBe('olivari')
+  })
+
+  it('leaves a brand that is already bare alone', () => {
+    // Which is the form the facet itself returns, so both sources agree.
+    expect(toFilterValue('brand', 'carrefour')).toBe('carrefour')
+  })
+
+  it.each(['category', 'country', 'label', 'additive'] as const)(
+    'keeps the prefix on a %s',
+    (taxonomy) => {
+      expect(toFilterValue(taxonomy, 'en:organic')).toBe('en:organic')
+    },
+  )
 })

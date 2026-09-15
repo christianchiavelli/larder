@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { NUTRI_SCORE_GRADES, novaGroupSchema, nutriScoreSchema } from './nutrition'
 import { productSummarySchema } from './product'
+import { toFilterValue } from './taxonomy'
 
 /**
  * Search contract.
@@ -73,7 +74,16 @@ export const productQuerySchema = z.object({
   q: z.string().trim().max(120).catch('').default(''),
 
   category: tagList.default([]),
-  brand: tagList.default([]),
+  /**
+   * Language prefix stripped. The search index stores brands as a bare slug
+   * while every other dimension is prefixed, so `en:olivari` and `olivari` are
+   * the same brand and only the second one matches anything. Normalising here
+   * covers the suggestion that produced it, the link someone shared, and the
+   * URL a reader edited by hand.
+   */
+  brand: tagList
+    .transform((values) => [...new Set(values.map((id) => toFilterValue('brand', id)))])
+    .default([]),
   country: tagList.default([]),
   label: tagList.default([]),
 

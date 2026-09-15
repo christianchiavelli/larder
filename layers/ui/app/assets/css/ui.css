@@ -237,6 +237,21 @@
     text-rendering: optimizeLegibility;
   }
 
+  /**
+   * A control that does something gets the hand cursor.
+   *
+   * Browsers give `<button>` the default arrow, and Tailwind's reset does not
+   * change it, so every one of the ten buttons in this app looked like text
+   * until something said otherwise. Stated once here rather than as a class on
+   * each, because it is not a decision any individual button gets to make.
+   *
+   * Disabled is excluded: the pointer says "this will do something", and the
+   * disabled state says the opposite.
+   */
+  :is(button, [role='button'], summary):not(:disabled) {
+    cursor: pointer;
+  }
+
   /* Digits in a column must line up. Applied globally because in this product
    * almost every number is one a reader compares against another. */
   :is(td, th, [data-numeric]) {

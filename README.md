@@ -213,6 +213,18 @@ as eight brands and no category at all. The BFF issues one call per taxonomy and
 interleaves them with a quota, which is why the search box can suggest a
 category and a brand in the same list.
 
+**Brands are stored differently from every other dimension.** The categories,
+countries and labels facets return language-prefixed ids (`en:beverages`), the
+brands facet returns a bare slug (`carrefour`), and autocomplete prefixes all of
+them. So a brand suggestion arrived as `en:olivari`, matched nothing, and the
+directory showed an applied filter over an empty catalogue: the worst shape this
+can take, because the reasonable conclusion is that the brand has no products.
+Normalised where the query is parsed, so a suggestion, a shared link and a
+hand-edited URL all agree.
+
+The end-to-end test for suggestions passed throughout. It asserted that the URL
+changed, which was true. It now asserts that something comes back.
+
 **Filters could not be switched off.** The URL writer merged two serialised
 queries, and the serialiser omits anything at its default, including an empty
 list. A patch that emptied a dimension carried no key for it, so the old value
@@ -242,8 +254,8 @@ suite stayed green.
 ```bash
 pnpm run lint        # ESLint (formatting is Prettier's alone)
 pnpm run typecheck   # vue-tsc
-pnpm run test        # Vitest, 274 specs
-pnpm run e2e         # Playwright, 37 specs, against a production build
+pnpm run test        # Vitest, 284 specs
+pnpm run e2e         # Playwright, 39 specs, against a production build
 pnpm run ci          # lint, types, and unit tests with coverage
 ```
 

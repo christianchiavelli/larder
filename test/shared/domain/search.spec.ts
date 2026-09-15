@@ -170,3 +170,33 @@ describe('toQueryParams', () => {
     expect(productQuerySchema.parse(toQueryParams(original))).toEqual(original)
   })
 })
+
+describe('the brand filter', () => {
+  /**
+   * Normalised on the way in, so every source of a brand id agrees: the
+   * suggestion that produced it, the link someone shared, and the URL a reader
+   * edited by hand.
+   */
+  it('accepts a prefixed brand id and stores the bare slug', () => {
+    expect(productQuerySchema.parse({ brand: 'en:olivari' }).brand).toEqual(['olivari'])
+  })
+
+  it('leaves the form the facet returns untouched', () => {
+    expect(productQuerySchema.parse({ brand: 'carrefour' }).brand).toEqual(['carrefour'])
+  })
+
+  it('does not normalise the other dimensions', () => {
+    const query = productQuerySchema.parse({ category: 'en:snacks', label: 'en:organic' })
+
+    expect(query.category).toEqual(['en:snacks'])
+    expect(query.label).toEqual(['en:organic'])
+  })
+
+  it('collapses the two spellings of one brand into a single filter', () => {
+    // A shared link can easily carry both, and requesting the same brand twice
+    // would double-count it in the upstream query.
+    expect(productQuerySchema.parse({ brand: ['en:olivari', 'olivari'] }).brand).toEqual([
+      'olivari',
+    ])
+  })
+})

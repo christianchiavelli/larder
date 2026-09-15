@@ -127,7 +127,7 @@ describe('useProductQuery', () => {
   })
 
   describe('toggling', () => {
-    it.each(['category', 'brand', 'country', 'label'] as const)('adds a %s', (dimension) => {
+    it.each(['category', 'country', 'label'] as const)('adds a %s', (dimension) => {
       const { toggleTag } = useProductQuery()
 
       toggleTag(dimension, 'en:snacks')
@@ -135,7 +135,7 @@ describe('useProductQuery', () => {
       expect(lastPush()[dimension]).toEqual(['en:snacks'])
     })
 
-    it.each(['category', 'brand', 'country', 'label'] as const)(
+    it.each(['category', 'country', 'label'] as const)(
       'removes a %s that is already applied',
       (dimension) => {
         currentQuery.value = { [dimension]: ['en:snacks', 'en:drinks'] }
@@ -146,6 +146,29 @@ describe('useProductQuery', () => {
         expect(lastPush()[dimension]).toEqual(['en:drinks'])
       },
     )
+
+    /**
+     * Brands take a value from either of two vocabularies. The facet checkbox
+     * passes the stored slug; a taxonomy suggestion passes the same brand with
+     * a language prefix the search index does not use.
+     */
+    it('adds a brand from the facet and from a suggestion as one filter', () => {
+      const { toggleTag } = useProductQuery()
+
+      toggleTag('brand', 'en:olivari')
+
+      expect(lastPush().brand).toEqual(['olivari'])
+    })
+
+    it('removes a brand whichever spelling it is given', () => {
+      currentQuery.value = { brand: ['olivari', 'carrefour'] }
+      const { toggleTag } = useProductQuery()
+
+      // Without normalising, this misses and adds `olivari` a second time.
+      toggleTag('brand', 'en:olivari')
+
+      expect(lastPush().brand).toEqual(['carrefour'])
+    })
 
     it('drops the parameter entirely once the last value is removed', () => {
       currentQuery.value = { category: ['en:snacks'] }

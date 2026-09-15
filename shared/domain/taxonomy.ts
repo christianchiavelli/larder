@@ -100,6 +100,23 @@ export function humanizeTagId(id: string): string {
  * from other dimensions. So a label that carries no more information than the
  * id does is treated as no label at all.
  */
+/**
+ * The form a taxonomy id takes when it is used as a filter value.
+ *
+ * Every dimension in the search index is language-prefixed except brands, which
+ * are stored as a bare slug: the categories facet returns `en:beverages` and the
+ * brands facet returns `carrefour`. Autocomplete does not make that distinction
+ * and prefixes everything, so a brand suggestion arrives as `en:olivari` and
+ * matches no product at all.
+ *
+ * A filter that silently returns nothing is the worst shape this can take: the
+ * checkbox appears applied, the count reads zero, and the reasonable conclusion
+ * is that the catalogue has no such brand.
+ */
+export function toFilterValue(taxonomy: TaxonomyName, id: string): string {
+  return taxonomy === 'brand' ? parseTagId(id).slug : id
+}
+
 export function toTaxonomyTag(id: string, label?: string | null): TaxonomyTag {
   const trimmed = label?.trim()
 

@@ -251,6 +251,31 @@ test.describe('filter suggestions', () => {
     await expect(page).toHaveURL(/(category|brand|country|label)=/)
     await expect(page).not.toHaveURL(/[?&]q=/)
     await expect(input).toHaveValue('')
+
+    // And it matches something. Asserting only the URL is how a suggestion that
+    // applied a filter upstream could not understand passed as working: the
+    // address bar was right and the catalogue came back empty.
+    await expect(page.getByTestId('product-row').first()).toBeVisible()
+  })
+
+  /**
+   * Brands specifically, because they are the dimension upstream stores
+   * differently: the facet returns a bare slug and autocomplete returns the
+   * same brand with a language prefix.
+   */
+  test('applies a brand suggestion to a dimension that matches', async ({ page }) => {
+    await page.goto('/products')
+
+    const input = search(page)
+    await input.fill('olivari')
+    await expect(page.getByRole('listbox')).toBeVisible()
+
+    const brand = page.getByRole('option').filter({ hasText: 'Brand' }).first()
+    await brand.click()
+
+    await expect(page).toHaveURL(/brand=/)
+    await expect(page).not.toHaveURL(/brand=en(%3A|:)/)
+    await expect(page.getByTestId('product-row').first()).toBeVisible()
   })
 
   test('applies a suggestion by pointer', async ({ page }) => {

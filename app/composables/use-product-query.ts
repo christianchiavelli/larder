@@ -7,6 +7,7 @@ import {
   type SortOption,
 } from '#shared/domain/search'
 import type { NutriScoreGrade, NovaGroup } from '#shared/domain/nutrition'
+import { toFilterValue } from '#shared/domain/taxonomy'
 
 /**
  * Directory filter state, held in the URL.
@@ -76,12 +77,19 @@ export function useProductQuery() {
     return apply({ pageSize })
   }
 
-  /** Adds a value to a dimension, or removes it when it is already applied. */
+  /**
+   * Adds a value to a dimension, or removes it when it is already applied.
+   *
+   * The incoming value is normalised first, because it can come from either of
+   * two vocabularies: a facet key, which is already the stored form, or a
+   * taxonomy suggestion, which prefixes brands with a language the search index
+   * does not use. Comparing the two directly means "remove" never matches and
+   * silently adds a second copy of the same filter.
+   */
   function toggleTag(dimension: ListDimension, value: string) {
+    const id = toFilterValue(dimension, value)
     const current = query.value[dimension]
-    const next = current.includes(value)
-      ? current.filter((entry) => entry !== value)
-      : [...current, value]
+    const next = current.includes(id) ? current.filter((entry) => entry !== id) : [...current, id]
 
     return apply({ [dimension]: next } as Partial<ProductQuery>)
   }
