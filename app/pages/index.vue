@@ -40,7 +40,12 @@ const graded = computed(() =>
  * screen as if they measured the same population.
  */
 const catalogueSize = computed(() => {
-  const total = graded.value + (distribution.value.unknown ?? 0)
+  // Every bucket, rather than a list of the ones that existed when this was
+  // written. Naming them cost 71,025 products the day the ungraded bucket was
+  // split in two: nothing failed, the headline simply described a smaller
+  // catalogue than the chart beside it, and every percentage on the page was
+  // over a population that had quietly shrunk.
+  const total = Object.values(distribution.value).reduce((sum, count) => sum + count, 0)
   return total === 0 ? null : total
 })
 
@@ -73,7 +78,7 @@ const scored = computed(() => {
         <div class="grid gap-6 sm:grid-cols-3 sm:gap-0 sm:divide-x sm:divide-edge-subtle">
           <UiStatTile
             class="sm:pr-6"
-            label="Products graded"
+            label="Products in catalogue"
             :value="catalogueSize"
             size="lg"
             :loading="isLoading"

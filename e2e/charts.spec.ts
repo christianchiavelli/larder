@@ -186,4 +186,37 @@ test.describe('charts', () => {
     expect(await tables.count()).toBeGreaterThan(0)
     await expect(tables.first().locator('tbody tr').first()).toHaveCount(1)
   })
+
+  /**
+   * The headline and the chart under it have to be counting the same products.
+   *
+   * They are computed separately, and the headline used to name the buckets it
+   * summed. The day the ungraded bucket became two, the name it did not know
+   * about stopped being counted: nothing threw, no test failed, and the figure
+   * over which every percentage on the page is taken was short by seventy-one
+   * thousand products.
+   *
+   * Asserted as the relationship rather than against a number, because the
+   * catalogue is community-edited and grows daily.
+   */
+  test('the headline counts the same catalogue the chart draws', async ({ page }) => {
+    const table = page.locator('figure table').first()
+    await table.locator('tbody tr').first().waitFor({ state: 'attached' })
+
+    const fromChart = await table.locator('tbody tr').evaluateAll((rows) =>
+      rows.reduce((sum, row) => {
+        const cell = row.querySelectorAll('td, th')[1]
+        return sum + Number((cell?.textContent ?? '0').replace(/[^0-9]/g, ''))
+      }, 0),
+    )
+
+    const headline = await page
+      .getByText('Products in catalogue')
+      .locator('xpath=..')
+      .innerText()
+      .then((text) => Number(text.replace(/[^0-9]/g, '')))
+
+    expect(fromChart).toBeGreaterThan(0)
+    expect(headline).toBe(fromChart)
+  })
 })
