@@ -35,7 +35,7 @@ const { siteName } = useRuntimeConfig().public
       </NuxtLink>
 
       <nav aria-label="Primary" class="mt-4 flex flex-col items-center gap-1">
-        <AppRailLink to="/" label="Overview">
+        <ChromeRailLink to="/" label="Overview">
           <svg
             class="size-5"
             viewBox="0 0 24 24"
@@ -48,9 +48,9 @@ const { siteName } = useRuntimeConfig().public
           >
             <path d="M4 19V11M9.33 19V5M14.67 19v-6M20 19V8" />
           </svg>
-        </AppRailLink>
+        </ChromeRailLink>
 
-        <AppRailLink to="/products" label="Products">
+        <ChromeRailLink to="/products" label="Products">
           <svg
             class="size-5"
             viewBox="0 0 24 24"
@@ -64,7 +64,7 @@ const { siteName } = useRuntimeConfig().public
             <path d="M3.5 7.5 12 3l8.5 4.5v9L12 21l-8.5-4.5z" />
             <path d="M3.5 7.5 12 12m0 9v-9m8.5-4.5L12 12" />
           </svg>
-        </AppRailLink>
+        </ChromeRailLink>
       </nav>
 
       <!--

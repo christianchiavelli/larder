@@ -1,67 +1,23 @@
 <script setup lang="ts">
-import { watchDebounced } from '@vueuse/core'
-import { NUTRI_SCORE_GRADES, NOVA_GROUPS, NOVA_SHORT_LABELS } from '#shared/domain/nutrition'
-import {
-  SORT_OPTIONS,
-  activeFilterCount,
-  hasActiveFilters,
-  type SortOption,
-} from '#shared/domain/search'
+import { hasActiveFilters } from '#shared/domain/search'
 
 useHead({ title: 'Products' })
 
-const {
-  query,
-  setSearchTerm,
-  setSort,
-  setPage,
-  toggleTag,
-  toggleNutriScore,
-  toggleNova,
-  clearFilters,
-} = useProductQuery()
-
-const { state, asyncStatus, refresh } = useProductSearch(query)
-
 /**
- * The search box is the one control that does not write straight to the URL.
+ * The directory.
  *
- * Every keystroke would otherwise become a history entry, and the back button
- * would replay the word letter by letter. Debounced, and kept in sync when the
- * URL changes from anywhere else, such as the back button or a pasted link.
+ * The page fetches and lays out. The filter panel and the search controls read
+ * the query from the URL themselves, so neither is handed it here: what the
+ * user is looking at is not this component's state, and threading it through
+ * props would be inventing an owner for something that already has one.
  */
-const term = ref(query.value.q)
-watch(
-  () => query.value.q,
-  (value) => {
-    if (value !== term.value) term.value = value
-  },
-)
-watchDebounced(
-  term,
-  (value) => {
-    if (value !== query.value.q) setSearchTerm(value)
-  },
-  { debounce: 350 },
-)
-
-/**
- * Writable so the select can bind to it directly. The getter reads the URL and
- * the setter writes back through the router, which keeps the address bar as the
- * only place this value lives.
- */
-const sortValue = computed<SortOption>({
-  get: () => query.value.sort,
-  set: (value) => {
-    setSort(value)
-  },
-})
+const { query, setPage, clearFilters } = useProductQuery()
+const { state, asyncStatus, refresh } = useProductSearch(query)
 
 const result = computed(() => state.value.data)
 const isLoading = computed(() => asyncStatus.value === 'loading')
 const error = computed(() => state.value.error)
-
-const numberFormatter = new Intl.NumberFormat('en')
+const showingFilters = computed(() => hasActiveFilters(query.value))
 
 /**
  * Upstream stops counting at its tracking ceiling, so past that point the
@@ -70,12 +26,9 @@ const numberFormatter = new Intl.NumberFormat('en')
  */
 const totalLabel = computed(() => {
   if (!result.value) return null
-  const formatted = numberFormatter.format(result.value.totalCount)
+  const formatted = formatCount(result.value.totalCount)
   return result.value.isTotalExact ? formatted : `${formatted}+`
 })
-
-const filterCount = computed(() => activeFilterCount(query.value))
-const showingFilters = computed(() => hasActiveFilters(query.value))
 </script>
 
 <template>
@@ -86,89 +39,7 @@ const showingFilters = computed(() => hasActiveFilters(query.value))
     />
 
     <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
-      <aside class="flex shrink-0 flex-col gap-5 lg:w-[17rem]" aria-label="Filters">
-        <div class="flex items-center justify-between gap-2">
-          <h2 class="text-subheading text-ink">
-            Filters
-            <span v-if="filterCount > 0" class="text-label text-ink-subtle" data-numeric>
-              ({{ filterCount }})
-            </span>
-          </h2>
-          <button
-            v-if="showingFilters"
-            type="button"
-            class="text-caption text-ink-accent underline underline-offset-2"
-            @click="clearFilters()"
-          >
-            Clear all
-          </button>
-        </div>
-
-        <fieldset class="border-0 p-0">
-          <legend class="mb-2 text-overline text-ink-subtle uppercase">Nutri-Score</legend>
-          <div class="flex flex-wrap gap-1.5">
-            <button
-              v-for="grade in NUTRI_SCORE_GRADES"
-              :key="grade"
-              type="button"
-              class="rounded-control border p-0.5 transition-colors motion-reduce:transition-none"
-              :class="
-                query.nutriScore.includes(grade)
-                  ? 'border-edge-accent bg-surface-accent'
-                  : 'border-transparent hover:border-edge'
-              "
-              :aria-pressed="query.nutriScore.includes(grade)"
-              @click="toggleNutriScore(grade)"
-            >
-              <UiNutriScoreBadge :grade="grade" size="sm" />
-            </button>
-          </div>
-        </fieldset>
-
-        <fieldset class="border-0 p-0">
-          <legend class="mb-2 text-overline text-ink-subtle uppercase">Processing (NOVA)</legend>
-          <div class="flex flex-col gap-1">
-            <label
-              v-for="group in NOVA_GROUPS"
-              :key="group"
-              class="flex cursor-pointer items-center gap-2 rounded-control px-1 py-0.5 hover:bg-surface-hover"
-            >
-              <input
-                type="checkbox"
-                class="size-4 shrink-0 accent-accent"
-                :checked="query.nova.includes(group)"
-                @change="toggleNova(group)"
-              />
-              <UiNovaBadge :group="group" />
-              <span class="text-label text-ink">{{ NOVA_SHORT_LABELS[group] }}</span>
-            </label>
-          </div>
-        </fieldset>
-
-        <ProductFilterGroup
-          title="Category"
-          :items="result?.facets.categories_tags ?? []"
-          :selected="query.category"
-          :loading="isLoading && !result"
-          @toggle="toggleTag('category', $event)"
-        />
-
-        <ProductFilterGroup
-          title="Brand"
-          :items="result?.facets.brands_tags ?? []"
-          :selected="query.brand"
-          :loading="isLoading && !result"
-          @toggle="toggleTag('brand', $event)"
-        />
-
-        <ProductFilterGroup
-          title="Country"
-          :items="result?.facets.countries_tags ?? []"
-          :selected="query.country"
-          :loading="isLoading && !result"
-          @toggle="toggleTag('country', $event)"
-        />
-      </aside>
+      <ProductFilterPanel :facets="result?.facets ?? null" :loading="isLoading && !result" />
 
       <!--
         The results live on a raised panel, and the rows sit on the recessed
@@ -179,22 +50,7 @@ const showingFilters = computed(() => hasActiveFilters(query.value))
       <div
         class="flex min-w-0 flex-1 flex-col overflow-hidden rounded-card border border-edge-subtle bg-surface-raised shadow-card"
       >
-        <div
-          class="flex flex-col gap-3 border-b border-edge-subtle p-3 sm:flex-row sm:items-center"
-        >
-          <div class="flex-1">
-            <label for="product-search" class="sr-only">Search products</label>
-            <input
-              id="product-search"
-              v-model="term"
-              type="search"
-              placeholder="Search by name, brand or ingredient"
-              class="w-full rounded-control border border-edge bg-surface-raised px-3 py-2 text-body text-ink placeholder:text-ink-subtle"
-            />
-          </div>
-
-          <UiSelectField v-model="sortValue" label="Sort" :options="SORT_OPTIONS" />
-        </div>
+        <ProductSearchControls />
 
         <!--
           Politely announced, so a screen reader hears the new count after a
@@ -241,10 +97,10 @@ const showingFilters = computed(() => hasActiveFilters(query.value))
 
           <template v-else>
             <!--
-            Dimmed rather than replaced while refetching. `placeholderData`
-            holds the previous page, so the list keeps its height and the
-            reader keeps their place instead of the layout collapsing.
-          -->
+              Dimmed rather than replaced while refetching. `placeholderData`
+              holds the previous page, so the list keeps its height and the
+              reader keeps their place instead of the layout collapsing.
+            -->
             <ul
               class="flex flex-col gap-1.5 transition-opacity motion-reduce:transition-none"
               :class="isLoading && 'opacity-60'"
