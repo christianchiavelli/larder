@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NUTRI_SCORE_GRADES, NOVA_GROUPS, NOVA_SHORT_LABELS } from '#shared/domain/nutrition'
+import { NUTRI_SCORE_FILTER_VALUES, NOVA_GROUPS, NOVA_SHORT_LABELS } from '#shared/domain/nutrition'
 import { activeFilterCount, hasActiveFilters } from '#shared/domain/search'
 import type { ProductSearchResult } from '#shared/domain/search'
 
@@ -46,7 +46,7 @@ const showingFilters = computed(() => hasActiveFilters(query.value))
       <legend class="mb-2 text-overline text-ink-subtle uppercase">Nutri-Score</legend>
       <div class="flex flex-wrap gap-1.5">
         <button
-          v-for="grade in NUTRI_SCORE_GRADES"
+          v-for="grade in NUTRI_SCORE_FILTER_VALUES"
           :key="grade"
           type="button"
           class="rounded-control border p-0.5 transition-colors motion-reduce:transition-none"

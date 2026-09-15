@@ -18,6 +18,15 @@ export type NutriScoreGrade = (typeof NUTRI_SCORE_GRADES)[number]
  * error it recovers from, so it belongs in the type.
  */
 export const nutriScoreSchema = z.enum([...NUTRI_SCORE_GRADES, 'unknown'])
+
+/**
+ * Everything the directory can filter a Nutri-Score by, including the absence.
+ *
+ * The ungraded bucket is the largest thing in the catalogue, larger than every
+ * grade combined, so leaving it out of the filter meant the biggest bar in the
+ * overview was the one nobody could click.
+ */
+export const NUTRI_SCORE_FILTER_VALUES = [...NUTRI_SCORE_GRADES, 'unknown'] as const
 export type NutriScore = z.infer<typeof nutriScoreSchema>
 
 /** NOVA food processing classification, 1 (unprocessed) through 4 (ultra-processed). */

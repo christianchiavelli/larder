@@ -106,7 +106,13 @@ const nutrients = computed(() =>
         <dd class="text-label text-ink">
           <template v-if="item.value !== null">
             <span data-numeric>{{ item.value.toFixed(item.precision) }}</span>
-            <span class="text-ink-subtle">{{ item.unit === 'kcal' ? '' : item.unit }}</span>
+            <!--
+              The unit is rendered for energy too. Under a label reading
+              "Energy", a bare number is read as kilojoules by anyone used to a
+              European label, where kJ is the figure that comes first. That is
+              wrong by a factor of four and looks like a plausible value.
+            -->
+            <span class="text-ink-subtle">{{ item.unit }}</span>
           </template>
           <span v-else class="text-ink-subtle" :title="`${item.label} not reported`">&mdash;</span>
         </dd>

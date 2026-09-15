@@ -36,7 +36,15 @@ export default defineConfig({
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
     // One mobile profile, because the directory's filter panel reflows and a
     // layout that only works at desktop width is not a working layout.
-    { name: 'mobile', use: { ...devices['Pixel 7'] } },
+    //
+    // The round-trip suite is excluded: it talks to the API and never opens a
+    // page, so a second run of it would double the load on a rate-limited
+    // upstream to assert the same thing twice.
+    {
+      name: 'mobile',
+      use: { ...devices['Pixel 7'] },
+      testIgnore: /filter-round-trip\.spec\.ts/,
+    },
   ],
 
   webServer: process.env.E2E_BASE_URL

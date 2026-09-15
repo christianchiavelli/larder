@@ -79,6 +79,37 @@ test.describe('product directory', () => {
     await expect(page).toHaveURL(/sort=popularity/)
   })
 
+  /**
+   * The ungraded bucket, which is the largest thing in the catalogue and was
+   * not reachable at all: the schema dropped the value, and a dropped filter
+   * narrows nothing, so the page answered with everything.
+   */
+  test('filters to the products with no grade', async ({ page }) => {
+    await page.goto('/products')
+
+    await page
+      .getByRole('button', { name: /Nutri-Score not available/ })
+      .first()
+      .click()
+    await expect(page).toHaveURL(/nutriScore=unknown/)
+
+    /*
+     * Polled rather than read once. The directory holds the previous page on
+     * screen while the next one loads, which is deliberate and means a single
+     * read lands on the rows from before the filter was applied.
+     */
+    const rows = page.getByTestId('product-row')
+    const ungraded = rows.getByRole('img', { name: 'Nutri-Score not available' })
+
+    await expect(rows.first()).toBeVisible()
+    await expect
+      .poll(async () => {
+        const [total, absent] = await Promise.all([rows.count(), ungraded.count()])
+        return total > 0 && total === absent
+      })
+      .toBe(true)
+  })
+
   test('restores state from a pasted link without visiting the page first', async ({ page }) => {
     await page.goto('/products?nutriScore=a&sort=popularity')
 

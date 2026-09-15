@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { NUTRI_SCORE_GRADES, novaGroupSchema, nutriScoreSchema } from './nutrition'
+import { NUTRI_SCORE_FILTER_VALUES, novaGroupSchema, nutriScoreSchema } from './nutrition'
 import { productSummarySchema } from './product'
 import { toFilterValue } from './taxonomy'
 
@@ -95,8 +95,8 @@ export const productQuerySchema = z.object({
     )
     // A hand-edited URL should drop the bad value, not 400 the whole page.
     .transform((values) =>
-      values.filter((v): v is (typeof NUTRI_SCORE_GRADES)[number] =>
-        (NUTRI_SCORE_GRADES as readonly string[]).includes(v),
+      values.filter((v): v is (typeof NUTRI_SCORE_FILTER_VALUES)[number] =>
+        (NUTRI_SCORE_FILTER_VALUES as readonly string[]).includes(v),
       ),
     )
     .default([]),

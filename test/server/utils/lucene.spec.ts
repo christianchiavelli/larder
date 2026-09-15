@@ -78,7 +78,7 @@ describe('buildProductQuery', () => {
   it('ANDs across dimensions, because filters narrow', () => {
     const built = buildProductQuery(query({ category: 'en:biscuits', nutriScore: 'e' }))
 
-    expect(built.q).toBe('categories_tags:"en:biscuits" AND nutriscore_grade:e')
+    expect(built.q).toBe('categories_tags:"en:biscuits" AND nutriscore_grade:"e"')
   })
 
   it('omits parentheses for a single value, keeping upstream logs readable', () => {
@@ -88,7 +88,7 @@ describe('buildProductQuery', () => {
   it('combines free text with filters', () => {
     const built = buildProductQuery(query({ q: 'chocolate', category: 'en:biscuits', nova: '4' }))
 
-    expect(built.q).toBe('chocolate AND categories_tags:"en:biscuits" AND nova_groups:4')
+    expect(built.q).toBe('chocolate AND categories_tags:"en:biscuits" AND nova_groups:"4"')
   })
 
   /**
@@ -137,8 +137,41 @@ describe('buildProductQuery', () => {
 
     expect(built.q).toBe(
       'bar AND categories_tags:"en:biscuits" AND brands_tags:"lu" AND countries_tags:"en:france" ' +
-        'AND labels_tags:"en:organic" AND (nutriscore_grade:a OR nutriscore_grade:b) ' +
-        'AND (nova_groups:1 OR nova_groups:2)',
+        'AND labels_tags:"en:organic" AND (nutriscore_grade:"a" OR nutriscore_grade:"b") ' +
+        'AND (nova_groups:"1" OR nova_groups:"2")',
+    )
+  })
+})
+
+describe('the ungraded filter', () => {
+  /**
+   * The index spells the absence two ways: `unknown` for a product nobody has
+   * graded, and `not-applicable` for one the scheme does not cover, such as
+   * coffee beans or spirits. The overview counts them as a single bucket, so
+   * the filter has to select the same population the chart drew.
+   */
+  it('expands the absence into both keys upstream uses', () => {
+    expect(buildProductQuery(query({ nutriScore: 'unknown' })).q).toBe(
+      '(nutriscore_grade:"unknown" OR nutriscore_grade:"not-applicable")',
+    )
+  })
+
+  it('leaves a real grade alone', () => {
+    expect(buildProductQuery(query({ nutriScore: 'a' })).q).toBe('nutriscore_grade:"a"')
+  })
+
+  /**
+   * The hyphen is the reason these are quoted rather than escaped. Escaped, it
+   * reads as the NOT operator and upstream matches nothing, which an OR with a
+   * ten-thousand-hit sibling hides completely.
+   */
+  it('does not escape the hyphen out of existence', () => {
+    expect(buildProductQuery(query({ nutriScore: 'unknown' })).q).not.toContain(String.raw`\-`)
+  })
+
+  it('combines the absence with a grade', () => {
+    expect(buildProductQuery(query({ nutriScore: ['a', 'unknown'] })).q).toBe(
+      '(nutriscore_grade:"a" OR nutriscore_grade:"unknown" OR nutriscore_grade:"not-applicable")',
     )
   })
 })

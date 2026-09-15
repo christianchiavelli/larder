@@ -213,6 +213,24 @@ as eight brands and no category at all. The BFF issues one call per taxonomy and
 interleaves them with a quota, which is why the search box can suggest a
 category and a brand in the same list.
 
+**The ungraded bucket could not be filtered, and filtering by it returned
+everything.** "No Nutri-Score" is the largest thing in the catalogue, larger
+than every grade combined, and the query schema dropped it as an invalid value.
+A dropped filter narrows nothing, so the request came back as the whole
+unfiltered catalogue: the control read as applied and the results were of
+everything. It is a value now, and the index spells it two ways (`unknown` for
+ungraded, `not-applicable` for products the scheme does not cover), so the
+filter selects both, matching the bucket the overview already sums.
+
+**Escaping a hyphen made a filter match nothing.** Enum values went through the
+free-text escaper, which escapes `-` because it is Lucene's NOT operator. It
+only is at the start of a term, and `nutriscore_grade:not\-applicable` matches
+zero documents. Every grade until then had been a single letter, so the escaper
+had never had a character to get wrong. The failure would also have hidden: that
+clause is OR'd with one that exceeds the tracked ceiling on its own, so the
+count would have read the same with seventy-one thousand products missing. Enum
+values are quoted now, as taxonomy ids already were.
+
 **Brands are stored differently from every other dimension.** The categories,
 countries and labels facets return language-prefixed ids (`en:beverages`), the
 brands facet returns a bare slug (`carrefour`), and autocomplete prefixes all of
@@ -254,8 +272,8 @@ suite stayed green.
 ```bash
 pnpm run lint        # ESLint (formatting is Prettier's alone)
 pnpm run typecheck   # vue-tsc
-pnpm run test        # Vitest, 284 specs
-pnpm run e2e         # Playwright, 39 specs, against a production build
+pnpm run test        # Vitest, 295 specs
+pnpm run e2e         # Playwright, 58 specs, against a production build
 pnpm run ci          # lint, types, and unit tests with coverage
 ```
 
@@ -267,6 +285,14 @@ Playwright owns what only a browser can answer: whether a Tailwind utility
 resolves, whether a chart's hover state renders, whether a tree hydrates
 cleanly. All three have broken here at some point, and a jsdom render sees none
 of them, which is why `.vue` files sit outside the coverage target.
+
+`e2e/filter-round-trip.spec.ts` is the odd one out: it never opens a page. It
+takes every value the sidebar offers and every value autocomplete suggests,
+applies each as a filter, and checks something comes back. Three bugs in this
+repository were a filter that applied cleanly and matched nothing, none of which
+raised an error anywhere, and no unit test can see them: they are disagreements
+between two upstream services about a vocabulary. It asserts presence and never
+counts, because upstream is community-edited and the numbers move daily.
 
 ---
 
@@ -331,6 +357,11 @@ supports 7.
 
 Things a reviewer would find, listed so nobody has to.
 
+- **Autocomplete can suggest a filter that matches nothing.** It answers from
+  the taxonomy, which is a superset of what the search index holds: "Olivar de
+  Segura S.C.A." is a real brand with no product tagged to it. Knowing the count
+  before offering a suggestion would mean a query per suggestion, against the
+  endpoint with upstream's tightest published limit.
 - **English only.** The locale is fixed in `layers/ui/app/utils/format.ts`, while
   the catalogue is multilingual and mostly European. Switching separators without
   translating anything would be worse than leaving them.

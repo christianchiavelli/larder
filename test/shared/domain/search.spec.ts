@@ -200,3 +200,23 @@ describe('the brand filter', () => {
     ])
   })
 })
+
+describe('the Nutri-Score filter', () => {
+  /**
+   * The ungraded bucket is larger than every grade combined, and the schema
+   * used to drop it as an invalid value. Dropping a filter does not narrow
+   * anything, so the request came back as the entire unfiltered catalogue: the
+   * checkbox read as applied and the results were of everything.
+   */
+  it('accepts the absence as a value', () => {
+    expect(productQuerySchema.parse({ nutriScore: 'unknown' }).nutriScore).toEqual(['unknown'])
+  })
+
+  it.each(['a', 'b', 'c', 'd', 'e'])('accepts grade %s', (grade) => {
+    expect(productQuerySchema.parse({ nutriScore: grade }).nutriScore).toEqual([grade])
+  })
+
+  it('still drops a value that is neither', () => {
+    expect(productQuerySchema.parse({ nutriScore: 'z' }).nutriScore).toEqual([])
+  })
+})

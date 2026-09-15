@@ -6,7 +6,7 @@ import {
   type ProductQuery,
   type SortOption,
 } from '#shared/domain/search'
-import type { NutriScoreGrade, NovaGroup } from '#shared/domain/nutrition'
+import type { NutriScore, NovaGroup } from '#shared/domain/nutrition'
 import { toFilterValue } from '#shared/domain/taxonomy'
 
 /**
@@ -94,7 +94,8 @@ export function useProductQuery() {
     return apply({ [dimension]: next } as Partial<ProductQuery>)
   }
 
-  function toggleNutriScore(grade: NutriScoreGrade) {
+  /** Takes the absence as well as a grade: it is the largest bucket there is. */
+  function toggleNutriScore(grade: NutriScore) {
     const current = query.value.nutriScore
     return apply({
       nutriScore: current.includes(grade)

@@ -49,11 +49,41 @@ function tagClause(field: string, values: readonly string[]): string {
   return terms.length === 1 ? terms[0]! : `(${terms.join(' OR ')})`
 }
 
-/** Same shape, for fields whose values are bare enum tokens rather than ids. */
+/**
+ * Same shape, for fields whose values are enum tokens rather than taxonomy ids.
+ *
+ * Quoted, not escaped. Escaping is correct for free text and wrong here: the
+ * escaper treats `-` as an operator, which it is only at the start of a term,
+ * and `nutriscore_grade:not\-applicable` matches nothing at all. Every grade
+ * except that one is a single letter, so the escaper had never had a character
+ * to get wrong and the query looked fine until the absence became filterable.
+ *
+ * The failure would also have hidden: the ungraded clause is an OR, and its
+ * other half returns more than the tracked ceiling on its own, so the count
+ * would have read the same with seventy-one thousand products missing.
+ */
 function enumClause(field: string, values: readonly (string | number)[]): string {
   if (values.length === 0) return ''
-  const terms = values.map((value) => `${field}:${escapeLuceneTerm(String(value))}`)
+  const terms = values.map((value) => `${field}:${quoteLuceneValue(String(value))}`)
   return terms.length === 1 ? terms[0]! : `(${terms.join(' OR ')})`
+}
+
+/**
+ * How the index spells "no Nutri-Score".
+ *
+ * Two keys, not one: `unknown` for a product nobody has graded and
+ * `not-applicable` for one the scheme does not cover, such as coffee beans or
+ * spirits. The overview already reports them as a single bucket, because the
+ * reader's question is whether there is a grade, so the filter has to select
+ * the same population the chart counted.
+ */
+const UNGRADED_KEYS = ['unknown', 'not-applicable'] as const
+
+/** Expands the absence, and leaves a real grade as it is. */
+function nutriScoreClause(values: readonly string[]): string {
+  if (values.length === 0) return ''
+  const expanded = values.flatMap((value) => (value === 'unknown' ? UNGRADED_KEYS : [value]))
+  return enumClause('nutriscore_grade', expanded)
 }
 
 /**
@@ -95,7 +125,7 @@ export function buildProductQuery(query: ProductQuery): UpstreamQuery {
     tagClause('brands_tags', query.brand),
     tagClause('countries_tags', query.country),
     tagClause('labels_tags', query.label),
-    enumClause('nutriscore_grade', query.nutriScore),
+    nutriScoreClause(query.nutriScore),
     enumClause('nova_groups', query.nova),
   ].filter((clause) => clause.length > 0)
 
