@@ -113,6 +113,18 @@
   --radius-shell: 1rem;
   --radius-pill: 999px;
 
+  /**
+   * A frame drawn around a control, with its corners concentric.
+   *
+   * The outer radius has to be the inner radius plus the distance between the
+   * two edges, or the curves do not run parallel. Equal radii fail in a
+   * specific and recognisable way: the frame reads as a square drawn around a
+   * rounded chip, which is exactly what it looks like.
+   *
+   * The 0.3125rem is the inset it is built for: `p-1` plus a one-pixel border.
+   */
+  --radius-control-frame: calc(var(--radius-control) + 0.3125rem);
+
   /* Tinted with the darkest blue rather than with black. A neutral shadow over
    * a blue-cast surface reads as grime; the same shadow in the surface's own
    * hue reads as depth. */

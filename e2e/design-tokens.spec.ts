@@ -170,3 +170,39 @@ test.describe('design tokens reach the browser', () => {
     expect(darkNutri, 'a regulated label colour should not').toBe(lightNutri)
   })
 })
+
+/**
+ * A frame drawn around a control has to curve with it.
+ *
+ * The outer radius must be the inner radius plus the distance between the two
+ * edges, or the curves do not run parallel. Equal radii fail in a specific and
+ * recognisable way: the frame reads as a square drawn around a rounded chip.
+ *
+ * Asserted as the relationship rather than as a number, so changing the padding
+ * without changing the radius is what fails, which is how this happened.
+ */
+test('the grade filter frame is concentric with the badge inside it', async ({ page }) => {
+  await page.goto('/products')
+
+  const measured = await page
+    .getByRole('button', { name: /Nutri-Score A,/ })
+    .first()
+    .evaluate((button) => {
+      const badge = button.querySelector('[role="img"]')!
+      const outer = button.getBoundingClientRect()
+      const inner = badge.getBoundingClientRect()
+
+      return {
+        outerRadius: parseFloat(getComputedStyle(button).borderTopLeftRadius),
+        innerRadius: parseFloat(getComputedStyle(badge).borderTopLeftRadius),
+        inset: (outer.width - inner.width) / 2,
+        square: Math.abs(outer.width - outer.height) < 0.5,
+      }
+    })
+
+  expect(measured.outerRadius).toBeCloseTo(measured.innerRadius + measured.inset, 1)
+
+  // And the frame is as tall as it is wide. An inline child sits in a line box
+  // taller than itself, which made a square badge wear a rectangle.
+  expect(measured.square, 'the frame is not square').toBe(true)
+})

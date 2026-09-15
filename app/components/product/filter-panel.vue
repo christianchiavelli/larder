@@ -49,11 +49,11 @@ const showingFilters = computed(() => hasActiveFilters(query.value))
           v-for="grade in NUTRI_SCORE_FILTER_VALUES"
           :key="grade"
           type="button"
-          class="rounded-control border p-0.5 transition-colors motion-reduce:transition-none"
+          class="inline-flex rounded-control-frame border p-1 transition-colors motion-reduce:transition-none"
           :class="
             query.nutriScore.includes(grade)
               ? 'border-edge-accent bg-surface-accent'
-              : 'border-transparent hover:border-edge'
+              : 'border-transparent hover:bg-surface-hover'
           "
           :aria-pressed="query.nutriScore.includes(grade)"
           @click="toggleNutriScore(grade)"
