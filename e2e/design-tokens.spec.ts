@@ -206,3 +206,72 @@ test('the grade filter frame is concentric with the badge inside it', async ({ p
   // taller than itself, which made a square badge wear a rectangle.
   expect(measured.square, 'the frame is not square').toBe(true)
 })
+
+/**
+ * The ring that marks a chosen grade stays neutral and stays visible.
+ *
+ * Neutral because the thing it wraps is a colour scale: a Nutri-Score badge is
+ * green through red, and an accent-blue ring around it adds a hue that means
+ * nothing next to hues that mean everything. Accent is still right for
+ * pagination and the card focus ring, where no colour competes, so this is
+ * asserted on the grade filter rather than on the token globally.
+ *
+ * Visible because the ring is the only thing distinguishing on from off: the
+ * fill behind it is a one-step lift and carries no contrast of its own. WCAG
+ * 1.4.11 puts the floor for a non-text state indicator at 3:1.
+ */
+test('the chosen grade is marked in a neutral colour, in both themes', async ({ page }) => {
+  await page.goto('/products')
+  await page.getByRole('button', { name: /Nutri-Score A,/ }).first().click()
+  await expect(page).toHaveURL(/nutriScore=a/)
+
+  // The frame animates its colours, so a read taken right after the theme flips
+  // returns a point partway through the interpolation. What is under test is
+  // where the colour lands, not how it gets there.
+  await page.addStyleTag({ content: '*, *::before, *::after { transition: none !important }' })
+
+  const measure = () =>
+    page
+      .getByRole('button', { name: /Nutri-Score A,/ })
+      .first()
+      .evaluate((button) => {
+        const parse = (value: string) => value.match(/\d+(\.\d+)?/g)!.slice(0, 3).map(Number)
+
+        const luminance = (rgb: number[]) => {
+          const [r, g, b] = rgb.map((channel) => {
+            const c = channel / 255
+            return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
+          }) as [number, number, number]
+          return 0.2126 * r + 0.7152 * g + 0.0722 * b
+        }
+
+        const contrast = (a: number[], b: number[]) => {
+          const [high, low] = [luminance(a), luminance(b)].sort((x, y) => y - x) as [number, number]
+          return (high + 0.05) / (low + 0.05)
+        }
+
+        const border = parse(getComputedStyle(button).borderTopColor)
+        const fill = parse(getComputedStyle(button).backgroundColor)
+        const [min, max] = [Math.min(...border), Math.max(...border)]
+
+        return {
+          // HSL saturation. Accent blue reads 100, a cool grey reads about 11.
+          saturation: (max - min) / (255 - Math.abs(max + min - 255)),
+          contrast: contrast(border, fill),
+        }
+      })
+
+  const light = await measure()
+  await page.evaluate(() => document.documentElement.classList.add('dark'))
+  const dark = await measure()
+
+  for (const [theme, measured] of [
+    ['light', light],
+    ['dark', dark],
+  ] as const) {
+    expect(measured.saturation, `the ${theme} ring is not neutral`).toBeLessThan(0.25)
+    expect(measured.contrast, `the ${theme} ring is too faint to read as a state`).toBeGreaterThan(
+      3,
+    )
+  }
+})

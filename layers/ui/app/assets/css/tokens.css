@@ -86,6 +86,14 @@
   --primitive-blue-tint: #102552; /* cool-500 -> blue-300, 30% */
   --primitive-blue-tint-strong: #0f2a65; /* cool-500 -> blue-300, 45% */
 
+  /* The selected state for a control that already carries its own colour.
+   *
+   * Neutral on purpose. A Nutri-Score badge runs green through red, and ringing
+   * it in accent blue puts a second hue beside a scale whose whole job is to be
+   * read by hue. Grey says "this one is on" without joining the argument.
+   * Accent stays correct where nothing competes, which is why pagination and
+   * the card focus ring keep it. */
+
   /* 2. Semantics: light ------------------------------------------------- */
 
   --surface-base: var(--primitive-cool-25);
@@ -94,6 +102,7 @@
   --surface-overlay: var(--primitive-white);
   --surface-accent: var(--primitive-blue-50);
   --surface-hover: var(--primitive-blue-50);
+  --surface-selected: var(--primitive-cool-100);
 
   /* The application chrome: the navigation rail.
    *
@@ -109,6 +118,7 @@
   --border-default: var(--primitive-grey-100);
   --border-strong: var(--primitive-grey-150);
   --border-accent: var(--primitive-blue-300);
+  --border-selected: var(--primitive-grey-200);
 
   --content-primary: var(--primitive-blue-500);
   --content-secondary: var(--primitive-grey-300);
@@ -190,6 +200,7 @@
   --surface-overlay: var(--primitive-cool-475);
   --surface-accent: var(--primitive-blue-tint);
   --surface-hover: var(--primitive-cool-450);
+  --surface-selected: var(--primitive-cool-400);
 
   /* The chrome drops one step below the page rather than staying put. In the
    * light theme it is the darkest thing on screen, and that is what makes it
@@ -204,6 +215,7 @@
   --border-default: var(--primitive-cool-400);
   --border-strong: var(--primitive-cool-300);
   --border-accent: var(--primitive-blue-100);
+  --border-selected: var(--primitive-grey-175);
 
   --content-primary: var(--primitive-cool-50);
   --content-secondary: var(--primitive-grey-150);

@@ -35,6 +35,7 @@
   --color-surface-overlay: var(--surface-overlay);
   --color-surface-accent: var(--surface-accent);
   --color-surface-hover: var(--surface-hover);
+  --color-surface-selected: var(--surface-selected);
 
   /* Application chrome: sidebar and top bar. Dark in both themes. */
   --color-chrome: var(--chrome-base);
@@ -47,6 +48,7 @@
   --color-edge: var(--border-default);
   --color-edge-strong: var(--border-strong);
   --color-edge-accent: var(--border-accent);
+  --color-edge-selected: var(--border-selected);
 
   /* Text and icons */
   --color-ink: var(--content-primary);

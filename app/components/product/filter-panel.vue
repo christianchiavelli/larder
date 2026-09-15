@@ -52,7 +52,7 @@ const showingFilters = computed(() => hasActiveFilters(query.value))
           class="inline-flex rounded-control-frame border p-1 transition-colors motion-reduce:transition-none"
           :class="
             query.nutriScore.includes(grade)
-              ? 'border-edge-accent bg-surface-accent'
+              ? 'border-edge-selected bg-surface-selected'
               : 'border-transparent hover:bg-surface-hover'
           "
           :aria-pressed="query.nutriScore.includes(grade)"
