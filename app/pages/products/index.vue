@@ -117,9 +117,11 @@ const totalLabel = computed(() => {
         </div>
 
         <div
-          v-if="result && result.pageCount > 1"
-          class="border-t border-edge-subtle bg-surface-raised p-3"
+          v-if="result"
+          class="flex flex-col items-center gap-3 border-t border-edge-subtle bg-surface-raised p-3 sm:flex-row sm:justify-between"
         >
+          <ProductPageSizeField />
+
           <UiPagination
             :page="result.page"
             :page-count="result.pageCount"

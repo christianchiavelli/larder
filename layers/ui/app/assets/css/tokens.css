@@ -56,11 +56,8 @@
   --primitive-red-100: #f47070;
   --primitive-red-200: #e51e56;
   --primitive-red-300: #b71845;
-  --primitive-yellow-50: #fcf8d9;
-  --primitive-yellow-100: #f5e669;
   --primitive-yellow-200: #eeaf00;
   --primitive-yellow-300: #d48013;
-  --primitive-yellow-400: #b05223;
 
   /* Dark-mode surfaces.
    *
@@ -97,7 +94,6 @@
   --surface-overlay: var(--primitive-white);
   --surface-accent: var(--primitive-blue-50);
   --surface-hover: var(--primitive-blue-50);
-  --surface-active: var(--primitive-cool-100);
 
   /* The application chrome: the navigation rail.
    *
@@ -117,7 +113,6 @@
   --content-primary: var(--primitive-blue-500);
   --content-secondary: var(--primitive-grey-300);
   --content-tertiary: var(--primitive-grey-200);
-  --content-inverse: var(--primitive-white);
   --content-accent: var(--primitive-blue-300);
   --content-on-accent: var(--primitive-white);
 
@@ -129,10 +124,6 @@
    * the brand red, which only reaches 3.4 on its own tint. */
   --status-danger-surface: var(--primitive-red-50);
   --status-danger-content: var(--primitive-red-300);
-  --status-warning-surface: var(--primitive-yellow-50);
-  --status-warning-content: var(--primitive-yellow-400);
-  --status-info-surface: var(--primitive-blue-50);
-  --status-info-content: var(--primitive-blue-300);
 
   --focus-ring: var(--primitive-blue-300);
 
@@ -199,7 +190,6 @@
   --surface-overlay: var(--primitive-cool-475);
   --surface-accent: var(--primitive-blue-tint);
   --surface-hover: var(--primitive-cool-450);
-  --surface-active: var(--primitive-cool-400);
 
   /* The chrome drops one step below the page rather than staying put. In the
    * light theme it is the darkest thing on screen, and that is what makes it
@@ -218,7 +208,6 @@
   --content-primary: var(--primitive-cool-50);
   --content-secondary: var(--primitive-grey-150);
   --content-tertiary: var(--primitive-grey-175);
-  --content-inverse: var(--primitive-blue-500);
   --content-accent: var(--primitive-blue-100);
   --content-on-accent: var(--primitive-white);
 
@@ -231,10 +220,6 @@
 
   --status-danger-surface: #3e2438; /* cool-500 -> red-200,    22% */
   --status-danger-content: var(--primitive-red-100);
-  --status-warning-surface: #3b3837; /* cool-500 -> yellow-200, 22% */
-  --status-warning-content: var(--primitive-yellow-100);
-  --status-info-surface: #112248; /* cool-500 -> blue-300,   22% */
-  --status-info-content: var(--primitive-blue-100);
 
   --focus-ring: var(--primitive-blue-100);
 

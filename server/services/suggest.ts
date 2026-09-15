@@ -15,7 +15,7 @@ import type { UpstreamClient } from '~~/server/utils/upstream-client'
  * categories, brands and labels returns eight brands and no category.
  */
 
-export const suggestQuerySchema = z.object({
+const suggestQuerySchema = z.object({
   /**
    * Two characters is the floor. A single letter matches most of a taxonomy,
    * which suggests nothing useful and spends a call against the endpoint with

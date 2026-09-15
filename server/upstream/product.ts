@@ -1,7 +1,8 @@
 import { z } from 'zod'
 import { normaliseBrands, type ProductDetail } from '#shared/domain/product'
 import { toTaxonomyTag } from '#shared/domain/taxonomy'
-import { mapProductImage } from './image'
+import { looseNumber, looseString } from './coerce'
+import { mapProductImage, upstreamImageFields } from './image'
 import { mapNovaGroup, mapNutriments, mapNutriScore } from './search'
 
 /**
@@ -13,23 +14,6 @@ import { mapNovaGroup, mapNutriments, mapNutriScore } from './search'
  * Neither schema is derived from the other because they genuinely differ; what
  * they share is the mapping target.
  */
-
-/** See the note in ./search.ts: `.nullish()` is what makes an absent key legal. */
-const looseString = z
-  .union([z.string(), z.number(), z.null()])
-  .nullish()
-  .transform((value) =>
-    value === null || value === undefined ? null : String(value).trim() || null,
-  )
-
-const looseNumber = z
-  .union([z.number(), z.string(), z.null()])
-  .nullish()
-  .transform((value) => {
-    if (value === null || value === undefined || value === '') return null
-    const parsed = typeof value === 'number' ? value : Number(value)
-    return Number.isFinite(parsed) ? parsed : null
-  })
 
 const looseTagArray = z
   .union([z.array(z.union([z.string(), z.number()])), z.null()])
@@ -53,12 +37,7 @@ const upstreamProductSchema = z.looseObject({
   nova_group: looseNumber,
   nova_groups: looseNumber,
   ecoscore_grade: looseString,
-  image_front_thumb_url: looseString,
-  image_front_small_url: looseString,
-  image_front_url: looseString,
-  image_thumb_url: looseString,
-  image_small_url: looseString,
-  image_url: looseString,
+  ...upstreamImageFields,
   nutriments: z.record(z.string(), z.unknown()).nullish(),
   quantity: looseString,
   serving_size: looseString,

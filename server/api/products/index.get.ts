@@ -26,7 +26,7 @@ import { upstreamCache } from '~~/server/utils/cache-policy'
  * `?page=1` and no page at all. Keying on the URL would store them as separate
  * entries and miss a cache hit that was already paid for.
  */
-export function cacheKeyFor(query: ProductQuery): string {
+function cacheKeyFor(query: ProductQuery): string {
   const parts = [
     query.q,
     [...query.category].sort().join('|'),

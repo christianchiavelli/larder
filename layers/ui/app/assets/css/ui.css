@@ -35,7 +35,6 @@
   --color-surface-overlay: var(--surface-overlay);
   --color-surface-accent: var(--surface-accent);
   --color-surface-hover: var(--surface-hover);
-  --color-surface-active: var(--surface-active);
 
   /* Application chrome: sidebar and top bar. Dark in both themes. */
   --color-chrome: var(--chrome-base);
@@ -53,7 +52,6 @@
   --color-ink: var(--content-primary);
   --color-ink-muted: var(--content-secondary);
   --color-ink-subtle: var(--content-tertiary);
-  --color-ink-inverse: var(--content-inverse);
   --color-ink-accent: var(--content-accent);
   --color-ink-on-accent: var(--content-on-accent);
 
@@ -66,10 +64,6 @@
   /* Status */
   --color-danger-surface: var(--status-danger-surface);
   --color-danger: var(--status-danger-content);
-  --color-warning-surface: var(--status-warning-surface);
-  --color-warning: var(--status-warning-content);
-  --color-info-surface: var(--status-info-surface);
-  --color-info: var(--status-info-content);
 
   /* Domain: Nutri-Score */
   --color-nutri-a: var(--nutriscore-a);
@@ -97,14 +91,12 @@
   --color-nova-unknown: var(--nova-unknown);
   --color-nova-unknown-ink: var(--nova-unknown-content);
 
-  /* Charts */
+  /* Charts.
+   *
+   * Only the first series is mapped to a utility. The rest are read as custom
+   * properties by useChartTheme and handed to a canvas, which cannot use a
+   * class, so mapping them generated utilities no markup ever asked for. */
   --color-viz-1: var(--viz-1);
-  --color-viz-2: var(--viz-2);
-  --color-viz-3: var(--viz-3);
-  --color-viz-4: var(--viz-4);
-  --color-viz-grid: var(--viz-grid);
-  --color-viz-axis: var(--viz-axis);
-  --color-viz-track: var(--viz-track);
 }
 
 @theme {
@@ -130,7 +122,6 @@
 
   /* Chrome dimensions. Tokens rather than repeated numbers, because the sticky
    * header and the sidebar have to agree on them in several places. */
-  --spacing-appbar: 3.5rem;
   --spacing-rail: 3.75rem;
 }
 

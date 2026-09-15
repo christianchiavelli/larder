@@ -66,20 +66,15 @@ const showingFilters = computed(() => hasActiveFilters(query.value))
     <fieldset class="border-0 p-0">
       <legend class="mb-2 text-overline text-ink-subtle uppercase">Processing (NOVA)</legend>
       <div class="flex flex-col gap-1">
-        <label
+        <UiCheckboxRow
           v-for="group in NOVA_GROUPS"
           :key="group"
-          class="flex cursor-pointer items-center gap-2 rounded-control px-1 py-0.5 hover:bg-surface-hover"
+          :checked="query.nova.includes(group)"
+          @toggle="toggleNova(group)"
         >
-          <input
-            type="checkbox"
-            class="size-4 shrink-0 accent-accent"
-            :checked="query.nova.includes(group)"
-            @change="toggleNova(group)"
-          />
           <ProductNovaBadge :group="group" />
           <span class="text-label text-ink">{{ NOVA_SHORT_LABELS[group] }}</span>
-        </label>
+        </UiCheckboxRow>
       </div>
     </fieldset>
 

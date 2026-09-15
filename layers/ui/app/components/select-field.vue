@@ -1,4 +1,4 @@
-<script setup lang="ts" generic="T extends string">
+<script setup lang="ts" generic="T extends string | number">
 /**
  * A styled select.
  *
@@ -35,8 +35,18 @@ const model = defineModel<T>({ required: true })
 
 const fieldId = useId()
 
+/**
+ * Maps the DOM's string back to the option it came from.
+ *
+ * A `<select>` only ever reports a string, so casting that string to `T` would
+ * be a lie for any non-string option: the model would hold `"48"` where the
+ * rest of the app expects `48`, and every comparison against it would quietly
+ * fail. Looking the value up in the options keeps the caller's own type.
+ */
 function onChange(event: Event) {
-  model.value = (event.target as HTMLSelectElement).value as T
+  const raw = (event.target as HTMLSelectElement).value
+  const option = props.options.find((candidate) => String(candidate.value) === raw)
+  if (option) model.value = option.value
 }
 
 const selectedLabel = computed(

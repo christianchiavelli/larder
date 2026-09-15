@@ -8,7 +8,8 @@ import {
 } from '#shared/domain/nutrition'
 import { normaliseBrands, type ProductSummary } from '#shared/domain/product'
 import { toTaxonomyTag } from '#shared/domain/taxonomy'
-import { mapProductImage } from './image'
+import { looseNumber, looseString } from './coerce'
+import { mapProductImage, upstreamImageFields } from './image'
 import type { FacetItem } from '#shared/domain/search'
 
 /**
@@ -31,25 +32,6 @@ import type { FacetItem } from '#shared/domain/search'
  * without it rejects every record that is missing any optional field. That is
  * most of the catalogue.
  */
-
-/** Accepts the number, the numeric string, and the empty cases upstream mixes. */
-const looseNumber = z
-  .union([z.number(), z.string(), z.null()])
-  .nullish()
-  .transform((value) => {
-    if (value === null || value === undefined || value === '') return null
-    const parsed = typeof value === 'number' ? value : Number(value)
-    // NaN and Infinity both reach here from real records. Neither can be
-    // rendered or averaged, so they are absences, not values.
-    return Number.isFinite(parsed) ? parsed : null
-  })
-
-const looseString = z
-  .union([z.string(), z.number(), z.null()])
-  .nullish()
-  .transform((value) =>
-    value === null || value === undefined ? null : String(value).trim() || null,
-  )
 
 const looseStringArray = z
   .union([z.array(z.union([z.string(), z.number()])), z.string(), z.null()])
@@ -74,12 +56,7 @@ const upstreamHitSchema = z.looseObject({
   /** Both spellings exist on the same document and disagree often enough to matter. */
   nova_group: looseNumber,
   nova_groups: looseNumber,
-  image_front_thumb_url: looseString,
-  image_front_small_url: looseString,
-  image_front_url: looseString,
-  image_thumb_url: looseString,
-  image_small_url: looseString,
-  image_url: looseString,
+  ...upstreamImageFields,
   nutriments: z.record(z.string(), z.unknown()).nullish(),
 })
 

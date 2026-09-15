@@ -13,7 +13,7 @@ import { fetchSuggestions } from '~/api/products'
  */
 
 /** Below this, a term matches most of a taxonomy and suggests nothing useful. */
-export const MIN_SUGGEST_LENGTH = 2
+const MIN_SUGGEST_LENGTH = 2
 
 export function useSuggestions(term: Ref<string>) {
   const prefix = computed(() => term.value.trim().toLowerCase())

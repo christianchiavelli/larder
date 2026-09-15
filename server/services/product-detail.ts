@@ -22,7 +22,7 @@ import type { UpstreamClient } from '~~/server/utils/upstream-client'
  * is a request-forgery primitive rather than a cosmetic concern. Validating the
  * shape is what keeps `../` from ever reaching it.
  */
-export const barcodeSchema = z.string().regex(/^\d{1,14}$/, 'A barcode is between 1 and 14 digits.')
+const barcodeSchema = z.string().regex(/^\d{1,14}$/, 'A barcode is between 1 and 14 digits.')
 
 export async function getProductDetail(
   client: UpstreamClient,

@@ -60,15 +60,7 @@ const hiddenCount = computed(() => Math.max(0, props.items.length - props.limit)
 
     <ul v-else class="flex flex-col gap-1">
       <li v-for="item in visible" :key="item.key">
-        <label
-          class="flex cursor-pointer items-center gap-2 rounded-control px-1 py-0.5 hover:bg-surface-hover"
-        >
-          <input
-            type="checkbox"
-            class="size-4 shrink-0 accent-accent"
-            :checked="selected.includes(item.key)"
-            @change="$emit('toggle', item.key)"
-          />
+        <UiCheckboxRow :checked="selected.includes(item.key)" @toggle="$emit('toggle', item.key)">
           <span class="min-w-0 flex-1 truncate text-label text-ink" :title="item.label">
             {{ item.label }}
           </span>
@@ -80,7 +72,7 @@ const hiddenCount = computed(() => Math.max(0, props.items.length - props.limit)
           >
             {{ formatCountCompact(item.count) }}
           </span>
-        </label>
+        </UiCheckboxRow>
       </li>
     </ul>
 

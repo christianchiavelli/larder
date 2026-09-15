@@ -23,7 +23,7 @@ import type { UpstreamClient } from '~~/server/utils/upstream-client'
  */
 
 /** Only the fields the summary contract needs. The full record is ~250 keys. */
-export const REQUESTED_FIELDS = [
+const REQUESTED_FIELDS = [
   'code',
   'product_name',
   'product_name_en',
@@ -43,7 +43,7 @@ export const REQUESTED_FIELDS = [
   'nutriments',
 ].join(',')
 
-export const REQUESTED_FACETS = [...FACET_FIELDS, 'nutriscore_grade'].join(',')
+const REQUESTED_FACETS = [...FACET_FIELDS, 'nutriscore_grade'].join(',')
 
 const CONTEXT = { service: 'search-a-licious', operation: 'GET /search' }
 

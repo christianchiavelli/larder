@@ -89,6 +89,21 @@ test.describe('product directory', () => {
     )
   })
 
+  /**
+   * The page size was reachable only by editing the address bar: the schema
+   * validated it, the composable reset to page one on a change, and nothing
+   * rendered a control.
+   */
+  test('changes the page size and starts again from page one', async ({ page }) => {
+    await page.goto('/products?page=5')
+
+    await page.getByLabel('Per page').selectOption('48')
+
+    await expect(page).toHaveURL(/pageSize=48/)
+    await expect(page).not.toHaveURL(/[?&]page=/)
+    await expect(page.getByTestId('product-row')).toHaveCount(48)
+  })
+
   test('supports the back button', async ({ page }) => {
     await page.goto('/products')
 

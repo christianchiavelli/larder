@@ -1,4 +1,5 @@
 import type { ProductImage } from '#shared/domain/product'
+import { looseString } from './coerce'
 
 /**
  * Maps upstream's image URLs into the domain's image.
@@ -7,14 +8,22 @@ import type { ProductImage } from '#shared/domain/product'
  * fields, and the rule for reading them is the part worth stating once.
  */
 
-/** The six fields, as either service returns them. */
-export interface UpstreamImageFields {
-  image_front_thumb_url?: string | null
-  image_front_small_url?: string | null
-  image_front_url?: string | null
-  image_thumb_url?: string | null
-  image_small_url?: string | null
-  image_url?: string | null
+/**
+ * The six fields, as a schema fragment both upstream services spread into
+ * their own object. Declaring them twice is how one service quietly stops
+ * reading a width the other one does.
+ */
+export const upstreamImageFields = {
+  image_front_thumb_url: looseString,
+  image_front_small_url: looseString,
+  image_front_url: looseString,
+  image_thumb_url: looseString,
+  image_small_url: looseString,
+  image_url: looseString,
+}
+
+type UpstreamImageFields = {
+  [K in keyof typeof upstreamImageFields]?: string | null
 }
 
 /** Upstream occasionally stores a bare path or a malformed entry. */

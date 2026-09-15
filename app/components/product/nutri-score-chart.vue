@@ -32,47 +32,21 @@ const total = computed(() => entries.value.reduce((sum, entry) => sum + entry.co
 const share = (count: number) => formatShare(count, total.value)
 
 const option = computed<EChartsOption>(() => ({
-  // The library's own accessibility layer is left off: it generates a prose
-  // description that is worse than the real table UiChart renders.
-  aria: { enabled: false },
-  // Right margin holds the value labels; containLabel does not reserve for them.
-  grid: { left: 8, right: 48, top: 8, bottom: 8, containLabel: true },
-  xAxis: {
-    type: 'value',
-    axisLabel: {
-      color: theme.value.inkMuted,
-      formatter: (value: number) => formatCompact(value),
-    },
-    splitLine: { lineStyle: { color: theme.value.grid, type: 'dashed' } },
-  },
-  yAxis: {
-    type: 'category',
-    inverse: true,
-    data: entries.value.map((entry) =>
-      entry.grade === 'unknown' ? 'N/A' : entry.grade.toUpperCase(),
-    ),
-    axisLabel: { color: theme.value.ink, fontWeight: 600 },
-    // No axis rule and no ticks. The category labels already anchor the bars,
-    // and a heavy vertical line competes with the data it is supposed to frame.
-    axisLine: { show: false },
-    axisTick: { show: false },
-  },
-  tooltip: {
-    trigger: 'item',
-    backgroundColor: theme.value.surfaceRaised,
-    borderColor: theme.value.edge,
-    textStyle: { color: theme.value.ink },
-    // ECharts types the callback as item-or-array because a shared-axis
-    // trigger passes every series at once. This one is `trigger: 'item'`, so
-    // it is always a single entry, but narrowing is cheaper than asserting.
-    formatter: (params) => {
-      const first = Array.isArray(params) ? params[0] : params
-      const entry = first ? entries.value[first.dataIndex] : undefined
-      if (!entry) return ''
-      const name = entry.grade === 'unknown' ? 'No grade' : `Grade ${entry.grade.toUpperCase()}`
-      return `${name}<br>${formatCount(entry.count)} (${share(entry.count)})`
-    },
-  },
+  aria: CHART_ARIA,
+  grid: CHART_GRID,
+  xAxis: valueAxis(theme.value),
+  yAxis: categoryAxis(
+    theme.value,
+    entries.value.map((entry) => (entry.grade === 'unknown' ? 'N/A' : entry.grade.toUpperCase())),
+    // Heavier than a category name, because these are the grades themselves.
+    { fontWeight: 600 },
+  ),
+  tooltip: itemTooltip(theme.value, (index) => {
+    const entry = entries.value[index]
+    if (!entry) return ''
+    const name = entry.grade === 'unknown' ? 'No grade' : `Grade ${entry.grade.toUpperCase()}`
+    return `${name}<br>${formatCount(entry.count)} (${share(entry.count)})`
+  }),
   series: [
     {
       type: 'bar',
@@ -80,24 +54,10 @@ const option = computed<EChartsOption>(() => ({
         value: entry.count,
         // Each bar carries the grade's own regulated colour, so the chart and
         // the badges on the cards below agree without a legend.
-        itemStyle: { color: grades.value[entry.grade], borderRadius: [0, 4, 4, 0] },
+        itemStyle: { color: grades.value[entry.grade], borderRadius: BAR_RADIUS },
       })),
       barMaxWidth: 28,
-      /**
-       * One bucket routinely holds two thirds of the catalogue, which leaves
-       * the graded bars a few pixels long. The label is what keeps a short bar
-       * legible: without it the chart shows that most products are ungraded and
-       * nothing else.
-       */
-      label: {
-        show: true,
-        position: 'right',
-        color: theme.value.inkMuted,
-        fontSize: 11,
-        // `value` is typed as the whole union a dataset cell can hold, so it
-        // is coerced rather than asserted.
-        formatter: (params) => formatCompact(Number(params.value ?? 0)),
-      },
+      label: barValueLabel(theme.value),
     },
   ],
 }))

@@ -31,56 +31,26 @@ function truncate(label: string, max = 28): string {
 }
 
 const option = computed<EChartsOption>(() => ({
-  aria: { enabled: false },
-  // Right margin holds the value labels; containLabel does not reserve for them.
-  grid: { left: 8, right: 48, top: 8, bottom: 8, containLabel: true },
-  xAxis: {
-    type: 'value',
-    axisLabel: {
-      color: theme.value.inkMuted,
-      formatter: (value: number) => formatCompact(value),
-    },
-    splitLine: { lineStyle: { color: theme.value.grid, type: 'dashed' } },
-  },
-  yAxis: {
-    type: 'category',
-    inverse: true,
-    data: top.value.map((item) => truncate(item.label)),
-    axisLabel: { color: theme.value.ink },
-    // No axis rule and no ticks. The category labels already anchor the bars,
-    // and a heavy vertical line competes with the data it is supposed to frame.
-    axisLine: { show: false },
-    axisTick: { show: false },
-  },
-  tooltip: {
-    trigger: 'item',
-    backgroundColor: theme.value.surfaceRaised,
-    borderColor: theme.value.edge,
-    textStyle: { color: theme.value.ink },
-    // See the note in nutri-score-chart.vue on why this narrows.
-    formatter: (params) => {
-      const first = Array.isArray(params) ? params[0] : params
-      const item = first ? top.value[first.dataIndex] : undefined
-      // The tooltip carries the untruncated label, which is the only place a
-      // pointer user can read the full name.
-      return item ? `${item.label}<br>${formatCount(item.count)} products` : ''
-    },
-  },
+  aria: CHART_ARIA,
+  grid: CHART_GRID,
+  xAxis: valueAxis(theme.value),
+  yAxis: categoryAxis(
+    theme.value,
+    top.value.map((item) => truncate(item.label)),
+  ),
+  tooltip: itemTooltip(theme.value, (index) => {
+    const item = top.value[index]
+    // The tooltip carries the untruncated label, which is the only place a
+    // pointer user can read the full name.
+    return item ? `${item.label}<br>${formatCount(item.count)} products` : ''
+  }),
   series: [
     {
       type: 'bar',
       data: top.value.map((item) => item.count),
-      itemStyle: { color: theme.value.series[0], borderRadius: [0, 4, 4, 0] },
+      itemStyle: { color: theme.value.series[0], borderRadius: BAR_RADIUS },
       barMaxWidth: 20,
-      label: {
-        show: true,
-        position: 'right',
-        color: theme.value.inkMuted,
-        fontSize: 11,
-        // `value` is typed as the whole union a dataset cell can hold, so it
-        // is coerced rather than asserted.
-        formatter: (params) => formatCompact(Number(params.value ?? 0)),
-      },
+      label: barValueLabel(theme.value),
     },
   ],
 }))

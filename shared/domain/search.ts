@@ -116,7 +116,6 @@ export const productQuerySchema = z.object({
 })
 
 export type ProductQuery = z.infer<typeof productQuerySchema>
-export type ProductQueryInput = z.input<typeof productQuerySchema>
 
 export const EMPTY_PRODUCT_QUERY: ProductQuery = productQuerySchema.parse({})
 
