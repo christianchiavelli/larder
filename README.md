@@ -1,14 +1,13 @@
 # Larder
 
-A food product analytics dashboard built on [Open Food Facts](https://world.openfoodfacts.org),
-a public catalogue of roughly 3.5 million packaged food products contributed by
-the public.
+A food product analytics dashboard on top of [Open Food Facts](https://world.openfoodfacts.org),
+a public catalogue of roughly 3.5 million packaged products.
 
-Browse and filter the catalogue by category, brand, nutrition grade and
-processing level; open any product for its nutrition profile against EU
-reference intakes, its additives, labels and provenance.
+Filter the catalogue by category, brand, nutrition grade and processing level,
+then open any product for its nutrition profile against EU reference intakes,
+its additives, labels and provenance.
 
-Built with Nuxt 4, Vue 3.5, Tailwind 4 and a Nitro backend-for-frontend.
+Nuxt 4, Vue 3.5, Tailwind 4, and a Nitro backend-for-frontend.
 
 ![The product directory, with faceted filters and Nutri-Score grading](docs/screenshots/directory-light.png)
 
@@ -23,23 +22,32 @@ Built with Nuxt 4, Vue 3.5, Tailwind 4 and a Nitro backend-for-frontend.
 
 ![Nutrition profile against EU reference intakes, with additives and labels](docs/screenshots/product-dark.png)
 
-Regenerate these with `pnpm run screenshots` against a production build.
+Regenerate with `pnpm run screenshots` against a production build.
 
 </details>
 
 ---
 
-## Why this project exists
+## Setup
 
-Most portfolio projects consume a clean API and render it. Real front-end work
-is rarely that. It is usually an inconsistent upstream, a rate limit, a data set
-with holes in it, and a set of decisions about what to show when the answer is
-"we do not know".
+Node 24+ and pnpm.
 
-This one leans into that deliberately. Open Food Facts is community-edited, so
-records are incomplete, fields contradict each other across endpoints, and some
-entries are simply wrong. Everything interesting here is a consequence of taking
-that seriously rather than styling the happy path.
+```bash
+pnpm install
+pnpm dev
+```
+
+No API key or account. Open Food Facts is open data under
+[ODbL](https://opendatacommons.org/licenses/odbl/).
+
+---
+
+## Why this data set
+
+Open Food Facts is community-edited, so records are incomplete, fields
+contradict each other across endpoints, and some entries are just wrong. That
+was the point of picking it. Most of what is interesting in this repository
+comes from handling that honestly instead of styling the happy path.
 
 ---
 
@@ -58,10 +66,9 @@ Nitro BFF  (server/api → server/services → server/upstream)
 Open Food Facts  (two services, two contracts)
 ```
 
-### The BFF is not optional
+### The BFF
 
-Every upstream call originates on the server, for three reasons in order of
-weight:
+Every upstream call starts on the server. Three reasons, in order of weight:
 
 1. Open Food Facts identifies callers by `User-Agent` and throttles anonymous
    traffic. A browser cannot set that header.
@@ -70,221 +77,181 @@ weight:
    single client-side type models both.
 3. A product document carries around 250 keys. A result row needs twelve.
 
-The BFF normalises all of that into one contract, defined in `shared/domain`
-and shared by the server and the client.
+All of it normalises into one contract in `shared/domain`, shared by the server
+and the client.
 
-### The domain is written first
+### The domain comes first
 
-`shared/domain` owes nothing to the upstream API shape. Nutri-Score and NOVA are
-defined by public health bodies; Open Food Facts is where they are read from
-today, not what they mean. The upstream schemas in `server/upstream` map _into_
-the domain, never the reverse.
+`shared/domain` owes nothing to the upstream shape. Nutri-Score and NOVA are
+defined by public health bodies; Open Food Facts is where they happen to be read
+from. The schemas in `server/upstream` map _into_ the domain, never the reverse.
 
-Two decisions that fell out of this:
+Two things fell out of that:
 
-- **Nutrient readings are nullable per nutrient, not per product.** A product can
-  declare sugars and omit fibre. A single "has nutrition" flag would force the UI
-  to render zeroes it cannot vouch for.
-- **The product contract is split into summary and detail.** A directory renders
-  24 rows needing a dozen fields; the deep dive needs everything. One shape for
-  both would put ~250 keys per row on the wire to draw a table.
+- **Nutrients are nullable per nutrient, not per product.** A product can declare
+  sugars and omit fibre. One "has nutrition" flag would force the UI to render
+  zeroes it cannot vouch for.
+- **The contract splits into summary and detail.** The directory renders 24 rows
+  needing a dozen fields each. The deep dive needs everything. Using one shape
+  for both puts ~250 keys per row on the wire to draw a table.
 
-### The URL is the filter state
+### Filter state
 
-There is no store behind the directory and no watcher synchronising two
-directions, because either introduces a moment where the address bar and the
-results disagree. One Zod schema parses the query string, the client call and
-the route handler, so a shareable link and a valid API request are the same
-thing by construction.
+The URL holds it. There is no store behind the directory and no watcher keeping
+two copies in step, because either one creates a window where the address bar
+and the results disagree.
 
-Sharing, bookmarking and the back button then work without a line of code
-written for any of them.
+One Zod schema parses the query string, the client call and the route handler,
+so a shareable link and a valid API request are the same thing by construction.
+Sharing, bookmarking and the back button then work with no code written for
+them.
 
-### Absence is rendered as absence
+### Missing data
 
 A nutrient nobody reported shows an em-dash, never a zero. In a community-edited
-catalogue, "not reported" and "none" are different facts, and a reader cannot
-tell them apart after the fact. The same rule governs "unknown" Nutri-Score and
-NOVA values: they are first-class states in the type, not errors to recover from.
-
-### The palette had to work around the data
-
-Nutri-Score runs green to red. NOVA runs green to red beside it. That arc of the
-colour wheel already means something specific on every screen in this app, so a
-brand colour anywhere in it would be read as a grade.
-
-The accent is therefore a deep navy blue, chosen by elimination rather than by
-taste, and it is what keeps the charts readable: a blue bar is obviously a
-quantity, and a green-to-red badge is obviously a rating. Series colours are
-picked for separation from the Nutri-Score ramp for the same reason, and the two
-of them nearest that arc are deliberately last in the order.
-
-Everything else is a cool, blue-cast grey: a near-white page framed by near-black
-chrome. The dark theme is not a second palette but the same ramp read from the
-other end, plus the handful of steps it does not ship, each an OKLab
-interpolation between two neighbours with the fraction recorded beside the value.
-
-Two colours ignore the palette entirely. Nutri-Score and NOVA are defined
-elsewhere — one by regulation, one by a published classification — so recolouring
-them to suit a theme would make the badge misrepresent the thing it names. They
-are identical in both themes, and each step ships the ink that clears WCAG AA on
-it, because no single ink clears AA on a ramp that runs green to red.
-
-### Typography carries the identity
-
-Headings are [Lora](https://fonts.google.com/specimen/Lora), a serif with enough
-contrast between thick and thin to hold a page title without becoming
-decoration. Everything a reader scans or compares is
-[Open Sans](https://fonts.google.com/specimen/Open+Sans).
-
-That pairing is doing the work of a whole visual identity. It marks where a page
-begins without a rule or a coloured band, and it is most of the distance between
-a layout that reads as a product and one that reads as a starter template.
-
-Figures never use the serif: Lora's numerals are old-style, and a column of them
-cannot be compared. `text-metric` is sans and tabular, and an end-to-end test
-asserts both.
-
-### Design system as a Nuxt layer
-
-`layers/ui` holds tokens, primitives and the chart theme. Being a layer rather
-than a folder means the boundary is enforced by the module graph: it can be
-consumed without the app, and nothing in it reaches back into product code.
-
-Tokens are layered primitives → semantics → domain. Only the semantic tier is
-redefined for dark mode, and `@theme inline` emits the custom property into each
-utility rather than its computed value, so one `.dark` block reskins the app with
-**no `dark:` variants in any template**.
-
-Nutri-Score keeps its regulated colours in both themes. Recolouring a
-front-of-pack label to suit a palette would make the chart misrepresent it.
-
-Charts read that palette from the CSS tokens at runtime instead of keeping a
-second copy in TypeScript, so a theme switch needs no redeclaration and the two
-cannot drift.
+catalogue "not reported" and "none" are different facts, and a reader cannot
+tell them apart afterwards. Unknown Nutri-Score and NOVA values work the same
+way: they are states in the type, not errors to recover from.
 
 ---
 
-## What building it turned up
+## Design
 
-The parts worth reading. Each is documented at the point in the code where it
-matters, and the upstream findings are collected in
-[`docs/upstream-api.md`](docs/upstream-api.md).
+### Colour
 
-### The query parser fails silently
+Nutri-Score runs green to red and NOVA runs green to red beside it, so that arc
+of the wheel already means "grade" on every screen here. The accent is a deep
+navy, picked by elimination: a blue bar reads as a quantity, a green-to-red
+badge reads as a rating. Series colours are chosen for separation from the same
+ramp, and the two nearest it come last in the order.
 
-Upstream parses `q` as a Lucene expression. Unescaped input does not raise an
-error — it changes meaning and returns zero matches. A product whose name
-contains a colon would appear not to exist, with nothing anywhere saying why.
+Everything else is cool, blue-cast grey. The dark theme is that same ramp read
+from the other end, plus five steps it does not ship, each an OKLab
+interpolation between two neighbours with the fraction recorded next to the
+value. Nutri-Score and NOVA are excluded: their colours are set by regulation
+and by a published classification, so tinting them to suit a theme would make
+the badge misrepresent what it names. Each grade carries its own ink, because no
+single ink clears WCAG AA across a green-to-red ramp.
 
-Values are escaped the way SQL values are, in `server/utils/lucene.ts`, and the
-injection case is under test.
+### Type
 
-### A silent CSS failure nothing in the toolchain could see
+Headings are [Lora](https://fonts.google.com/specimen/Lora), everything a reader
+scans or compares is [Open Sans](https://fonts.google.com/specimen/Open+Sans).
+The pairing marks where a page begins without needing a rule or a coloured band.
+Figures stay sans and tabular: Lora's numerals are old-style and a column of
+them cannot be compared. An end-to-end test asserts both.
 
-Tailwind scans for class names from the Vite root, which Nuxt sets to the app
-directory. Everything under `layers/` fell outside that scan, so every utility
-used _only_ in the design system was never generated.
+### The UI layer
 
-`bg-nutri-a` computed to transparent while `bg-surface-raised`, which the app
-also used, was fine. The class was in the markup, the token resolved, the build
-succeeded, and lint, types and the whole unit suite all passed.
+`layers/ui` is a Nuxt layer, not a folder, so the boundary is enforced by the
+module graph.
 
-Fixed with an explicit `@source`. `e2e/design-tokens.spec.ts` now asserts these
-utilities resolve in a real browser, because nothing in the type system can.
+It holds values, never meaning. It knows there is a surface, an ink, a series
+colour and a token spelled `--nutriscore-a`, the same way a stylesheet does, and
+nothing in it imports from `shared/domain`. The question before moving a
+component down into it is "does this file name a concept from the problem
+domain". A badge typed on `NutriScore` fails that; the panel it sits on passes.
 
-### Two numbers describing different populations
+Tokens go primitives → semantics → domain, and only the semantic tier is
+redefined for dark mode. `@theme inline` emits the custom property into each
+utility instead of its computed value, so one `.dark` block reskins the app with
+**no `dark:` variants in any template**. Charts read the same tokens at runtime,
+so there is no second palette in TypeScript to drift.
 
-Elasticsearch stops tracking hits at 10,000 but still aggregates over every
-matching document. So `count` is a ceiling while facet counts are real totals.
-The overview was reading one for its headline figure and the other for its
-charts, putting 10,000 and 3.5 million on one screen as if they measured the
-same thing.
+---
 
-Related: the directory renders an inexact total as "10,000+" rather than stating
-a number known to be wrong.
+## Things that went wrong
 
-### "Other" is not a category
+Each is documented at the point in the code where it matters. Upstream findings
+are collected in [`docs/upstream-api.md`](docs/upstream-api.md).
 
-The facet response includes a `--other--` remainder bucket holding the entire
-long tail. It is not a tag, so it cannot be filtered on, and being a sum it
-outweighs every real value: left in, the category chart reported Other as the
-largest category of food in the world, at six million products.
+**The query parser fails silently.** Upstream parses `q` as a Lucene expression.
+Unescaped input does not raise an error, it changes meaning and returns zero
+matches. A product whose name contains a colon would appear not to exist, with
+nothing saying why. Values are escaped the way SQL values are, in
+`server/utils/lucene.ts`, and the injection case is under test.
 
-### The two services disagree about names
+**Tailwind was not scanning the layer.** Class names are discovered from the
+Vite root, which Nuxt sets to the app directory, so everything under `layers/`
+fell outside the scan and every utility used only in the design system was never
+generated. `bg-nutri-a` computed to transparent while `bg-surface-raised`, which
+the app also used, was fine. The class was in the markup, the token resolved,
+the build succeeded, and lint, types and the unit suite all passed. Fixed with
+an explicit `@source`, and `e2e/design-tokens.spec.ts` now asserts the utilities
+resolve in a real browser.
 
-Barcode `3274080005003` is "Eau de source" in the search index, "Cristaline" in
-the product API, and carries "isabelle" in a third field. A directory card and
-the page it opens are genuinely allowed to differ.
+**Two numbers describing different populations.** Elasticsearch stops tracking
+hits at 10,000 but still aggregates over every matching document, so `count` is
+a ceiling while facet counts are real totals. The overview was reading one for
+its headline and the other for its charts, putting 10,000 and 3.5 million on one
+screen as if they measured the same thing. The directory renders an inexact
+total as "10,000+" for the same reason.
 
-Not fixable from the client: picking "whichever looks most like a product name"
-is a heuristic over vandalism. One rule is applied consistently and the
-divergence is documented, so the end-to-end test asserts the barcode rather than
-the heading.
+**"Other" is not a category.** The facet response includes a `--other--`
+remainder bucket holding the long tail. It cannot be filtered on, and being a
+sum it outweighs every real value. Left in, the category chart reported Other as
+the largest category of food in the world, at six million products.
 
-### Zod 4 requires the key to be present
+**The two services disagree about names.** Barcode `3274080005003` is "Eau de
+source" in the search index, "Cristaline" in the product API, and carries
+"isabelle" in a third field. A directory card and the page it opens are allowed
+to differ. Picking "whichever looks most like a product name" is a heuristic
+over vandalism, so one rule is applied consistently, the divergence is
+documented, and the end-to-end test asserts the barcode instead of the heading.
 
-Upstream omits a key entirely when it has no value. A union that merely includes
-`z.undefined()` still requires the key in Zod 4, so every record missing any
-optional field was rejected — which is most of the catalogue. The directory
-rendered empty while reporting 10,000 matches.
+**Zod 4 needs the key to be present.** Upstream omits a key entirely when it has
+no value, and a union that merely includes `z.undefined()` still requires the
+key. Every record missing any optional field was rejected, which is most of the
+catalogue: the directory rendered empty while reporting 10,000 matches. Found by
+writing the test with a fixture copied from a real response instead of an
+invented one.
 
-Found by writing the test with a fixture copied from a real response instead of
-an invented one.
+**Filters could not be switched off.** The URL writer merged two serialised
+queries, and the serialiser omits anything at its default, including an empty
+list. A patch that emptied a dimension carried no key for it, so the old value
+survived the merge. Applying a filter worked; unchecking one did nothing, and
+neither did Clear all. Every test applied a filter and none removed one, so the
+suite stayed green.
 
 ---
 
 ## Accessibility
 
-Not a checklist item, and the decisions are load-bearing:
-
 - **Charts render their figures as a visually hidden table.** A canvas is
   unreadable to a screen reader and to anyone who cannot separate the colours.
-  An alt text saying "bar chart" is not an accessible chart.
+  Alt text saying "bar chart" is not an accessible chart.
 - **Nutri-Score and NOVA never rely on colour alone.** The scale runs green to
-  red, exactly the pair a red-green deficiency collapses. The letter or number
-  always renders, and the accessible name spells out the scale.
-- Filter changes are announced politely rather than silently replacing results.
+  red, exactly the pair a red-green deficiency collapses, so the letter or
+  number always renders and the accessible name spells out the scale.
+- Filter changes are announced politely instead of silently replacing results.
 - `prefers-reduced-motion` suppresses the skeleton pulse and every transition.
 - The theme is applied by a blocking inline script before first paint, so a
   dark-mode reader never gets a white flash.
 
 ---
 
-## Running it
-
-Requires Node 24+ and pnpm.
-
-```bash
-pnpm install
-pnpm dev
-```
-
-No API key or account is needed; Open Food Facts is open data under
-[ODbL](https://opendatacommons.org/licenses/odbl/).
-
-### Checks
+## Testing
 
 ```bash
 pnpm run lint        # ESLint (formatting is Prettier's alone)
 pnpm run typecheck   # vue-tsc
-pnpm run test        # Vitest, 246 specs
+pnpm run test        # Vitest, 261 specs
 pnpm run e2e         # Playwright, 31 specs, against a production build
+pnpm run ci          # lint, types, and unit tests with coverage
 ```
 
-`pnpm run ci` runs lint, types and unit tests with coverage.
+The suites divide by what they can see. Vitest covers the domain, services,
+mappers and URL state, with the coverage threshold set at the measured figure
+floored to the whole number, so losing a test fails the run.
 
-The two suites divide by what they can actually see. Vitest measures the domain,
-the services, the mappers and the URL state, and its coverage threshold is set
-at the measured figure rather than at a round number below it. Playwright owns
-everything only a browser can answer: whether a Tailwind utility resolves,
-whether a chart's hover state renders, whether a tree hydrates without a
-mismatch. Each of those is a bug this project has shipped, and not one of them
-is visible to a jsdom render.
+Playwright owns what only a browser can answer: whether a Tailwind utility
+resolves, whether a chart's hover state renders, whether a tree hydrates
+cleanly. All three have broken here at some point, and a jsdom render sees none
+of them, which is why `.vue` files sit outside the coverage target.
 
 ---
 
-## Repository layout
+## Layout
 
 ```
 shared/domain/     Domain model. Knows nothing about any API.
@@ -306,17 +273,9 @@ e2e/               Playwright specs.
 docs/              Upstream API findings.
 ```
 
-The one boundary worth stating: `layers/ui` holds values, never meaning. It
-knows there is a surface, an ink, a series colour and a token spelled
-`--nutriscore-a`, in the same way a stylesheet does. It does not know that food
-is being catalogued, and nothing in it imports from `shared/domain`. So the test
-for moving a component down into it is not "could another product use this", it
-is "does this file name a concept from the problem domain". A badge typed on
-`NutriScore` fails that; the panel it sits on passes.
-
 ---
 
-## Notable dependency choices
+## Dependency notes
 
 **ECharts over Highcharts.** Highcharts is excellent and its licence is
 commercial. Apache-2.0 keeps this repository unambiguously reusable.
@@ -326,16 +285,48 @@ change, and most of those are a user toggling something off and back on. A cache
 keyed on the query turns that into no request, and deduplicates the burst a fast
 typist generates.
 
-**TypeScript pinned to 6.0.3.** TypeScript 7 is the native compiler and
-typescript-eslint declines to load against it (supported range `>=4.8.4 <6.1.0`).
-A transitive Nuxt dependency pulls 7 in, and pnpm's version isolation meant the
-ESLint parser resolved that copy and failed the whole lint run even after the
-direct dependency was downgraded. A pnpm override pins one compiler across the
-graph. Revisit when typescript-eslint ships TS 7 support.
+**No headless library for the select.** `appearance: base-select` styles the
+open picker while the element stays a real `<select>`, so keyboard navigation,
+type-ahead, form association and the touch picker all keep working. Chrome and
+Edge ship it, Firefox has it behind a flag and Safari in Technology Preview;
+elsewhere the closed control is still styled and only the open list falls back
+to the platform's own.
+
+**TypeScript pinned to 6.0.3.** typescript-eslint declines to load against
+TypeScript 7 (supported range `>=4.8.4 <6.1.0`), a transitive Nuxt dependency
+pulls 7 in, and pnpm's isolation meant the parser resolved that copy and failed
+the whole lint run even after the direct dependency was downgraded. A pnpm
+override pins one compiler across the graph. Revisit when typescript-eslint
+supports 7.
+
+---
+
+## Limitations
+
+Things a reviewer would find, listed so nobody has to.
+
+- **The suggest endpoint has no UI.** `/api/suggest`, its service and its typed
+  client all exist and are tested. Nothing calls them. The typeahead they were
+  built for is not written.
+- **`@nuxt/image` is installed and unused.** Product photographs come straight
+  from upstream through a plain `<img>`, unoptimised and unresized.
+- **English only.** The locale is fixed in `layers/ui/app/utils/format.ts`, while
+  the catalogue is multilingual and mostly European. Switching separators without
+  translating anything would be worse than leaving them.
+- **No deployment.** Upstream is rate limited and shared, and a public instance
+  would need a caching tier and a real contact address in the `User-Agent` before
+  it would be a good citizen.
+- **The list is not virtualised.** Page size caps at 96, which is fine at that
+  size and would not be at 1,000.
+- **A product name can differ between a card and the page it opens.** Upstream
+  disagreement, described above. Not fixable from here.
+- **`useProductSearch` and `useTheme` have no unit tests.** Both are thin
+  wrappers over Pinia Colada and VueUse, and covering them would mostly assert
+  that those libraries work. They are exercised end-to-end.
 
 ---
 
 ## Licence
 
 Code under MIT. Product data belongs to Open Food Facts contributors under ODbL
-and is fetched live; none of it is redistributed in this repository.
+and is fetched live. None of it is redistributed here.
