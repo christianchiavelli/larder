@@ -77,14 +77,18 @@ test.describe('theme', () => {
     await page.goto('/products')
 
     for (const theme of ['light', 'dark']) {
-      await page.evaluate((t) => document.documentElement.classList.toggle('dark', t === 'dark'), theme)
+      await page.evaluate(
+        (t) => document.documentElement.classList.toggle('dark', t === 'dark'),
+        theme,
+      )
 
       const drawn = await page
         .getByRole('button', { name: /switch to (dark|light) theme/i })
-        .evaluate((button) =>
-          [...button.querySelectorAll('svg')].filter(
-            (icon) => getComputedStyle(icon).display !== 'none',
-          ).length,
+        .evaluate(
+          (button) =>
+            [...button.querySelectorAll('svg')].filter(
+              (icon) => getComputedStyle(icon).display !== 'none',
+            ).length,
         )
 
       expect(drawn, `the ${theme} theme drew ${drawn} icons`).toBe(1)

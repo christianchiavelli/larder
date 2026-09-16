@@ -210,7 +210,6 @@ const isNotFound = computed(
         <h2 class="mb-2 text-heading text-ink">Ingredients list</h2>
         <p class="text-body text-ink-muted">{{ product.ingredientsText }}</p>
       </UiSurfaceCard>
-
     </template>
   </div>
 </template>

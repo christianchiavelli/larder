@@ -221,4 +221,3 @@ describe('NOVA coverage', () => {
     expect(result.novaClassifiedCount).toBe(0)
   })
 })
-

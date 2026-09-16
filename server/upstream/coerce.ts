@@ -53,10 +53,14 @@ const NAMED_ENTITIES: Record<string, string> = {
 function decodeEntities(text: string): string {
   return text.replace(/&(#\d+|#x[0-9a-f]+|[a-z]+);/gi, (match, body: string) => {
     if (body.startsWith('#')) {
-      const code = body[1] === 'x' || body[1] === 'X' ? parseInt(body.slice(2), 16) : Number(body.slice(1))
+      const code =
+        body[1] === 'x' || body[1] === 'X' ? parseInt(body.slice(2), 16) : Number(body.slice(1))
       // Lone surrogates and out-of-range values throw rather than returning a
       // replacement character, and a malformed entity is better left as typed.
-      return Number.isInteger(code) && code >= 0 && code <= 0x10ffff && !(code >= 0xd800 && code <= 0xdfff)
+      return Number.isInteger(code) &&
+        code >= 0 &&
+        code <= 0x10ffff &&
+        !(code >= 0xd800 && code <= 0xdfff)
         ? String.fromCodePoint(code)
         : match
     }

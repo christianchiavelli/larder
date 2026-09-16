@@ -168,9 +168,10 @@ export function activeFilterCount(query: ProductQuery): number {
 }
 
 export function clearedFilters(): Pick<ProductQuery, FilterKey> {
-  return Object.fromEntries(
-    FILTER_KEYS.map((key) => [key, EMPTY_PRODUCT_QUERY[key]]),
-  ) as Pick<ProductQuery, FilterKey>
+  return Object.fromEntries(FILTER_KEYS.map((key) => [key, EMPTY_PRODUCT_QUERY[key]])) as Pick<
+    ProductQuery,
+    FilterKey
+  >
 }
 
 /** Omits anything at its default, or every link carries `?page=1&sort=relevance`. */

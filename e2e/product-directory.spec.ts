@@ -39,7 +39,7 @@ test.describe('product directory', () => {
     )
   })
 
-/**
+  /**
    * Removing is a different operation from applying, and the suite only ever
    * applied: the URL writer merged two serialised queries, the serialiser omits
    * defaults, so emptying a dimension had no key and the old value survived.
@@ -366,10 +366,7 @@ test.describe('the product page columns', () => {
     const measured = await measure(page)
 
     expect(measured.declared, 'a height was hard-coded').toBe('')
-    expect(measured.composition + measured.gap + measured.source).toBeCloseTo(
-      measured.nutrition,
-      0,
-    )
+    expect(measured.composition + measured.gap + measured.source).toBeCloseTo(measured.nutrition, 0)
   })
 
   test('nothing is stretched once the columns stack', async ({ page }) => {
@@ -379,9 +376,7 @@ test.describe('the product page columns', () => {
 
     const measured = await measure(page)
 
-    expect(measured.composition + measured.gap + measured.source).toBeLessThan(
-      measured.nutrition,
-    )
+    expect(measured.composition + measured.gap + measured.source).toBeLessThan(measured.nutrition)
   })
 
   /**
@@ -392,9 +387,7 @@ test.describe('the product page columns', () => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto(`/products/${CODE}`)
 
-    const ingredients = page
-      .getByRole('heading', { name: 'Ingredients list' })
-      .locator('xpath=..')
+    const ingredients = page.getByRole('heading', { name: 'Ingredients list' }).locator('xpath=..')
     const nutrition = page.getByRole('heading', { name: 'Nutrition' }).locator('xpath=..')
 
     const [wide, narrow] = await Promise.all([
@@ -405,4 +398,3 @@ test.describe('the product page columns', () => {
     expect(wide).toBeGreaterThan(narrow)
   })
 })
-

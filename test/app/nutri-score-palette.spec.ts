@@ -25,8 +25,10 @@ describe('the Nutri-Score palette', () => {
 
   it('matches the tokens it stands in for', () => {
     for (const [key, token] of Object.entries(NUTRI_SCORE_PALETTE_TOKENS)) {
-      expect(NUTRI_SCORE_PALETTE_FALLBACK[key as keyof typeof NUTRI_SCORE_PALETTE_FALLBACK], key)
-        .toBe(resolveToken(token))
+      expect(
+        NUTRI_SCORE_PALETTE_FALLBACK[key as keyof typeof NUTRI_SCORE_PALETTE_FALLBACK],
+        key,
+      ).toBe(resolveToken(token))
     }
   })
 

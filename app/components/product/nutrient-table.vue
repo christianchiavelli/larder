@@ -47,8 +47,7 @@ const declaredCount = computed(() => rows.value.filter((row) => row.value !== nu
   <div class="flex flex-col gap-3">
     <table class="w-full border-collapse text-label">
       <caption class="sr-only">
-        Nutrition per 100 grams or millilitres, with the share of an adult daily reference
-        intake
+        Nutrition per 100 grams or millilitres, with the share of an adult daily reference intake
       </caption>
       <thead>
         <tr class="border-b border-edge">

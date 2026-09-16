@@ -180,7 +180,10 @@ test('the grade filter frame is concentric with the badge inside it', async ({ p
  */
 test('the chosen grade is marked in a neutral colour, in both themes', async ({ page }) => {
   await page.goto('/products')
-  await page.getByRole('button', { name: /Nutri-Score A,/ }).first().click()
+  await page
+    .getByRole('button', { name: /Nutri-Score A,/ })
+    .first()
+    .click()
   await expect(page).toHaveURL(/nutriScore=a/)
 
   // The frame animates, so a read right after the flip lands mid-interpolation.
@@ -191,7 +194,11 @@ test('the chosen grade is marked in a neutral colour, in both themes', async ({ 
       .getByRole('button', { name: /Nutri-Score A,/ })
       .first()
       .evaluate((button) => {
-        const parse = (value: string) => value.match(/\d+(\.\d+)?/g)!.slice(0, 3).map(Number)
+        const parse = (value: string) =>
+          value
+            .match(/\d+(\.\d+)?/g)!
+            .slice(0, 3)
+            .map(Number)
 
         const luminance = (rgb: number[]) => {
           const [r, g, b] = rgb.map((channel) => {
@@ -240,7 +247,10 @@ test('the chosen grade is marked in a neutral colour, in both themes', async ({ 
  * 4.15, and darkening it would pass by misrepresenting a regulated mark. Those
  * are pinned to their official values above, and the shortfall is in the README.
  */
-test('every badge the app colours itself is readable on its own fill', async ({ page, request }) => {
+test('every badge the app colours itself is readable on its own fill', async ({
+  page,
+  request,
+}) => {
   const directory = await request.get('/api/products?nova=2')
   const [product] = (await directory.json()).items
   expect(product, 'no product came back to check').toBeTruthy()
@@ -286,4 +296,3 @@ test('every badge the app colours itself is readable on its own fill', async ({ 
     }
   }
 })
-
