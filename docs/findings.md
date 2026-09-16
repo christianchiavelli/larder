@@ -116,3 +116,21 @@ list. A patch that emptied a dimension carried no key for it, so the old value
 survived the merge. Applying a filter worked; unchecking one did nothing, and
 neither did Clear all. Every test applied a filter and none removed one, so the
 suite stayed green.
+
+**The search index does not always carry the photograph the product API has.**
+Barcode `9100000906683` has a front image on `world.openfoodfacts.org` and no
+image field at all on `search.openfoodfacts.org`, so the directory row falls
+back and the product page it opens shows a picture. Roughly one row in twenty
+comes back without an image, and most of those genuinely have no photograph
+anywhere; this is the remainder.
+
+There is no cheap fix. The URLs carry a revision number and a language suffix,
+so they cannot be derived from a barcode, and asking the product API per row
+would be two dozen extra requests to fill in one thumbnail. The fallback tile
+says what is true from where the directory is standing: no photograph came back.
+
+**Upstream text arrives with HTML entities still in it.** A mineral water lists
+its nitrates as `&lt;2 mg/l`. The value is text and Vue escapes text, which is
+correct, so the reader saw those six characters where the bottle says `<`.
+Entities are decoded once at the boundary, in a single pass so that a
+legitimately escaped `&amp;lt;` is not decoded twice.

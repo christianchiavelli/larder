@@ -29,6 +29,15 @@ nothing. The library's own stylesheet is not loaded: it sizes every icon at
 `1em`, which fights the sizing utilities used everywhere else, and nothing here
 uses the layout helpers it also carries.
 
+**Product photographs are fitted, and the tile behind them is white in both
+themes.** Packaging is shot on a white sweep and carries it in the file, so a
+portrait bottle in a square tile puts two white bars against whatever is behind
+them; matching the tile to the paper removes the seam. Cropping to fill was
+tried and is worse: the photographs are submitted by the public at every aspect
+ratio, and a square crop of a tall bottle is a strip of one colour. Bars on the
+minority not taken on white are the cost of never cropping a product out of
+frame.
+
 **No image proxy.** Open Food Facts renders every photograph at 100, 200 and
 400 pixels and serves them from its own CDN, so the elements carry a `srcset`
 over those and the browser picks by device pixel ratio. Running them through

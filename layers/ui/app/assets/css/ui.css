@@ -32,6 +32,7 @@
   --color-surface: var(--surface-base);
   --color-surface-raised: var(--surface-raised);
   --color-surface-sunken: var(--surface-sunken);
+  --color-surface-media: var(--surface-media);
   --color-surface-overlay: var(--surface-overlay);
   --color-surface-accent: var(--surface-accent);
   --color-surface-hover: var(--surface-hover);

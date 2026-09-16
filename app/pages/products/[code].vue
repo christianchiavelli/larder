@@ -63,7 +63,7 @@ const isNotFound = computed(
     <template v-else>
       <header class="flex flex-col gap-4 sm:flex-row sm:items-start">
         <div
-          class="flex size-28 shrink-0 items-center justify-center overflow-hidden rounded-card border border-edge-subtle bg-surface-sunken"
+          class="flex size-28 shrink-0 items-center justify-center overflow-hidden rounded-card border border-edge-subtle bg-surface-media"
         >
           <UiSkeleton v-if="isLoading" class="size-full" />
           <!--
@@ -166,7 +166,7 @@ const isNotFound = computed(
               <div>
                 <dt class="text-overline text-ink-subtle uppercase">Additives</dt>
                 <dd>
-                  <ul v-if="product?.additives.length" class="flex flex-wrap gap-1">
+                  <ul v-if="product?.additives.length" class="mt-1 flex flex-wrap gap-1">
                     <li v-for="additive in product.additives" :key="additive.id">
                       <UiChip tone="muted">{{ additive.label }}</UiChip>
                     </li>
@@ -178,7 +178,7 @@ const isNotFound = computed(
               <div v-if="product?.labels.length">
                 <dt class="text-overline text-ink-subtle uppercase">Labels</dt>
                 <dd>
-                  <ul class="flex flex-wrap gap-1">
+                  <ul class="mt-1 flex flex-wrap gap-1">
                     <li v-for="label in product.labels" :key="label.id">
                       <UiChip tone="accent">{{ label.label }}</UiChip>
                     </li>

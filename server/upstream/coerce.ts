@@ -24,15 +24,51 @@ export const looseNumber = z
   .transform((value) => {
     if (value === null || value === undefined || value === '') return null
     const parsed = typeof value === 'number' ? value : Number(value)
-    // NaN and Infinity both reach here from real records. Neither can be
-    // rendered or averaged, so they are absences, not values.
+    // JSON has no NaN or Infinity literal, so a bad record spells them as
+    // strings. Neither can be rendered or averaged, so both are absences.
     return Number.isFinite(parsed) ? parsed : null
   })
+
+const NAMED_ENTITIES: Record<string, string> = {
+  amp: '&',
+  lt: '<',
+  gt: '>',
+  quot: '"',
+  apos: "'",
+  nbsp: '\u00a0',
+}
+
+/**
+ * Upstream text arrives with HTML entities still in it.
+ *
+ * Records are edited through several clients over a long history, and some of
+ * them escaped on the way in: a mineral water lists "Nitrates NO3 - &lt;2 mg/l",
+ * which renders as those six characters because the value is text and Vue
+ * escapes text. Nothing fails; the reader simply sees `&lt;` where the label on
+ * the bottle says `<`.
+ *
+ * One pass, never a chain of replacements. Decoding `&amp;` first would turn
+ * the legitimately escaped `&amp;lt;` into `<` on a second pass.
+ */
+function decodeEntities(text: string): string {
+  return text.replace(/&(#\d+|#x[0-9a-f]+|[a-z]+);/gi, (match, body: string) => {
+    if (body.startsWith('#')) {
+      const code = body[1] === 'x' || body[1] === 'X' ? parseInt(body.slice(2), 16) : Number(body.slice(1))
+      // Lone surrogates and out-of-range values throw rather than returning a
+      // replacement character, and a malformed entity is better left as typed.
+      return Number.isInteger(code) && code >= 0 && code <= 0x10ffff && !(code >= 0xd800 && code <= 0xdfff)
+        ? String.fromCodePoint(code)
+        : match
+    }
+
+    return NAMED_ENTITIES[body.toLowerCase()] ?? match
+  })
+}
 
 /** A string, or a number that was meant to be one. Blank reads as absent. */
 export const looseString = z
   .union([z.string(), z.number(), z.null()])
   .nullish()
   .transform((value) =>
-    value === null || value === undefined ? null : String(value).trim() || null,
+    value === null || value === undefined ? null : decodeEntities(String(value)).trim() || null,
   )

@@ -86,6 +86,15 @@
   --primitive-blue-tint: #102552; /* cool-500 -> blue-300, 30% */
   --primitive-blue-tint-strong: #0f2a65; /* cool-500 -> blue-300, 45% */
 
+  /* What sits behind a photograph.
+   *
+   * White in both themes, and the one surface that does not follow the theme.
+   * Packaging shots are taken on a white sweep and carry it in the file, so a
+   * portrait bottle in a square tile puts two white bars against whatever is
+   * behind it. There is no cropping fix: cropping a pack loses the label, which
+   * is the part a reader came to look at. Matching the tile to the photograph
+   * is what the picture already decided. */
+
   /* The selected state for a control that already carries its own colour.
    *
    * Neutral on purpose. A Nutri-Score badge runs green through red, and ringing
@@ -99,6 +108,7 @@
   --surface-base: var(--primitive-cool-25);
   --surface-raised: var(--primitive-white);
   --surface-sunken: var(--primitive-cool-50);
+  --surface-media: var(--primitive-white);
   --surface-overlay: var(--primitive-white);
   --surface-accent: var(--primitive-blue-50);
   --surface-hover: var(--primitive-blue-50);
@@ -197,6 +207,8 @@
   --surface-base: var(--primitive-cool-500);
   --surface-raised: var(--primitive-cool-490);
   --surface-sunken: var(--primitive-cool-550);
+  /* White in both themes. See the note beside the light value. */
+  --surface-media: var(--primitive-white);
   --surface-overlay: var(--primitive-cool-475);
   --surface-accent: var(--primitive-blue-tint);
   --surface-hover: var(--primitive-cool-450);

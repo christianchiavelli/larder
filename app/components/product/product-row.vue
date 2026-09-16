@@ -44,13 +44,23 @@ const nutrients = computed(() =>
       row a different height.
     -->
     <div
-      class="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-control border border-edge-subtle bg-surface"
+      class="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-control border border-edge-subtle bg-surface-media"
     >
       <!--
         Drawn at 48px, so the 100px variant covers a standard display and the
         200px one covers a retina display. Handing the browser the 400px
         original, which is what a single `src` used to do, downloads roughly
         sixteen times the pixels that get painted, two dozen times per page.
+
+        Fitted, never cropped, and the tile behind it is white in both themes.
+
+        Packaging is photographed on a white sweep and carries it in the file,
+        so a portrait bottle in a square tile puts two white bars against
+        whatever is behind them; matching the tile to the paper is what removes
+        the seam. Cropping to fill was tried and is worse: these photographs are
+        submitted by the public at every aspect ratio, and a square crop of a
+        tall bottle is a strip of one colour. Bars on the minority of shots not
+        taken on white are the cost of never cropping the product out of frame.
       -->
       <img
         v-if="product.image"
