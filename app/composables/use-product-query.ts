@@ -7,7 +7,7 @@ import {
   type ProductQuery,
   type SortOption,
 } from '#shared/domain/search'
-import type { NutriScore, NovaGroup } from '#shared/domain/nutrition'
+import type { NutriScore, NovaFilterValue } from '#shared/domain/nutrition'
 import { toFilterValue } from '#shared/domain/taxonomy'
 
 /**
@@ -111,7 +111,8 @@ export function useProductQuery() {
     })
   }
 
-  function toggleNova(group: NovaGroup) {
+  /** Takes the absence too: three quarters of the catalogue has no group. */
+  function toggleNova(group: NovaFilterValue) {
     const current = query.value.nova
     return apply({
       nova: current.includes(group)

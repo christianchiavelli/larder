@@ -246,6 +246,22 @@ would have read the same with seventy-one thousand products missing. Enum values
 are quoted now, as taxonomy ids already were, and the value is reachable on its
 own, where the same bug would empty the page instead of hiding in a total.
 
+**Three quarters of the catalogue could not be filtered for processing.** The
+NOVA filter offered groups 1 to 4, which is every value the facet returns, and
+2,642,203 products carry no group at all. Unlike a missing Nutri-Score this
+absence is not a value: the field is simply not there, so there is no bucket to
+select and the only query that reaches those products is a negation. The filter
+has a fifth control that issues one, checked against upstream rather than
+assumed, because a negated clause inside an OR is where Lucene parsers differ:
+among balsamic vinegars, group 2 returns 1,483, the absence 71, and the two
+together 1,554.
+
+**A headline read the size of a facet page and called it a statistic.**
+"Categories represented: 10" was `facets.categories_tags.length`, which is ten
+for every query and would be ten for one that matched nothing. It reports the
+share of the catalogue carrying a NOVA group instead, which is a number that
+moves and that the filter beside it can act on.
+
 **Brands are stored differently from every other dimension.** The categories,
 countries and labels facets return language-prefixed ids (`en:beverages`), the
 brands facet returns a bare slug (`carrefour`), and autocomplete prefixes all of

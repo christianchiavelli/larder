@@ -53,6 +53,19 @@ const scored = computed(() => {
   const total = catalogueSize.value
   return total === null ? null : (graded.value / total) * 100
 })
+
+/**
+ * Share of the catalogue carrying a NOVA group.
+ *
+ * This tile used to read "Categories represented: 10", which was the number of
+ * buckets the facet returns, not a fact about the catalogue: it is ten for
+ * every query and would have been ten for an empty one.
+ */
+const classified = computed(() => {
+  const total = catalogueSize.value
+  if (total === null || !result.value) return null
+  return (result.value.novaClassifiedCount / total) * 100
+})
 </script>
 
 <template>
@@ -96,11 +109,13 @@ const scored = computed(() => {
           />
           <UiStatTile
             class="sm:pl-6"
-            label="Categories represented"
-            :value="result?.facets.categories_tags?.length ?? null"
+            label="Carry a NOVA group"
+            :value="classified"
+            unit="%"
+            :precision="1"
             size="lg"
             :loading="isLoading"
-            caption="Returned by the facet response"
+            caption="The rest are not classified for processing"
           />
         </div>
       </UiSurfaceCard>

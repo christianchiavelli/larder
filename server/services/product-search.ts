@@ -48,7 +48,7 @@ const REQUESTED_FIELDS = [
   'nutriments',
 ].join(',')
 
-const REQUESTED_FACETS = [...FACET_FIELDS, 'nutriscore_grade'].join(',')
+const REQUESTED_FACETS = [...FACET_FIELDS, 'nutriscore_grade', 'nova_groups'].join(',')
 
 const CONTEXT = { service: 'search-a-licious', operation: 'GET /search' }
 
@@ -107,6 +107,16 @@ export async function searchProducts(
     distribution[key] = (distribution[key] ?? 0) + item.count
   }
 
+  /*
+   * Coverage rather than a distribution. The facet has four buckets and no
+   * fifth for a product without the field, so "how much of the catalogue is
+   * classified" is only answerable by adding up the four that exist.
+   */
+  const novaClassifiedCount = (response.facets?.nova_groups?.items ?? []).reduce(
+    (total, item) => total + item.count,
+    0,
+  )
+
   return {
     items,
     page,
@@ -119,5 +129,6 @@ export async function searchProducts(
     pageCount: Math.min(response.page_count, maxPageFor(query.pageSize)),
     facets,
     nutriScoreDistribution: distribution as ProductSearchResult['nutriScoreDistribution'],
+    novaClassifiedCount,
   }
 }

@@ -188,3 +188,37 @@ describe('searchProducts', () => {
     await expect(searchProducts(client, query())).rejects.toMatchObject({ statusCode: 502 })
   })
 })
+
+describe('NOVA coverage', () => {
+  /**
+   * A count rather than a distribution, because the facet cannot report the
+   * interesting number itself: there is no bucket for a product without the
+   * field, so coverage only exists as the sum of the buckets that do.
+   */
+  it('adds up the groups that exist, since the absence has no bucket', async () => {
+    const client = stubClient(
+      upstreamResponse({
+        facets: {
+          nova_groups: {
+            name: 'nova_groups',
+            items: [
+              { key: '1', name: '1', count: 11 },
+              { key: '4', name: '4', count: 31 },
+            ],
+          },
+        },
+      }),
+    )
+
+    const result = await searchProducts(client, query())
+
+    expect(result.novaClassifiedCount).toBe(42)
+  })
+
+  it('reports none rather than throwing when upstream omits the facet', async () => {
+    const result = await searchProducts(stubClient(upstreamResponse({ facets: {} })), query())
+
+    expect(result.novaClassifiedCount).toBe(0)
+  })
+})
+

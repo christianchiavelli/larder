@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import { NUTRI_SCORE_VALUES, NOVA_GROUPS, NOVA_SHORT_LABELS } from '#shared/domain/nutrition'
+import {
+  NUTRI_SCORE_VALUES,
+  NOVA_FILTER_LABELS,
+  NOVA_FILTER_VALUES,
+  NOVA_UNGROUPED,
+} from '#shared/domain/nutrition'
 import { activeFilterCount, hasActiveFilters } from '#shared/domain/search'
 import type { ProductSearchResult } from '#shared/domain/search'
 
@@ -67,13 +72,13 @@ const showingFilters = computed(() => hasActiveFilters(query.value))
       <legend class="mb-2 text-overline text-ink-subtle uppercase">Processing (NOVA)</legend>
       <div class="flex flex-col gap-1">
         <UiCheckboxRow
-          v-for="group in NOVA_GROUPS"
+          v-for="group in NOVA_FILTER_VALUES"
           :key="group"
           :checked="query.nova.includes(group)"
           @toggle="toggleNova(group)"
         >
-          <ProductNovaBadge :group="group" />
-          <span class="text-label text-ink">{{ NOVA_SHORT_LABELS[group] }}</span>
+          <ProductNovaBadge :group="group === NOVA_UNGROUPED ? null : group" />
+          <span class="text-label text-ink">{{ NOVA_FILTER_LABELS[group] }}</span>
         </UiCheckboxRow>
       </div>
     </fieldset>

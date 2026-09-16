@@ -73,6 +73,29 @@ export type NovaGroup = (typeof NOVA_GROUPS)[number]
 
 export const novaGroupSchema = z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)])
 
+/**
+ * How the directory asks for a product with no NOVA group.
+ *
+ * Three quarters of the catalogue has none, and unlike a missing Nutri-Score
+ * the index does not spell it: the field is simply absent, so there is no
+ * bucket in the facet and nothing to select by value. This token stands for
+ * that absence in a URL, and the query builder turns it into the only thing
+ * that can express it, a negation.
+ *
+ * Deliberately not a NOVA group. A product without one is not in a fifth
+ * category of processing, it is unclassified, and the two must not read as the
+ * same kind of answer.
+ */
+export const NOVA_UNGROUPED = 'none'
+export type NovaUngrouped = typeof NOVA_UNGROUPED
+
+/** Everything the processing filter offers: the four groups, plus their absence. */
+export const NOVA_FILTER_VALUES = [...NOVA_GROUPS, NOVA_UNGROUPED] as const
+export type NovaFilterValue = (typeof NOVA_FILTER_VALUES)[number]
+
+export const novaFilterValueSchema = z.union([novaGroupSchema, z.literal(NOVA_UNGROUPED)])
+
+
 export const NOVA_LABELS: Record<NovaGroup, string> = {
   1: 'Unprocessed or minimally processed',
   2: 'Processed culinary ingredient',
@@ -85,6 +108,19 @@ export const NOVA_SHORT_LABELS: Record<NovaGroup, string> = {
   2: 'Culinary ingredient',
   3: 'Processed',
   4: 'Ultra-processed',
+}
+
+/**
+ * What the processing filter shows beside each control.
+ *
+ * "Not classified" rather than "Unknown", which is what the badge says for a
+ * product. The badge is reporting what is on record for one item; the filter is
+ * naming a population, and three quarters of the catalogue being "unknown"
+ * reads as a fault in the page rather than a fact about the data.
+ */
+export const NOVA_FILTER_LABELS: Record<NovaFilterValue, string> = {
+  ...NOVA_SHORT_LABELS,
+  [NOVA_UNGROUPED]: 'Not classified',
 }
 
 /**

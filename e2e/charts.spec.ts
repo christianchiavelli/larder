@@ -199,6 +199,24 @@ test.describe('charts', () => {
    * Asserted as the relationship rather than against a number, because the
    * catalogue is community-edited and grows daily.
    */
+  /**
+   * A figure is a number or it is the em-dash that says nothing was reported.
+   *
+   * Never the word NaN, which is what a headline prints when the field behind
+   * it is renamed, moved or added to one side of the boundary and not the
+   * other. It renders, it lays out, it is the right size and colour, and it
+   * says nothing at all.
+   */
+  test('no figure on the overview renders as NaN', async ({ page }) => {
+    const figures = await page.locator('[data-numeric]').allInnerTexts()
+
+    expect(figures.length, 'the overview rendered no figures').toBeGreaterThan(0)
+
+    for (const figure of figures) {
+      expect(figure, 'a figure is not a number').toMatch(/^[\d,.]+$/)
+    }
+  })
+
   test('the headline counts the same catalogue the chart draws', async ({ page }) => {
     const table = page.locator('figure table').first()
     await table.locator('tbody tr').first().waitFor({ state: 'attached' })

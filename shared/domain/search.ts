@@ -1,5 +1,10 @@
 import { z } from 'zod'
-import { NUTRI_SCORE_VALUES, novaGroupSchema, nutriScoreSchema } from './nutrition'
+import {
+  NOVA_UNGROUPED,
+  NUTRI_SCORE_VALUES,
+  novaFilterValueSchema,
+  nutriScoreSchema,
+} from './nutrition'
 import { productSummarySchema } from './product'
 import { toFilterValue } from './taxonomy'
 
@@ -105,10 +110,20 @@ export const productQuerySchema = z.object({
     .preprocess(
       (value) =>
         value === undefined || value === '' ? [] : Array.isArray(value) ? value : [value],
-      z.array(z.coerce.number()),
+      z.array(z.union([z.string(), z.number()])),
     )
-    .transform((values) => values.filter((v) => novaGroupSchema.safeParse(v).success))
-    .pipe(z.array(novaGroupSchema))
+    /*
+     * Coerced one value at a time rather than all at once. A URL carries every
+     * NOVA group as a numeral, but the absence is a word, and `Number('none')`
+     * is NaN: coercing the array turned "products with no group" into a value
+     * the filter then dropped, which is the whole catalogue back again.
+     */
+    .transform((values) =>
+      values
+        .map((value) => (value === NOVA_UNGROUPED ? value : Number(value)))
+        .filter((value) => novaFilterValueSchema.safeParse(value).success),
+    )
+    .pipe(z.array(novaFilterValueSchema))
     .default([]),
 
   sort: sortSchema.catch('relevance').default('relevance'),
@@ -234,6 +249,16 @@ export const productSearchResultSchema = z.object({
   facets: z.record(z.string(), z.array(facetItemSchema)),
   /** Distribution over the whole match set, not just this page. */
   nutriScoreDistribution: z.record(nutriScoreSchema, z.number().int().nonnegative()),
+
+  /**
+   * How many products carry any NOVA group at all.
+   *
+   * A count rather than a distribution, because the interesting figure is
+   * coverage: the facet has no bucket for a product without the field, so the
+   * only way to know how much of the catalogue is classified is to add up the
+   * four that exist and compare. Three quarters of it is not.
+   */
+  novaClassifiedCount: z.number().int().nonnegative(),
 })
 
 export type ProductSearchResult = z.infer<typeof productSearchResultSchema>

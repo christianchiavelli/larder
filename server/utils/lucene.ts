@@ -1,5 +1,6 @@
 import type { ProductQuery } from '#shared/domain/search'
 import { UPSTREAM_SORT_FIELDS } from '#shared/domain/search'
+import { NOVA_UNGROUPED } from '#shared/domain/nutrition'
 
 /**
  * Lucene query construction for the upstream search service.
@@ -70,6 +71,31 @@ function enumClause(field: string, values: readonly (string | number)[]): string
 
 
 /**
+ * NOVA, where the absence cannot be asked for by value.
+ *
+ * A product with no Nutri-Score says so, with a key in the index and a bucket
+ * in the facet. A product with no NOVA group says nothing: the field is absent,
+ * there is no bucket, and the only way to select those products is to ask for
+ * the documents that do not have the field. Hence a negation here and a value
+ * everywhere else.
+ *
+ * Verified against upstream rather than assumed, because a negated clause
+ * inside an OR is where Lucene parsers differ: for balsamic vinegars, group 2
+ * returns 1,483 and the absence 71, and the two together return 1,554.
+ */
+function novaClause(values: readonly (string | number)[]): string {
+  if (values.length === 0) return ''
+
+  const terms = values.map((value) =>
+    value === NOVA_UNGROUPED
+      ? '(NOT nova_groups:*)'
+      : `nova_groups:${quoteLuceneValue(String(value))}`,
+  )
+
+  return terms.length === 1 ? terms[0]! : `(${terms.join(' OR ')})`
+}
+
+/**
  * Free text is escaped whole and left unquoted, so upstream still tokenises it
  * and matches across fields. Quoting it would turn "dark chocolate" into a
  * phrase match and quietly drop every product that says "chocolate, dark".
@@ -109,7 +135,7 @@ export function buildProductQuery(query: ProductQuery): UpstreamQuery {
     tagClause('countries_tags', query.country),
     tagClause('labels_tags', query.label),
     enumClause('nutriscore_grade', query.nutriScore),
-    enumClause('nova_groups', query.nova),
+    novaClause(query.nova),
   ].filter((clause) => clause.length > 0)
 
   const sortField = UPSTREAM_SORT_FIELDS[query.sort]

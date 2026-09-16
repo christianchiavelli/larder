@@ -108,15 +108,21 @@ test.describe('filters round-trip', () => {
       })
     }
 
-    for (const group of [1, 2, 3, 4]) {
+    /**
+     * `none` is the largest of these by far and the last to become reachable.
+     * Unlike a missing grade it is not a value in the index, so it is the one
+     * that breaks if upstream ever stops accepting the negation that selects it.
+     */
+    for (const group of [1, 2, 3, 4, 'none']) {
       test(`nova=${group}`, async ({ request }) => {
         const result = await json(request, `/api/products?nova=${group}`)
+        const expected = group === 'none' ? null : group
 
         expect(result.totalCount).toBeGreaterThan(0)
         expect(
-          result.items.map((item: { novaGroup: number }) => item.novaGroup),
+          result.items.map((item: { novaGroup: number | null }) => item.novaGroup),
           `a row came back that is not NOVA ${group}`,
-        ).toEqual(result.items.map(() => group))
+        ).toEqual(result.items.map(() => expected))
       })
     }
   })

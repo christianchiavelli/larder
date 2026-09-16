@@ -295,3 +295,31 @@ describe('the filter dimensions', () => {
     expect(toQueryParams(cleared)).toEqual({ sort: 'popularity', pageSize: '48' })
   })
 })
+
+describe('the NOVA filter', () => {
+  /**
+   * Every group reaches a URL as a numeral and the absence as a word, so the
+   * values cannot be coerced as a batch: `Number('none')` is NaN, the schema
+   * dropped it, and a dropped filter narrows nothing.
+   */
+  it.each(['1', '2', '3', '4'])('accepts group %s as the number it is', (group) => {
+    expect(productQuerySchema.parse({ nova: group }).nova).toEqual([Number(group)])
+  })
+
+  it('accepts the absence as itself', () => {
+    expect(productQuerySchema.parse({ nova: 'none' }).nova).toEqual(['none'])
+  })
+
+  it('keeps a group and the absence side by side', () => {
+    expect(productQuerySchema.parse({ nova: ['2', 'none'] }).nova).toEqual([2, 'none'])
+  })
+
+  it.each(['0', '5', 'banana', ''])('still drops %s', (value) => {
+    expect(productQuerySchema.parse({ nova: value }).nova).toEqual([])
+  })
+
+  it('survives a round trip through the URL', () => {
+    const query = productQuerySchema.parse({ nova: ['2', 'none'] })
+    expect(productQuerySchema.parse(toQueryParams(query)).nova).toEqual([2, 'none'])
+  })
+})
