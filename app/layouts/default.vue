@@ -36,34 +36,11 @@ const { siteName } = useRuntimeConfig().public
 
       <nav aria-label="Primary" class="mt-4 flex flex-col items-center gap-1">
         <ChromeRailLink to="/" label="Overview">
-          <svg
-            class="size-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.6"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M4 19V11M9.33 19V5M14.67 19v-6M20 19V8" />
-          </svg>
+          <UiIcon name="chart-simple" class="size-5" />
         </ChromeRailLink>
 
         <ChromeRailLink to="/products" label="Products">
-          <svg
-            class="size-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.6"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M3.5 7.5 12 3l8.5 4.5v9L12 21l-8.5-4.5z" />
-            <path d="M3.5 7.5 12 12m0 9v-9m8.5-4.5L12 12" />
-          </svg>
+          <UiIcon name="box" class="size-5" />
         </ChromeRailLink>
       </nav>
 
@@ -87,35 +64,10 @@ const { siteName } = useRuntimeConfig().public
         class="mt-auto flex size-10 items-center justify-center rounded-control text-chrome-ink transition-colors hover:bg-chrome-raised hover:text-chrome-ink-strong motion-reduce:transition-none"
         @click="toggle()"
       >
-        <svg
-          class="size-[1.15rem] dark:hidden"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.6"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />
-        </svg>
+        <UiIcon name="moon" class="size-[1.15rem] dark:hidden" />
         <span class="sr-only dark:hidden">Switch to dark theme</span>
 
-        <svg
-          class="hidden size-[1.15rem] dark:block"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.6"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <circle cx="12" cy="12" r="4.2" />
-          <path
-            d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"
-          />
-        </svg>
+        <UiIcon name="sun" class="hidden size-[1.15rem] dark:block" />
         <span class="sr-only hidden dark:block">Switch to light theme</span>
       </button>
     </div>

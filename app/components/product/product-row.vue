@@ -69,17 +69,7 @@ const nutrients = computed(() =>
         decoding="async"
         class="size-full object-contain"
       />
-      <svg
-        v-else
-        class="size-5 text-ink-subtle"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.4"
-        aria-hidden="true"
-      >
-        <path d="M4 6.5 12 3l8 3.5v11L12 21l-8-3.5z" stroke-linejoin="round" />
-      </svg>
+      <UiImageFallback v-else />
     </div>
 
     <div class="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -130,17 +120,7 @@ const nutrients = computed(() =>
       aria-hidden="true"
       class="hidden size-7 shrink-0 items-center justify-center rounded-full bg-surface-sunken text-ink-subtle transition-colors group-hover:bg-accent group-hover:text-ink-on-accent sm:flex motion-reduce:transition-none"
     >
-      <svg
-        class="size-4"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.8"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <path d="m9 6 6 6-6 6" />
-      </svg>
+      <UiIcon name="chevron-right" class="size-3.5" />
     </span>
   </div>
 </template>

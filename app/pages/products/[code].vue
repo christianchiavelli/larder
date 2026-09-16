@@ -88,7 +88,7 @@ const isNotFound = computed(
             decoding="async"
             class="size-full object-contain"
           />
-          <span v-else class="text-caption text-ink-subtle">No image</span>
+          <UiImageFallback v-else size="lg" :label="`No photograph of ${title} on record`" />
         </div>
 
         <div class="flex min-w-0 flex-1 flex-col gap-1">
@@ -122,7 +122,19 @@ const isNotFound = computed(
         </div>
       </header>
 
-      <div class="grid gap-4 lg:grid-cols-3">
+      <!--
+        Two columns that end where their content ends, rather than one stretched
+        to match the other. The nutrition table is nine fixed rows; the right
+        column runs from a single label to a dozen, and filling it to match
+        would leave a card two thirds empty, which reads as something that
+        failed to load.
+
+        The ingredients paragraph sits in that column for the same reason it no
+        longer spans the page: prose at the full width of a desktop is far past
+        a readable measure, and it is what balances the two sides for most
+        products.
+      -->
+      <div class="grid items-start gap-4 lg:grid-cols-3">
         <UiSurfaceCard class="lg:col-span-2">
           <h2 class="mb-3 text-heading text-ink">Nutrition</h2>
 
@@ -178,6 +190,11 @@ const isNotFound = computed(
             </dl>
           </UiSurfaceCard>
 
+          <UiSurfaceCard v-if="product?.ingredientsText">
+            <h2 class="mb-2 text-heading text-ink">Ingredients list</h2>
+            <p class="text-body text-ink-muted">{{ product.ingredientsText }}</p>
+          </UiSurfaceCard>
+
           <UiSurfaceCard v-if="product">
             <h2 class="mb-2 text-heading text-ink">Source</h2>
             <p class="text-caption text-ink-muted">
@@ -196,10 +213,6 @@ const isNotFound = computed(
         </div>
       </div>
 
-      <UiSurfaceCard v-if="product?.ingredientsText">
-        <h2 class="mb-2 text-heading text-ink">Ingredients list</h2>
-        <p class="text-body text-ink-muted">{{ product.ingredientsText }}</p>
-      </UiSurfaceCard>
     </template>
   </div>
 </template>

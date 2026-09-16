@@ -67,6 +67,29 @@ test.describe('theme', () => {
     await expect(page.locator('html')).not.toHaveClass(new RegExp(before ?? '^$'))
     await expect(page.getByRole('button', { name: /switch to (dark|light) theme/i })).toBeVisible()
   })
+
+  /**
+   * The toggle carries both icons and hides one. A leaf component that sets its
+   * own `display` wins the cascade against that `hidden`, which drew a sun and a
+   * moon side by side in the light theme while every test stayed green.
+   */
+  test('the theme toggle shows exactly one icon, in both themes', async ({ page }) => {
+    await page.goto('/products')
+
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate((t) => document.documentElement.classList.toggle('dark', t === 'dark'), theme)
+
+      const drawn = await page
+        .getByRole('button', { name: /switch to (dark|light) theme/i })
+        .evaluate((button) =>
+          [...button.querySelectorAll('svg')].filter(
+            (icon) => getComputedStyle(icon).display !== 'none',
+          ).length,
+        )
+
+      expect(drawn, `the ${theme} theme drew ${drawn} icons`).toBe(1)
+    }
+  })
 })
 
 test.describe('select', () => {

@@ -74,18 +74,10 @@ const selectedLabel = computed(
         it inherits `currentColor` and follows the theme. A data-URI background
         cannot do that, and would need a second copy for dark mode.
       -->
-      <svg
-        class="pointer-events-none absolute top-1/2 right-2.5 size-3.5 -translate-y-1/2 text-ink-subtle"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-      >
-        <path d="m6 9 6 6 6-6" />
-      </svg>
+      <UiIcon
+        name="chevron-down"
+        class="pointer-events-none absolute top-1/2 right-2.5 size-3 -translate-y-1/2 text-ink-subtle"
+      />
 
       <!-- Read by nothing; present so a find-in-page for the current value hits. -->
       <span class="sr-only">{{ selectedLabel }}</span>
