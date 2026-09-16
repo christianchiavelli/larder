@@ -11,44 +11,27 @@ import type { NutriScore, NovaFilterValue } from '#shared/domain/nutrition'
 import { toFilterValue } from '#shared/domain/taxonomy'
 
 /**
- * Directory filter state, held in the URL.
- *
- * The URL is the state, not a copy of it. There is no store behind this and no
- * `watch` synchronising two directions, because either would introduce a moment
- * where the address bar and the results disagree.
- *
- * What that buys is not tidiness. Every view in this app is then shareable,
- * bookmarkable and reachable by the back button without a line of code written
- * for any of those. Filter state kept in a store gets all three wrong by
- * default, and each one has to be rebuilt by hand.
+ * The URL is the state, not a copy of it: no store and no two-way watcher, so
+ * there is no moment where the address bar and the results disagree. Sharing,
+ * bookmarking and the back button then work with nothing written for them.
  */
 
-/** Filter dimensions that hold a list of values. */
 type ListDimension = 'category' | 'brand' | 'country' | 'label'
 
 export function useProductQuery() {
   const route = useRoute()
   const router = useRouter()
 
-  /**
-   * Parsed from the URL on every read. The schema drops anything malformed, so
-   * a hand-edited or stale link degrades to a valid query rather than an error
-   * page.
-   */
+  /** The schema drops anything malformed, so a stale link still renders. */
   const query = computed<ProductQuery>(() => productQuerySchema.parse(route.query))
 
   /**
-   * Writes a patch to the URL.
+   * Merged onto the parsed query, never onto its serialised form:
+   * `toQueryParams` omits defaults, so merging two serialised objects cannot
+   * express removal and clearing a filter leaves it applied.
    *
-   * The patch is merged onto the parsed query, never onto its serialised form.
-   * `toQueryParams` omits anything at its default, so merging two serialised
-   * objects cannot express removal: emptying a dimension drops its key from the
-   * patch, and the earlier value survives the spread. Clearing the filters left
-   * every one of them applied.
-   *
-   * Any filter change resets to page one. Keeping the page number while
-   * narrowing the results is how a user lands on an empty page 8 of a result
-   * set that now has 3, and then reasonably concludes the filter is broken.
+   * A filter change resets to page one, or narrowing drops the reader on an
+   * empty page 8 of a result set that now has 3.
    */
   function apply(patch: Partial<ProductQuery>, options: { keepPage?: boolean } = {}) {
     const next = productQuerySchema.parse({
@@ -73,19 +56,13 @@ export function useProductQuery() {
   }
 
   function setPageSize(pageSize: number) {
-    // The first page of a larger size overlaps what the user was already
-    // reading, which is the least disorienting place to land.
     return apply({ pageSize })
   }
 
   /**
-   * Adds a value to a dimension, or removes it when it is already applied.
-   *
-   * The incoming value is normalised first, because it can come from either of
-   * two vocabularies: a facet key, which is already the stored form, or a
-   * taxonomy suggestion, which prefixes brands with a language the search index
-   * does not use. Comparing the two directly means "remove" never matches and
-   * silently adds a second copy of the same filter.
+   * Normalised first: the value arrives either as a facet key or as a taxonomy
+   * suggestion, which prefixes brands. Comparing the two raw means "remove"
+   * never matches and adds a second copy of the same filter.
    */
   function toggleTag(dimension: ListDimension, value: string) {
     const id = toFilterValue(dimension, value)
@@ -95,13 +72,7 @@ export function useProductQuery() {
     return apply({ [dimension]: next } as Partial<ProductQuery>)
   }
 
-  /**
-   * Takes an absence as readily as a grade.
-   *
-   * Between them the two absences are most of the catalogue, and they are asked
-   * for separately: someone hunting for products that ought to carry a grade
-   * wants the ungraded ones without the beers and vinegars mixed in.
-   */
+  /** Takes an absence as readily as a grade; they are most of the catalogue. */
   function toggleNutriScore(grade: NutriScore) {
     const current = query.value.nutriScore
     return apply({
@@ -111,7 +82,6 @@ export function useProductQuery() {
     })
   }
 
-  /** Takes the absence too: three quarters of the catalogue has no group. */
   function toggleNova(group: NovaFilterValue) {
     const current = query.value.nova
     return apply({
@@ -121,7 +91,7 @@ export function useProductQuery() {
     })
   }
 
-  /** Clears every filter. Sort and page size are preferences, so they survive. */
+  /** Sort and page size are preferences, so they survive. */
   function clearFilters() {
     return apply(clearedFilters())
   }

@@ -3,13 +3,10 @@ import { ref } from 'vue'
 import type { LocationQuery } from 'vue-router'
 
 /**
- * The filter state, which lives in the URL and nowhere else.
- *
- * Every rule in this composable is one a user notices only when it is wrong:
- * landing on an empty page 8, a checkbox that will not switch off, a cleared
- * filter panel that also silently reset the sort. The end-to-end suite drives a
- * few of these through a browser, but the matrix of dimensions and toggles is
- * combinatorial and belongs here, where each case costs a millisecond.
+ * Every rule here is one a user notices only when it is wrong: an empty page 8,
+ * a checkbox that will not switch off, a cleared panel that also reset the
+ * sort. The matrix is combinatorial and belongs where a case costs a
+ * millisecond.
  */
 
 const currentQuery = ref<LocationQuery>({})

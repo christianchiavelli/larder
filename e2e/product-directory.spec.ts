@@ -1,21 +1,15 @@
 import { expect, test, type Page } from '@playwright/test'
 
 /**
- * Directory behaviour, end to end.
- *
- * These assertions deliberately avoid depending on specific products. The
- * catalogue is community-edited and changes daily, so a test asserting that
- * Nutella is on page one would fail for reasons that are not regressions. What
- * is asserted instead are the invariants: that filter state lives in the URL,
- * that it survives a reload, and that the page never claims a number it cannot
+ * Nothing here depends on a specific product: the catalogue is community-edited
+ * and changes daily. What is asserted are the invariants, that filter state
+ * lives in the URL, survives a reload, and never claims a number it cannot
  * support.
  */
 
 test.describe('product directory', () => {
   test('renders results on the server, before any JavaScript runs', async ({ browser }) => {
-    // JavaScript disabled, so anything visible here came from SSR. This is the
-    // difference between a server-rendered app and a client app behind a
-    // loading spinner, and it is not visible in a normal browser test.
+    // JavaScript disabled, so anything visible here came from SSR.
     const context = await browser.newContext({ javaScriptEnabled: false })
     const page = await context.newPage()
 
@@ -36,8 +30,7 @@ test.describe('product directory', () => {
       .click()
     await expect(page).toHaveURL(/nutriScore=a/)
 
-    // A reload has to reproduce the same view. That is the whole claim behind
-    // keeping state in the URL rather than in a store.
+    // The whole claim behind keeping state in the URL.
     await page.reload()
     await expect(page).toHaveURL(/nutriScore=a/)
     await expect(page.getByRole('button', { name: /Nutri-Score A,/ }).first()).toHaveAttribute(
@@ -46,14 +39,10 @@ test.describe('product directory', () => {
     )
   })
 
-  /**
-   * Removing a filter, which is a different operation from applying one.
-   *
-   * The URL writer merged two serialised queries, and the serialiser omits
-   * anything at its default, so a patch that emptied a dimension simply had no
-   * key for it and the previous value survived the merge. Applying a filter
-   * worked; switching it off did nothing, and neither did Clear all. Every
-   * existing test here applied a filter, so the whole suite was green.
+/**
+   * Removing is a different operation from applying, and the suite only ever
+   * applied: the URL writer merged two serialised queries, the serialiser omits
+   * defaults, so emptying a dimension had no key and the old value survived.
    */
   test('switches a filter back off again', async ({ page }) => {
     await page.goto('/products')
@@ -74,19 +63,14 @@ test.describe('product directory', () => {
     await page.getByRole('button', { name: /clear all/i }).click()
 
     await expect(page).not.toHaveURL(/nutriScore|nova/)
-    // Sort is how the user chose to read the list, not what they chose to look
-    // at, so clearing the filters must not reset it.
+    // Sort is how the list is read, not what is in it.
     await expect(page).toHaveURL(/sort=popularity/)
   })
 
   /**
-   * The two ungraded buckets, which together are most of the catalogue.
-   *
-   * Neither was reachable at first: the schema dropped the value, and a dropped
-   * filter narrows nothing, so the page answered with everything. Then they
-   * were one control that selected both, which was worse in a quieter way, as
-   * it is impossible to tell a product nobody has graded from a beer the scheme
-   * will never grade. Each is asserted on its own here for that reason.
+   * Most of the catalogue, and asserted one at a time: a single control that
+   * selected both could not tell a product nobody has graded from a beer the
+   * scheme never will.
    */
   for (const { label, value } of [
     { label: 'Nutri-Score not reported', value: 'unknown' },
@@ -98,11 +82,8 @@ test.describe('product directory', () => {
       await page.getByRole('button', { name: label }).first().click()
       await expect(page).toHaveURL(new RegExp(`nutriScore=${value}`))
 
-      /*
-       * Polled rather than read once. The directory holds the previous page on
-       * screen while the next one loads, which is deliberate and means a single
-       * read lands on the rows from before the filter was applied.
-       */
+      // Polled: the directory holds the previous page while the next loads, so
+      // a single read lands on the rows from before the filter.
       const rows = page.getByTestId('product-row')
       const matching = rows.getByRole('img', { name: label })
 
@@ -126,11 +107,7 @@ test.describe('product directory', () => {
     )
   })
 
-  /**
-   * The page size was reachable only by editing the address bar: the schema
-   * validated it, the composable reset to page one on a change, and nothing
-   * rendered a control.
-   */
+  /** Page size was reachable only by editing the address bar: no control. */
   test('changes the page size and starts again from page one', async ({ page }) => {
     await page.goto('/products?page=5')
 
@@ -154,15 +131,11 @@ test.describe('product directory', () => {
     await expect(page).not.toHaveURL(/nutriScore=a/)
   })
 
-  /**
-   * Upstream stops counting at 10,000 and pins the figure there. Printing it
-   * as an exact total would state a number known to be wrong.
-   */
+  /** Upstream pins the count at 10,000, so an exact total would be a lie. */
   test('marks an approximate total as approximate', async ({ page }) => {
     await page.goto('/products')
 
-    // Scoped by test id: NuxtRouteAnnouncer is also aria-live polite, so the
-    // attribute alone matches two elements.
+    // NuxtRouteAnnouncer is also aria-live polite.
     const summary = page.getByTestId('result-summary')
     await expect(summary).toContainText(/\d/)
 
@@ -173,9 +146,7 @@ test.describe('product directory', () => {
   })
 
   test('recovers from a hand-edited URL instead of erroring', async ({ page }) => {
-    // Every value here is invalid: a grade that does not exist, a NOVA group
-    // out of range, an unknown sort, a page far past the ceiling. The schema
-    // drops them and the page still renders.
+    // Every value is invalid. The schema drops them and the page renders.
     await page.goto('/products?nutriScore=z&nova=99&sort=by-vibes&page=999999')
 
     await expect(page.getByRole('heading', { name: 'Products', level: 1 })).toBeVisible()
@@ -183,20 +154,14 @@ test.describe('product directory', () => {
   })
 
   /**
-   * Asserts the barcode, not the heading.
-   *
-   * The two upstream services disagree about product names, and not as a
-   * staleness bug: barcode 3274080005003 is "Eau de source" in the search index
-   * and "Cristaline" in the product API, with "isabelle" sitting in a third
-   * field. A card and the page it opens are genuinely allowed to show different
-   * names, so asserting they match would encode a guarantee the data does not
-   * offer. What must hold is that the link goes to the product it claims.
+   * The barcode, not the heading. The two upstream services disagree about
+   * names: 3274080005003 is "Eau de source" in the index and "Cristaline" in
+   * the product API, so a row and the page it opens may legitimately differ.
    */
   test('navigates to the product the card links to', async ({ page }) => {
     await page.goto('/products')
 
-    // Addressed by test id rather than by tag: whether a result is a card or a
-    // row is a layout decision, and a spec about navigation should survive it.
+    // Card or row is a layout decision; a navigation spec should survive it.
     const firstProduct = page.getByTestId('product-row').first().locator('h3 a')
     const href = await firstProduct.getAttribute('href')
     await firstProduct.click()
@@ -230,11 +195,9 @@ test.describe('product directory', () => {
 
 test.describe('filter suggestions', () => {
   /**
-   * The search box is a combobox whose listbox offers filters, not search
-   * terms. Driven here with real key events, because the whole point of the
-   * pattern is the keyboard: the active option is pointed at rather than
-   * focused, so focus never leaves the input and typing keeps working while
-   * the list is open. None of that is observable without a browser.
+   * Driven with real key events, because the point of the pattern is the
+   * keyboard: the active option is pointed at rather than focused, so focus
+   * never leaves the input. None of that is observable without a browser.
    */
   const search = (page: Page) => page.getByRole('combobox', { name: 'Search products' })
 

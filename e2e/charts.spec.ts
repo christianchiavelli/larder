@@ -1,19 +1,12 @@
 import { expect, test, type Page } from '@playwright/test'
 
 /**
- * Chart rendering, checked against the pixels.
+ * A canvas has no element to assert on, so these sample the rendered image.
  *
- * Charts draw to a canvas, so there is no element to assert on and no computed
- * style to read. Everything below therefore samples the rendered image, which
- * is unusual for a test suite and is the only way to catch this particular
- * class of bug.
- *
- * It exists because of one that shipped: the palette is authored in OKLCH, a
- * canvas accepts `oklch()` so every chart rendered correctly, but ECharts has
- * to parse a colour to derive its hover state and zrender's parser does not
- * handle OKLCH. The derived colour came out transparent and the bar under the
- * pointer disappeared. Types, lint, unit tests and every other end-to-end spec
- * passed. A person found it by moving a mouse.
+ * It exists because of a bug that shipped: the palette was authored in OKLCH, a
+ * canvas accepts it, but ECharts parses colours to derive hover states and
+ * zrender does not handle OKLCH. The bar under the pointer disappeared while
+ * everything else passed. A person found it by moving a mouse.
  */
 
 interface Point {
@@ -21,7 +14,6 @@ interface Point {
   y: number
 }
 
-/** Reads one pixel of a canvas, in canvas-local coordinates. */
 async function readPixel(page: Page, canvasIndex: number, point: Point): Promise<string> {
   return page.evaluate(
     ([index, x, y]) => {
@@ -35,11 +27,9 @@ async function readPixel(page: Page, canvasIndex: number, point: Point): Promise
 }
 
 /**
- * Finds a point well inside the longest horizontal run of non-background
- * pixels, which for these charts is the middle of a bar.
- *
- * Derived from the image rather than hard-coded, so the test survives a layout
- * change instead of silently pointing at empty space and passing.
+ * The middle of the longest horizontal run of non-background pixels, which is
+ * the middle of a bar. Derived from the image, so a layout change does not
+ * leave the probe pointing at empty space and passing.
  */
 async function findBarInterior(page: Page, canvasIndex: number): Promise<Point | null> {
   return page.evaluate(
@@ -49,7 +39,7 @@ async function findBarInterior(page: Page, canvasIndex: number): Promise<Point |
       const { width, height } = canvas
       const image = context.getImageData(0, 0, width, height).data
 
-      // The top-left corner is plot background in every one of these charts.
+      // Plot background in every one of these charts.
       const background = [image[0], image[1], image[2]]
       const isBackground = (offset: number) =>
         Math.abs(image[offset]! - background[0]!) < 12 &&
@@ -91,11 +81,8 @@ test.describe('charts', () => {
   })
 
   /**
-   * The regression this file was written for.
-   *
-   * A hovered bar is allowed to change shade; what it may not do is disappear.
-   * Comparing against the background colour rather than against the original
-   * colour is deliberate, because emphasis legitimately alters the fill.
+   * A hovered bar may change shade; it may not disappear. Compared against the
+   * background rather than the original fill, since emphasis alters the fill.
    */
   test('a hovered bar stays visible', async ({ page }) => {
     const canvases = await page.locator('figure canvas').count()
@@ -120,29 +107,18 @@ test.describe('charts', () => {
 
       expect(after, `chart ${index}: the bar vanished under the pointer`).not.toBe(background)
 
-      // Move away so the next chart starts from a clean state.
+      // So the next chart starts clean.
       await page.mouse.move(0, 0)
       await page.waitForTimeout(150)
     }
   })
 
   /**
-   * The root cause, asserted directly.
-   *
-   * zrender parses a colour to derive a hover state and understands only hex,
-   * rgb/rgba and hsl/hsla. Handed `oklch(...)` it fails, the derived fill comes
-   * out transparent, and the bar vanishes under the pointer while rendering
-   * normally everywhere else.
-   *
-   * The palette is hex now, so the tokens would survive without any conversion.
-   * What is pinned here is the conversion itself, because it is what allows the
-   * token file to use a colour syntax newer than zrender without anyone having
-   * to know zrender exists. The probe is an explicit OKLCH value rather than a
-   * token, so this keeps testing the mechanism after the palette changes again.
-   *
-   * It also rules out both shortcuts: a computed `color` preserves the authored
-   * colour space, and so does `ctx.fillStyle`. Swapping the rasteriser for
-   * either would leave every chart rendering perfectly and break hover.
+   * The conversion itself, probed with an explicit OKLCH value rather than a
+   * token, so it keeps testing the mechanism after the palette changes again.
+   * It also rules out both shortcuts: a computed `color` and `ctx.fillStyle`
+   * each preserve the authored colour space, and swapping in either would leave
+   * every chart rendering perfectly and break hover.
    */
   test('a colour syntax zrender cannot parse survives the conversion', async ({ page }) => {
     const result = await page.evaluate(() => {
@@ -179,8 +155,7 @@ test.describe('charts', () => {
   test('charts expose their figures as a table for readers the canvas excludes', async ({
     page,
   }) => {
-    // A canvas is invisible to assistive technology. Every chart ships the same
-    // numbers as a real table, visually hidden but reachable.
+    // A canvas is invisible to assistive technology.
     const tables = page.locator('figure table')
 
     expect(await tables.count()).toBeGreaterThan(0)
@@ -188,24 +163,9 @@ test.describe('charts', () => {
   })
 
   /**
-   * The headline and the chart under it have to be counting the same products.
-   *
-   * They are computed separately, and the headline used to name the buckets it
-   * summed. The day the ungraded bucket became two, the name it did not know
-   * about stopped being counted: nothing threw, no test failed, and the figure
-   * over which every percentage on the page is taken was short by seventy-one
-   * thousand products.
-   *
-   * Asserted as the relationship rather than against a number, because the
-   * catalogue is community-edited and grows daily.
-   */
-  /**
-   * A figure is a number or it is the em-dash that says nothing was reported.
-   *
-   * Never the word NaN, which is what a headline prints when the field behind
-   * it is renamed, moved or added to one side of the boundary and not the
-   * other. It renders, it lays out, it is the right size and colour, and it
-   * says nothing at all.
+   * A figure is a number or the em-dash meaning nothing was reported, never
+   * NaN, which is what a headline prints when the field behind it is added to
+   * one side of the boundary and not the other.
    */
   test('no figure on the overview renders as NaN', async ({ page }) => {
     const figures = await page.locator('[data-numeric]').allInnerTexts()
@@ -217,6 +177,11 @@ test.describe('charts', () => {
     }
   })
 
+  /**
+   * Computed separately, and the headline used to name the buckets it summed:
+   * the day the ungraded bucket became two, it went short by 71,025 products
+   * without throwing. Asserted as a relationship, since the catalogue grows.
+   */
   test('the headline counts the same catalogue the chart draws', async ({ page }) => {
     const table = page.locator('figure table').first()
     await table.locator('tbody tr').first().waitFor({ state: 'attached' })

@@ -3,65 +3,33 @@ import { UPSTREAM_SORT_FIELDS } from '#shared/domain/search'
 import { NOVA_UNGROUPED } from '#shared/domain/nutrition'
 
 /**
- * Lucene query construction for the upstream search service.
- *
- * Upstream parses `q` as a Lucene expression, so user input is not data unless
- * we make it data. It fails in the worst way available: a stray `:` or `"` does
- * not raise an error, it silently reinterprets the query and returns zero
- * matches. A user searching for a product whose name contains a colon would
- * just be told it does not exist.
- *
- * So the rule is the same one that applies to SQL. Structure is ours to write,
- * values are always escaped, and the two never get concatenated by accident.
+ * Upstream parses `q` as Lucene, so the SQL rule applies: structure is ours,
+ * values are always escaped. Unescaped input does not error, it reinterprets
+ * the query and returns zero matches.
  */
 
-/**
- * Characters Lucene treats as syntax. `&` and `|` are included because the
- * operators are `&&` and `||`, and escaping the halves neutralises both.
- *
- * Source: Lucene classic query parser syntax, "Escaping Special Characters".
- */
+// `&` and `|` because the operators are `&&` and `||`.
 const LUCENE_SPECIAL = /[+\-&|!(){}[\]^"~*?:\\/]/g
 
-/** Escapes a value so Lucene reads every character of it literally. */
 export function escapeLuceneTerm(input: string): string {
   return input.replace(LUCENE_SPECIAL, (char) => `\\${char}`)
 }
 
-/**
- * Wraps a value as a quoted phrase.
- *
- * Taxonomy ids contain a colon by design (`en:sweet-spreads`), which is exactly
- * the field separator. Quoting keeps the colon inside the value; only the quote
- * and backslash characters need escaping within a phrase.
- */
+/** Taxonomy ids carry a colon, which is also the field separator. */
 export function quoteLuceneValue(value: string): string {
   return `"${value.replace(/[\\"]/g, (char) => `\\${char}`)}"`
 }
 
-/** `field:(a OR b OR c)`, or an empty string when there is nothing to filter on. */
 function tagClause(field: string, values: readonly string[]): string {
   if (values.length === 0) return ''
-
   const terms = values.map((value) => `${field}:${quoteLuceneValue(value)}`)
-
-  // A single term needs no parentheses, and leaving them off keeps the query
-  // readable in upstream logs when something has to be debugged by hand.
   return terms.length === 1 ? terms[0]! : `(${terms.join(' OR ')})`
 }
 
 /**
- * Same shape, for fields whose values are enum tokens rather than taxonomy ids.
- *
- * Quoted, not escaped. Escaping is correct for free text and wrong here: the
- * escaper treats `-` as an operator, which it is only at the start of a term,
- * and `nutriscore_grade:not\-applicable` matches nothing at all. Every grade
- * except that one is a single letter, so the escaper had never had a character
- * to get wrong and the query looked fine until the absence became filterable.
- *
- * The failure would also have hidden: the ungraded clause is an OR, and its
- * other half returns more than the tracked ceiling on its own, so the count
- * would have read the same with seventy-one thousand products missing.
+ * Quoted, not escaped. The escaper treats `-` as the NOT operator, which it is
+ * only at the start of a term, and `nutriscore_grade:not\-applicable` matches
+ * nothing.
  */
 function enumClause(field: string, values: readonly (string | number)[]): string {
   if (values.length === 0) return ''
@@ -69,19 +37,10 @@ function enumClause(field: string, values: readonly (string | number)[]): string
   return terms.length === 1 ? terms[0]! : `(${terms.join(' OR ')})`
 }
 
-
 /**
- * NOVA, where the absence cannot be asked for by value.
- *
- * A product with no Nutri-Score says so, with a key in the index and a bucket
- * in the facet. A product with no NOVA group says nothing: the field is absent,
- * there is no bucket, and the only way to select those products is to ask for
- * the documents that do not have the field. Hence a negation here and a value
- * everywhere else.
- *
- * Verified against upstream rather than assumed, because a negated clause
- * inside an OR is where Lucene parsers differ: for balsamic vinegars, group 2
- * returns 1,483 and the absence 71, and the two together return 1,554.
+ * A missing NOVA group is an absent field rather than a value, so it has no
+ * bucket to select and takes a negation. Upstream agrees the two are disjoint:
+ * among balsamic vinegars, group 2 gives 1,483, the absence 71, together 1,554.
  */
 function novaClause(values: readonly (string | number)[]): string {
   if (values.length === 0) return ''
@@ -96,9 +55,8 @@ function novaClause(values: readonly (string | number)[]): string {
 }
 
 /**
- * Free text is escaped whole and left unquoted, so upstream still tokenises it
- * and matches across fields. Quoting it would turn "dark chocolate" into a
- * phrase match and quietly drop every product that says "chocolate, dark".
+ * Escaped but unquoted, so upstream still tokenises it. Quoting would make
+ * "dark chocolate" a phrase and drop every "chocolate, dark".
  */
 function freeTextClause(text: string): string {
   const trimmed = text.trim()
@@ -114,19 +72,12 @@ function freeTextClause(text: string): string {
 }
 
 export interface UpstreamQuery {
-  /** The Lucene expression, or undefined when there is nothing to constrain. */
   q?: string
   /** Upstream requires a sort when `q` is absent. */
   sort_by?: string
 }
 
-/**
- * Builds the upstream query for a directory request.
- *
- * Every clause is combined with AND: filters narrow, they never widen. Within a
- * single dimension the values are OR'd, because picking two brands means
- * "either brand", not "both brands at once", which no product satisfies.
- */
+/** AND across dimensions, OR within one: two brands means either, not both. */
 export function buildProductQuery(query: ProductQuery): UpstreamQuery {
   const clauses = [
     freeTextClause(query.q),
@@ -141,9 +92,7 @@ export function buildProductQuery(query: ProductQuery): UpstreamQuery {
   const sortField = UPSTREAM_SORT_FIELDS[query.sort]
 
   if (clauses.length === 0) {
-    // Nothing to match on. Upstream rejects a request with neither `q` nor
-    // `sort_by`, and an unfiltered list has no relevance to rank by anyway, so
-    // the empty state browses by popularity.
+    // Upstream rejects a request with neither `q` nor `sort_by`.
     return { sort_by: sortField ?? '-popularity_key' }
   }
 

@@ -91,11 +91,7 @@ describe('buildProductQuery', () => {
     expect(built.q).toBe('chocolate AND categories_tags:"en:biscuits" AND nova_groups:"4"')
   })
 
-  /**
-   * The case that motivates the whole module. Upstream answers an unescaped
-   * query with `count: 0` and no error, so a product whose name contains a
-   * colon would appear not to exist.
-   */
+  /** Upstream answers an unescaped query with `count: 0` and no error. */
   it('neutralises syntax in free text instead of letting it change the query', () => {
     const built = buildProductQuery(query({ q: 'foo: bar"baz' }))
 

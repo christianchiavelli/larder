@@ -1,39 +1,26 @@
 import { z } from 'zod'
 
 /**
- * Open Food Facts organises categories, labels, countries and additives as
- * taxonomies: controlled vocabularies whose entries are language-prefixed ids
- * such as `en:sweet-spreads`.
- *
- * The prefix names the language the canonical term was authored in, not the
- * language you get back. It is part of the identity of the entry, so it is
- * never stripped for lookups, filtering, or URLs. It is stripped only when a
- * human has to read the thing.
+ * Taxonomy ids are language-prefixed (`en:sweet-spreads`). The prefix names the
+ * language the term was authored in, not what you get back, and is part of the
+ * entry's identity: strip it only when a human has to read the thing.
  */
 
 export const TAXONOMIES = ['category', 'brand', 'label', 'country', 'additive'] as const
 export type TaxonomyName = (typeof TAXONOMIES)[number]
 
 export const taxonomyTagSchema = z.object({
-  /** Canonical, language-prefixed id. Stable, used as the filter value. */
   id: z.string().min(1),
-  /** Display form. Derived from the id unless upstream gave us a better one. */
   label: z.string().min(1),
 })
 
 export type TaxonomyTag = z.infer<typeof taxonomyTagSchema>
 
-// The slug half is `.*` rather than `.+` so that a prefix with nothing after it
-// parses as an empty slug instead of failing to match and being mistaken for an
-// unprefixed id. `en:` is malformed either way, but only one of those readings
-// lets the caller notice.
+// `.*` not `.+`, so `en:` parses as an empty slug rather than passing for an
+// unprefixed id.
 const TAG_ID_PATTERN = /^([a-z]{2,3}):(.*)$/
 
-/**
- * Words that upstream taxonomies keep in a fixed casing. Title-casing them from
- * a slug would produce "Pdo" and "Fr Bio01", which look like bugs to anyone
- * who knows the labels.
- */
+/** Title-casing these from a slug gives "Pdo" and "Fr Bio01". */
 const CASING_OVERRIDES = new Map<string, string>([
   ['pdo', 'PDO'],
   ['pgi', 'PGI'],
@@ -54,20 +41,13 @@ const CASING_OVERRIDES = new Map<string, string>([
   ['igp', 'IGP'],
 ])
 
-/** Splits `en:sweet-spreads` into its language and slug halves. */
 export function parseTagId(id: string): { lang: string | null; slug: string } {
   const match = TAG_ID_PATTERN.exec(id)
   if (!match) return { lang: null, slug: id }
   return { lang: match[1]!, slug: match[2]! }
 }
 
-/**
- * Best-effort display form for a taxonomy id.
- *
- * Upstream does return translated names on some endpoints and not others, so
- * this is the fallback rather than the primary path. Prefer a label upstream
- * hands you; use this when it does not.
- */
+/** Fallback display form. Prefer a label upstream hands you. */
 export function humanizeTagId(id: string): string {
   const { slug } = parseTagId(id)
 
@@ -76,14 +56,11 @@ export function humanizeTagId(id: string): string {
     .filter(Boolean)
     .map((word) => CASING_OVERRIDES.get(word) ?? word)
 
-  // Nothing to work with. Returning the raw id is the honest outcome: it is
-  // visibly an identifier, where a half-processed one would read as a label and
-  // hide the fact that this entry is malformed.
+  // The raw id reads as an identifier; a half-processed one reads as a label.
   if (words.length === 0) return id
 
   return words
     .map((word, index) => {
-      // An override already carries its intended casing.
       if (CASING_OVERRIDES.has(word.toLowerCase()) && word !== word.toLowerCase()) return word
       if (index === 0) return word.charAt(0).toUpperCase() + word.slice(1)
       return word
@@ -92,31 +69,19 @@ export function humanizeTagId(id: string): string {
 }
 
 /**
- * Builds a tag from an id, preferring a label upstream supplied.
- *
- * Upstream often "supplies" a label that is just the slug echoed back: the
- * brands facet answers `{ key: "lu", name: "lu" }`. Taking that literally would
- * print lowercase slugs down the filter panel next to properly cased entries
- * from other dimensions. So a label that carries no more information than the
- * id does is treated as no label at all.
- */
-/**
- * The form a taxonomy id takes when it is used as a filter value.
- *
- * Every dimension in the search index is language-prefixed except brands, which
- * are stored as a bare slug: the categories facet returns `en:beverages` and the
- * brands facet returns `carrefour`. Autocomplete does not make that distinction
- * and prefixes everything, so a brand suggestion arrives as `en:olivari` and
- * matches no product at all.
- *
- * A filter that silently returns nothing is the worst shape this can take: the
- * checkbox appears applied, the count reads zero, and the reasonable conclusion
- * is that the catalogue has no such brand.
+ * Brands are the one dimension the index stores unprefixed: categories come
+ * back as `en:beverages`, brands as `carrefour`. Autocomplete prefixes
+ * everything, so a suggested `en:olivari` matches no product and the filter
+ * reads as applied over an empty result.
  */
 export function toFilterValue(taxonomy: TaxonomyName, id: string): string {
   return taxonomy === 'brand' ? parseTagId(id).slug : id
 }
 
+/**
+ * Upstream often echoes the slug back as the label: the brands facet answers
+ * `{ key: "lu", name: "lu" }`. A label carrying no more than the id is no label.
+ */
 export function toTaxonomyTag(id: string, label?: string | null): TaxonomyTag {
   const trimmed = label?.trim()
 
@@ -128,11 +93,7 @@ export function toTaxonomyTag(id: string, label?: string | null): TaxonomyTag {
   return { id, label: echoesTheSlug ? humanizeTagId(id) : trimmed }
 }
 
-/**
- * Category lists arrive ordered from broadest to most specific
- * (`en:breakfasts` then `en:spreads` then `en:sweet-spreads`). The last entry is
- * the one worth showing when there is room for exactly one.
- */
+/** Category lists run broadest to most specific, so the last is the useful one. */
 export function mostSpecificTag(tags: readonly TaxonomyTag[]): TaxonomyTag | null {
   return tags.at(-1) ?? null
 }

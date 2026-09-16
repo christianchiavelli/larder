@@ -13,24 +13,16 @@ import { mapProductImage, upstreamImageFields } from './image'
 import type { FacetItem } from '#shared/domain/search'
 
 /**
- * Upstream contract for search.openfoodfacts.org, and the mapping from it into
- * our domain.
- *
- * The schema is permissive about values and strict about structure. Upstream is
- * a community database where almost every field is optional in practice, so
- * demanding a product name would reject records that are perfectly renderable.
- * What we do not tolerate is `hits` not being a list: that means the response is
- * not a search response at all, and guessing past it would surface an empty
- * directory as if the query legitimately matched nothing.
+ * Permissive about values, strict about structure. Almost every field is
+ * optional in a community database, but `hits` not being a list means this is
+ * not a search response, and guessing past that shows an empty directory as if
+ * the query matched nothing.
  */
 
 /**
- * Upstream omits a key entirely when it has no value, rather than sending null.
- *
- * `.nullish()` is load-bearing and not decoration: in Zod 4 a union that merely
- * includes `z.undefined()` still requires the key to be present, so a schema
- * without it rejects every record that is missing any optional field. That is
- * most of the catalogue.
+ * Upstream omits a key rather than sending null, and in Zod 4 a union merely
+ * including `z.undefined()` still requires the key. So `.nullish()` is
+ * load-bearing: without it most of the catalogue fails to parse.
  */
 
 const looseStringArray = z
@@ -89,11 +81,8 @@ export const upstreamSearchResponseSchema = z.looseObject({
 export type UpstreamSearchResponse = z.infer<typeof upstreamSearchResponseSchema>
 
 /**
- * Where each modelled nutrient lives in the upstream `nutriments` bag.
- *
- * Only the `_100g` variant is read. The bare key and the `_value` key are in
- * whatever unit the pack declared, so comparing them across products would be
- * comparing grams to millilitres to ounces.
+ * Only the `_100g` variant. The bare key and `_value` are in whatever unit the
+ * pack declared, so comparing across products compares grams to ounces.
  */
 const NUTRIMENT_SOURCE_KEYS: Record<NutrientKey, string> = {
   energyKcal: 'energy-kcal_100g',
@@ -116,8 +105,7 @@ export function mapNutriments(raw: Record<string, unknown> | null | undefined): 
     const parsed = looseNumber.safeParse(raw[NUTRIMENT_SOURCE_KEYS[key]])
     if (!parsed.success || parsed.data === null) continue
 
-    // Negative mass is a data-entry error, not a measurement. Upstream has a
-    // handful. Dropping them keeps category averages from being dragged under.
+    // Negative mass is a data-entry error, and it drags category averages down.
     if (parsed.data < 0) continue
 
     profile[key] = parsed.data
@@ -127,13 +115,10 @@ export function mapNutriments(raw: Record<string, unknown> | null | undefined): 
 }
 
 /**
- * Upstream spells "no grade" four ways, and means two things by it.
- *
+ * Upstream spells "no grade" four ways and means two things by it.
  * `not-applicable` is the scheme excluding a product; a missing field, an empty
- * string and the literal `unknown` all mean nobody has graded it. Everything
- * unrecognised lands on `unknown` too, because an absence we cannot explain is
- * a gap and not an exclusion, and guessing the other way would invent a rule
- * the scheme does not have.
+ * string and `unknown` all mean nobody has graded it. Anything unrecognised is
+ * a gap rather than an exclusion, since guessing otherwise invents a rule.
  */
 export function mapNutriScore(raw: string | null): NutriScore {
   if (!raw) return 'unknown'
@@ -155,8 +140,7 @@ export function mapNovaGroup(
 function mapHit(hit: UpstreamHit): ProductSummary {
   return {
     code: hit.code,
-    // `product_name_en` is the translated field and is absent more often than
-    // the raw one, so it leads and `product_name` backs it up.
+    // The translated field is absent more often, so the raw one backs it up.
     name: hit.product_name_en ?? hit.product_name ?? '',
     brands: normaliseBrands(hit.brands),
     categories: hit.categories_tags.map((id) => toTaxonomyTag(id)),
@@ -174,12 +158,8 @@ export interface MappedHits {
 }
 
 /**
- * Maps hits individually so one malformed record cannot blank the page.
- *
- * A directory where 23 of 24 rows are fine should render 23 rows. Parsing the
- * array as a unit would turn a single upstream typo into an outage, and this is
- * a read-only view of a community-edited database: malformed records are the
- * normal condition, not the exception.
+ * Per hit, so one malformed record renders 23 rows instead of none. Malformed
+ * records are the normal condition in a community-edited database.
  */
 export function mapSearchHits(hits: readonly unknown[]): MappedHits {
   const items: ProductSummary[] = []
@@ -198,25 +178,17 @@ export function mapSearchHits(hits: readonly unknown[]): MappedHits {
 }
 
 /**
- * Facet keys are not uniform across dimensions: `categories_tags` returns
- * language-prefixed ids while `brands_tags` returns bare slugs. Both go through
- * the taxonomy helper, which leaves a prefixed id alone and humanises a slug.
- */
-/**
- * Facet buckets that are bookkeeping rather than values.
- *
- * `unknown` counts records missing the field. `--other--` is Elasticsearch's
- * remainder bucket, holding everything outside the top N it returned.
- *
- * Neither is a tag any product carries, so neither can be filtered on: offering
- * them would be offering a checkbox that returns nothing. `--other--` also
- * distorts every chart it lands in, because the remainder of a long tail is
- * necessarily larger than any single head value. Drawn as a bar it reads as
- * "Other" being the largest category of food in the world, at six million
- * products, dwarfing every real category beside it.
+ * Bookkeeping buckets, not values: `unknown` counts records missing the field
+ * and `--other--` is Elasticsearch's remainder. No product carries either, so
+ * a checkbox for them returns nothing, and `--other--` drawn as a bar reads as
+ * "Other" being the largest category of food in the world.
  */
 const SENTINEL_FACET_KEYS = new Set(['unknown', '--other--', 'not-applicable', ''])
 
+/**
+ * Facet keys differ by dimension: `categories_tags` is language-prefixed,
+ * `brands_tags` is a bare slug. The taxonomy helper handles both.
+ */
 export function mapFacet(items: readonly z.infer<typeof upstreamFacetItemSchema>[]): FacetItem[] {
   return items
     .filter((item) => !SENTINEL_FACET_KEYS.has(item.key))

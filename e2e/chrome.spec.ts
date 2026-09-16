@@ -1,14 +1,11 @@
 import { expect, test, type Page } from '@playwright/test'
 
 /**
- * The application chrome: theme handling and the select control.
- *
- * Both are here because both have failure modes that only appear in one theme
- * or one browser, and the suite used to run exclusively in the light, Chromium
- * default, which is how a hydration mismatch shipped unnoticed.
+ * Theme and the select control, together because both fail in only one theme or
+ * one browser, and the suite used to run exclusively in the light Chromium
+ * default. That is how a hydration mismatch shipped unnoticed.
  */
 
-/** Collects console errors for the lifetime of a page. */
 function collectErrors(page: Page): string[] {
   const errors: string[] = []
   page.on('console', (message) => {
@@ -20,16 +17,10 @@ function collectErrors(page: Page): string[] {
 
 test.describe('theme', () => {
   /**
-   * The regression this file was written for.
-   *
-   * The server cannot know a visitor's theme, because the preference lives in
-   * their localStorage. Anything that branches on it during render produces one
-   * tree on the server and another on the client, and Vue throws the subtree
-   * away and re-renders it. Only users on that side of the branch ever see it,
-   * and a suite running in the default light theme never does.
-   *
-   * Both themes are therefore asserted, and the failure is a mismatch rather
-   * than a visual difference, which no screenshot would have caught.
+   * The server cannot know a visitor's theme, so anything branching on it
+   * during render produces one tree on the server and another on the client.
+   * The failure is a mismatch rather than a visual difference, which no
+   * screenshot catches, and only in one theme.
    */
   for (const colorScheme of ['light', 'dark'] as const) {
     test(`hydrates without a mismatch in ${colorScheme} mode`, async ({ browser }) => {

@@ -3,21 +3,14 @@ import { expect, test, type APIRequestContext } from '@playwright/test'
 /**
  * Every filter the UI offers, applied, checked for a result.
  *
- * This exists because of a bug that had no error and no log. The brands facet
- * stores a bare slug and autocomplete prefixes everything, so choosing a
- * suggested brand applied a filter the index does not use: the checkbox read as
- * applied, the count read zero, and the only signal was a person thinking "that
- * cannot be right".
+ * It exists for a bug with no error and no log: the brands facet stores a bare
+ * slug, autocomplete prefixes everything, and a suggested brand applied a
+ * filter the index does not use. No type system or unit test sees a
+ * disagreement between two upstream services about a vocabulary, so this walks
+ * the same path a reader does.
  *
- * Nothing in a type system sees that, and no unit test can: it is a
- * disagreement between two upstream services about a vocabulary, and it can
- * appear again the next time either of them changes. So the check walks the
- * same path a reader does, from what the page offers to what applying it
- * returns.
- *
- * Counts are never asserted, only presence. Upstream is community-edited and
- * the numbers move daily; a test pinned to them would fail for reasons that are
- * not about this codebase.
+ * Presence only, never counts: upstream is community-edited and the numbers
+ * move daily.
  */
 
 const DIMENSIONS = [
@@ -27,7 +20,7 @@ const DIMENSIONS = [
   { filter: 'label', facet: 'labels_tags' },
 ] as const
 
-/** How many of each facet's top values to try. Enough to catch a whole-dimension break. */
+/** Enough of each facet's top values to catch a whole-dimension break. */
 const SAMPLE = 3
 
 async function json(request: APIRequestContext, url: string) {
@@ -42,8 +35,7 @@ test.describe('filters round-trip', () => {
       const directory = await json(request, '/api/products')
       const values = (directory.facets[facet] ?? []).slice(0, SAMPLE)
 
-      // An empty facet is itself the failure: the sidebar would render nothing
-      // to click and the page would look like a catalogue with no brands.
+      // An empty facet is itself the failure: nothing to click in the sidebar.
       expect(values.length, `the ${facet} facet came back empty`).toBeGreaterThan(0)
 
       for (const value of values) {
@@ -70,13 +62,9 @@ test.describe('filters round-trip', () => {
   })
 
   /**
-   * Brands separately, and asserted on one known-good value rather than on
-   * every suggestion.
-   *
-   * Autocomplete answers from the taxonomy, which is a superset of what is
-   * indexed: "Olivar de Segura S.C.A." is a real brand with no product tagged
-   * to it, so some suggestions legitimately match nothing. What must hold is
-   * that the two vocabularies agree, and a brand with products proves that.
+   * One known-good value rather than every suggestion: autocomplete answers
+   * from the taxonomy, a superset of what is indexed, so some suggestions
+   * legitimately match nothing. What must hold is that the vocabularies agree.
    */
   test('a suggested brand reaches the products under it', async ({ request }) => {
     const suggestions = await json(request, '/api/suggest?q=nestle&taxonomy=brand&limit=5')
@@ -108,11 +96,8 @@ test.describe('filters round-trip', () => {
       })
     }
 
-    /**
-     * `none` is the largest of these by far and the last to become reachable.
-     * Unlike a missing grade it is not a value in the index, so it is the one
-     * that breaks if upstream ever stops accepting the negation that selects it.
-     */
+    // `none` is not a value in the index, so it breaks if upstream stops
+    // accepting the negation that selects it.
     for (const group of [1, 2, 3, 4, 'none']) {
       test(`nova=${group}`, async ({ request }) => {
         const result = await json(request, `/api/products?nova=${group}`)
@@ -128,8 +113,7 @@ test.describe('filters round-trip', () => {
   })
 
   test('each sort is a different list once there is something to rank', async ({ request }) => {
-    // With no search term, relevance falls back to popularity upstream, so the
-    // two are legitimately identical and a term is needed to tell them apart.
+    // With no term, relevance falls back to popularity upstream.
     const codes = async (sort: string) => {
       const result = await json(request, `/api/products?q=chocolate&sort=${sort}`)
       return result.items.map((item: { code: string }) => item.code).join(',')

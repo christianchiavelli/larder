@@ -1,26 +1,13 @@
 import { expect, test, type Page } from '@playwright/test'
 
 /**
- * Guards against a class of failure nothing else in this repository can see.
- *
  * Tailwind generates a utility only if it finds the class name while scanning
- * source files. When a directory falls outside that scan, every utility used
- * only in it silently stops existing. The markup still carries the class, the
- * token still resolves, the build succeeds, and types, lint and unit tests all
- * pass. The element just renders unstyled.
- *
- * That happened here: Nuxt sets the Vite root to the app directory, so nothing
- * under `layers/` was scanned, and every design-system-only utility was dead.
- * `bg-nutri-a` computed to transparent while `bg-surface-raised`, which the app
- * also used, was fine. The fix is the `@source` block in ui.css; this spec is
- * what will notice if it is ever removed or the paths drift.
- *
- * Asserting on generated CSS is usually a smell, because it tests the framework
- * rather than the code. Here the framework's output *is* the contract: a design
- * token that does not reach the page is a broken token.
+ * source. Nuxt sets the Vite root to the app directory, so nothing under
+ * `layers/` was scanned and every design-system-only utility was dead: markup
+ * intact, build green, elements unstyled. The `@source` block in ui.css is the
+ * fix and this spec is what notices if the paths drift.
  */
 
-/** Every rule selector in the document, flattened. */
 async function selectors(page: Page): Promise<string[]> {
   return page.evaluate(() => {
     const found: string[] = []
@@ -28,7 +15,7 @@ async function selectors(page: Page): Promise<string[]> {
     const walk = (rules: CSSRuleList) => {
       for (const rule of rules) {
         if (rule instanceof CSSStyleRule) found.push(rule.selectorText)
-        // Utilities can be nested inside @layer or @media.
+        // Utilities nest inside @layer and @media.
         else if ('cssRules' in rule) walk((rule as CSSGroupingRule).cssRules)
       }
     }
@@ -37,8 +24,7 @@ async function selectors(page: Page): Promise<string[]> {
       try {
         walk(sheet.cssRules)
       } catch {
-        // A cross-origin sheet cannot be read. None of ours are, so an
-        // unreadable sheet is simply not one we are asserting about.
+        // A cross-origin sheet is not one of ours.
       }
     }
 
@@ -46,7 +32,6 @@ async function selectors(page: Page): Promise<string[]> {
   })
 }
 
-/** Resolves a utility by applying it to an element outside the layout flow. */
 async function computeUtility(page: Page, className: string, property: string): Promise<string> {
   return page.evaluate(
     ([cls, prop]) => {
@@ -70,10 +55,6 @@ test.describe('design tokens reach the browser', () => {
     await page.goto('/products')
   })
 
-  /**
-   * Defined only in the UI layer, so these are the ones that disappear when
-   * source scanning misses `layers/`.
-   */
   test('layer-only colour utilities resolve', async ({ page }) => {
     for (const utility of ['bg-nutri-a', 'bg-nutri-c', 'bg-nutri-e', 'bg-nova-1', 'bg-nova-4']) {
       const value = await computeUtility(page, utility, 'background-color')
@@ -87,21 +68,15 @@ test.describe('design tokens reach the browser', () => {
   })
 
   test('layer-only sizing utilities resolve', async ({ page }) => {
-    // Only tokens something actually uses. Tailwind generates on demand, so
-    // asserting on an unused one tests nothing about source scanning and fails
-    // for the unrelated reason that nobody referenced it. A token with no
-    // consumer should be deleted, not propped up by a test.
+    // Only tokens something uses: Tailwind generates on demand, so an unused
+    // one fails for the unrelated reason that nobody referenced it.
     expect(await computeUtility(page, 'rounded-card', 'border-radius')).not.toBe('0px')
     expect(await computeUtility(page, 'rounded-control', 'border-radius')).not.toBe('0px')
   })
 
   /**
-   * Asserts the rule was generated, not that each step has a unique size.
-   *
-   * Two steps are allowed to share a font size and differ only in weight, which
-   * `text-subheading` and `text-body` do. Comparing computed sizes would call
-   * that a failure. What actually matters is whether the utility exists at all,
-   * so this looks for the rule itself.
+   * The rule existing, not each step having a unique size: `text-subheading`
+   * and `text-body` share a size and differ only in weight.
    */
   test('every named typography step is generated', async ({ page }) => {
     const rules = await selectors(page)
@@ -126,11 +101,6 @@ test.describe('design tokens reach the browser', () => {
     }
   })
 
-  /**
-   * The pairing is the identity: headings are serif, anything a reader scans or
-   * compares is sans. If a step silently lost its family the page would still
-   * render, just uniformly and anonymously.
-   */
   test('headings are serif and figures are sans', async ({ page }) => {
     expect(await computeUtility(page, 'text-title', 'font-family')).toContain('Lora')
     expect(await computeUtility(page, 'text-heading', 'font-family')).toContain('Lora')
@@ -172,14 +142,9 @@ test.describe('design tokens reach the browser', () => {
 })
 
 /**
- * A frame drawn around a control has to curve with it.
- *
- * The outer radius must be the inner radius plus the distance between the two
- * edges, or the curves do not run parallel. Equal radii fail in a specific and
- * recognisable way: the frame reads as a square drawn around a rounded chip.
- *
- * Asserted as the relationship rather than as a number, so changing the padding
- * without changing the radius is what fails, which is how this happened.
+ * Outer radius = inner radius + the gap between the edges, or the curves do not
+ * run parallel and the frame reads as a square around a rounded chip. Asserted
+ * as the relationship, so changing the padding alone is what fails.
  */
 test('the grade filter frame is concentric with the badge inside it', async ({ page }) => {
   await page.goto('/products')
@@ -202,32 +167,23 @@ test('the grade filter frame is concentric with the badge inside it', async ({ p
 
   expect(measured.outerRadius).toBeCloseTo(measured.innerRadius + measured.inset, 1)
 
-  // And the frame is as tall as it is wide. An inline child sits in a line box
-  // taller than itself, which made a square badge wear a rectangle.
+  // An inline child sits in a line box taller than itself, which made a square
+  // badge wear a rectangle.
   expect(measured.square, 'the frame is not square').toBe(true)
 })
 
 /**
- * The ring that marks a chosen grade stays neutral and stays visible.
- *
- * Neutral because the thing it wraps is a colour scale: a Nutri-Score badge is
- * green through red, and an accent-blue ring around it adds a hue that means
- * nothing next to hues that mean everything. Accent is still right for
- * pagination and the card focus ring, where no colour competes, so this is
- * asserted on the grade filter rather than on the token globally.
- *
- * Visible because the ring is the only thing distinguishing on from off: the
- * fill behind it is a one-step lift and carries no contrast of its own. WCAG
- * 1.4.11 puts the floor for a non-text state indicator at 3:1.
+ * Neutral because the ring wraps a colour scale, and an accent hue means
+ * nothing beside hues that mean everything. Visible because the ring is the
+ * only thing separating on from off, and WCAG 1.4.11 puts that floor at 3:1.
+ * Asserted on the filter rather than the token: accent is right for pagination.
  */
 test('the chosen grade is marked in a neutral colour, in both themes', async ({ page }) => {
   await page.goto('/products')
   await page.getByRole('button', { name: /Nutri-Score A,/ }).first().click()
   await expect(page).toHaveURL(/nutriScore=a/)
 
-  // The frame animates its colours, so a read taken right after the theme flips
-  // returns a point partway through the interpolation. What is under test is
-  // where the colour lands, not how it gets there.
+  // The frame animates, so a read right after the flip lands mid-interpolation.
   await page.addStyleTag({ content: '*, *::before, *::after { transition: none !important }' })
 
   const measure = () =>
@@ -277,18 +233,12 @@ test('the chosen grade is marked in a neutral colour, in both themes', async ({ 
 })
 
 /**
- * Every badge the app colours itself has to be readable on its own fill.
+ * The product page once drew its own NOVA chip with `text-white` fixed, which
+ * on the lighter yellow is 1.95:1 against a floor of 4.5, and nothing caught it.
  *
- * The product page used to draw its own copy of the NOVA chip with `text-white`
- * fixed, rather than using the badge that ships an ink per step. On the lighter
- * yellow that measured 1.95:1 against a floor of 4.5, and nothing caught it:
- * the page rendered, the tests passed, and the number was simply not readable.
- *
- * The Nutri-Score scale is excluded on purpose. Its fills and inks are set by
- * the scheme's own guidelines rather than chosen here, and grade E is white on
- * #e63e11, which is 4.15. Darkening it would clear the threshold by
- * misrepresenting a regulated mark, so those colours are pinned to their
- * official values by the test above and the shortfall is in the README instead.
+ * Nutri-Score is excluded on purpose: its colours are prescribed, grade E is
+ * 4.15, and darkening it would pass by misrepresenting a regulated mark. Those
+ * are pinned to their official values above, and the shortfall is in the README.
  */
 test('every badge the app colours itself is readable on its own fill', async ({ page, request }) => {
   const directory = await request.get('/api/products?nova=2')

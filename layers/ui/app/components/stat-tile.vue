@@ -15,7 +15,6 @@ const props = withDefaults(
     label: string
     value: number | null
     unit?: string
-    /** Digits after the decimal point. */
     precision?: number
     /** Extra context under the figure, such as what the total is out of. */
     caption?: string

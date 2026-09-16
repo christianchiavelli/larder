@@ -13,12 +13,9 @@ import {
 } from '#shared/domain/search'
 
 /**
- * This schema parses the URL query string, so its inputs are whatever someone
- * can put in an address bar: repeated keys, missing keys, hand-edited values,
- * and values pasted from a link that a previous version of the app produced.
- *
- * The governing rule is that a malformed filter drops out and the page still
- * renders. Throwing would turn one stale bookmark into a broken page.
+ * The inputs are whatever someone can put in an address bar. The governing rule
+ * is that a malformed filter drops out and the page still renders: throwing
+ * would turn one stale bookmark into a broken page.
  */
 describe('productQuerySchema', () => {
   it('fills in defaults for an empty query string', () => {
@@ -153,11 +150,7 @@ describe('toQueryParams', () => {
     expect(toQueryParams(productQuerySchema.parse({ nova: ['1', '4'] })).nova).toEqual(['1', '4'])
   })
 
-  /**
-   * Round-tripping is the property that makes a URL the single source of
-   * truth: what the app writes into the address bar has to parse back to the
-   * state it came from, or a page reload silently changes the results.
-   */
+  /** What the app writes has to parse back, or a reload changes the results. */
   it('round-trips through the schema unchanged', () => {
     const original = productQuerySchema.parse({
       q: 'dark chocolate',
@@ -175,11 +168,7 @@ describe('toQueryParams', () => {
 })
 
 describe('the brand filter', () => {
-  /**
-   * Normalised on the way in, so every source of a brand id agrees: the
-   * suggestion that produced it, the link someone shared, and the URL a reader
-   * edited by hand.
-   */
+  /** So a suggestion, a shared link and a hand-edited URL all agree. */
   it('accepts a prefixed brand id and stores the bare slug', () => {
     expect(productQuerySchema.parse({ brand: 'en:olivari' }).brand).toEqual(['olivari'])
   })
@@ -196,8 +185,7 @@ describe('the brand filter', () => {
   })
 
   it('collapses the two spellings of one brand into a single filter', () => {
-    // A shared link can easily carry both, and requesting the same brand twice
-    // would double-count it in the upstream query.
+    // A shared link can carry both, and the upstream query would double-count.
     expect(productQuerySchema.parse({ brand: ['en:olivari', 'olivari'] }).brand).toEqual([
       'olivari',
     ])
@@ -206,20 +194,14 @@ describe('the brand filter', () => {
 
 describe('the Nutri-Score filter', () => {
   /**
-   * The ungraded bucket is larger than every grade combined, and the schema
-   * used to drop it as an invalid value. Dropping a filter does not narrow
-   * anything, so the request came back as the entire unfiltered catalogue: the
-   * checkbox read as applied and the results were of everything.
+   * The schema used to drop these as invalid, and a dropped filter narrows
+   * nothing: the control read as applied over the whole unfiltered catalogue.
    */
   it.each(['a', 'b', 'c', 'd', 'e', 'unknown', 'not-applicable'])('accepts %s', (value) => {
     expect(productQuerySchema.parse({ nutriScore: value }).nutriScore).toEqual([value])
   })
 
-  /**
-   * The two absences are asked for separately, which is the point of splitting
-   * them: a reader looking for products that ought to carry a grade wants the
-   * ungraded ones without the beers and vinegars the scheme excludes.
-   */
+  /** Separately, or a search for missing data comes back full of beers. */
   it('takes the two absences independently', () => {
     expect(productQuerySchema.parse({ nutriScore: ['unknown'] }).nutriScore).toEqual(['unknown'])
     expect(productQuerySchema.parse({ nutriScore: ['not-applicable'] }).nutriScore).toEqual([
@@ -236,21 +218,14 @@ describe('the Nutri-Score filter', () => {
 })
 
 /**
- * The filter dimensions, asserted as one list rather than four.
- *
- * Whether any filter is set, how many are set, how they serialise and how they
- * clear were four hand-written enumerations of the same seven names. Each had
- * a test, and every test passed on a spot check, so forgetting a dimension in
- * one of them would have shipped: a count that reads one short, a shared link
- * missing a filter, or a "Clear all" that leaves one applied while the panel
- * says none are.
+ * Four helpers used to enumerate the same seven names by hand, each with its
+ * own passing spot check, so forgetting one would have shipped: a count one
+ * short, a link missing a filter, a "Clear all" that leaves one applied.
  */
 describe('the filter dimensions', () => {
   /**
-   * Typed on `FilterKey`, so a dimension added to the schema stops compiling
-   * here until someone says what a set value looks like for it. The runtime
-   * assertion below catches the other direction, a key left behind after a
-   * dimension is removed.
+   * Typed on `FilterKey`, so a new dimension stops this compiling until someone
+   * says what a set value looks like. The assertion below catches the reverse.
    */
   const EVERY_DIMENSION: Record<FilterKey, unknown> = {
     q: 'granola',
@@ -297,11 +272,8 @@ describe('the filter dimensions', () => {
 })
 
 describe('the NOVA filter', () => {
-  /**
-   * Every group reaches a URL as a numeral and the absence as a word, so the
-   * values cannot be coerced as a batch: `Number('none')` is NaN, the schema
-   * dropped it, and a dropped filter narrows nothing.
-   */
+  /** Groups reach a URL as numerals and the absence as a word, so no batch
+   * coercion: `Number('none')` is NaN and the filter silently disappeared. */
   it.each(['1', '2', '3', '4'])('accepts group %s as the number it is', (group) => {
     expect(productQuerySchema.parse({ nova: group }).nova).toEqual([Number(group)])
   })

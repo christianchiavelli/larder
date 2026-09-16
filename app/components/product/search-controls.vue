@@ -4,22 +4,16 @@ import { SORT_OPTIONS, type ProductQuery, type SortOption } from '#shared/domain
 import type { TaxonomyName } from '#shared/domain/taxonomy'
 
 /**
- * The search term, the taxonomy suggestions behind it, and the sort order.
- *
- * Together because they are the controls that sit above the results, and
- * because the first two are one control: the input is a combobox whose listbox
- * offers filters, not search terms.
+ * The input is a combobox whose listbox offers filters, not search terms, so
+ * the term and its suggestions are one control.
  */
 
 const { query, apply, setSearchTerm, setSort } = useProductQuery()
 
 /**
- * The one control that does not write straight to the URL.
- *
- * Every keystroke would otherwise become a history entry, and the back button
- * would replay the word letter by letter. So it is debounced, and watched in
- * the other direction too, because the URL can change from somewhere this
- * component cannot see: the back button, a pasted link, Clear all.
+ * Debounced, or every keystroke is a history entry and the back button replays
+ * the word letter by letter. Watched both ways, because the URL also changes
+ * from the back button, a pasted link, or Clear all.
  */
 const term = ref(query.value.q)
 
@@ -38,11 +32,7 @@ watchDebounced(
   { debounce: 350 },
 )
 
-/**
- * Writable so the select can bind to it directly. The getter reads the URL and
- * the setter writes back through the router, which keeps the address bar as the
- * only place this value lives.
- */
+/** Getter reads the URL, setter writes through the router. */
 const sortValue = computed<SortOption>({
   get: () => query.value.sort,
   set: (value) => {
@@ -53,11 +43,8 @@ const sortValue = computed<SortOption>({
 /* -- Suggestions ----------------------------------------------------------- */
 
 /**
- * Taxonomies that are also filter dimensions.
- *
- * `additive` is a taxonomy upstream will happily autocomplete and the directory
- * has no filter for, so a suggestion carrying one would be an option that does
- * nothing when chosen.
+ * Only taxonomies that are also filter dimensions. Upstream autocompletes
+ * `additive` too, and choosing one would do nothing.
  */
 const FILTERABLE = ['category', 'brand', 'country', 'label'] as const
 type FilterableTaxonomy = (typeof FILTERABLE)[number]
@@ -69,14 +56,14 @@ function isFilterable(taxonomy: TaxonomyName | string): taxonomy is FilterableTa
 const { state } = useSuggestions(term)
 
 const isOpen = ref(false)
-/** Index into `options`. -1 is "the input itself", which is where it starts. */
+/** -1 is the input itself. */
 const activeIndex = ref(-1)
 const listboxId = useId()
 
 const options = computed(() =>
   (state.value.data ?? [])
     .filter((suggestion) => isFilterable(suggestion.taxonomy))
-    // Already applied. Offering it again would present a no-op as a choice.
+    // Already applied: offering it again presents a no-op as a choice.
     .filter(
       (suggestion) =>
         !query.value[suggestion.taxonomy as FilterableTaxonomy].includes(suggestion.id),
@@ -90,13 +77,9 @@ const activeOptionId = computed(() =>
 )
 
 /**
- * A new list is a new set of positions, so the old highlight means nothing.
- *
- * Watched by contents rather than by reference. `options` is a computed that
- * builds a fresh array every time it evaluates, and it evaluates whenever the
- * query settles or the URL changes, so watching the array itself cleared the
- * highlight between a keypress and the Enter that followed it. The listbox
- * looked correct and the keyboard simply did nothing.
+ * Watched by contents, not by reference: `options` rebuilds on every evaluation,
+ * so watching the array cleared the highlight between a keypress and the Enter
+ * after it. The listbox looked correct and the keyboard did nothing.
  */
 watch(
   () => options.value.map((option) => option.id).join(','),
@@ -106,12 +89,9 @@ watch(
 )
 
 /**
- * Applies a suggestion as a filter.
- *
- * One navigation, not two. The term is cleared in the same patch as the filter,
- * because the two would otherwise both narrow the results and the reader gets
- * the intersection of a filter they chose and a word they were only typing in
- * order to find it.
+ * The term is cleared in the same patch as the filter, or both narrow and the
+ * reader gets the intersection of a filter they chose and a word they were
+ * only typing to find it.
  */
 function select(index: number) {
   const suggestion = options.value[index]
@@ -134,8 +114,7 @@ function move(delta: number) {
   }
 
   const count = options.value.length
-  // Wraps through -1, so pressing up from the first option returns to the
-  // input and the typed term rather than jumping to the bottom of the list.
+  // Wraps through -1, so up from the first option returns to the input.
   activeIndex.value = ((activeIndex.value + 1 + delta + count + 1) % (count + 1)) - 1
 }
 
@@ -150,8 +129,7 @@ function onKeydown(event: KeyboardEvent) {
       move(-1)
       break
     case 'Enter':
-      // Only when an option is highlighted. Otherwise Enter belongs to the
-      // form: the term is already applied by the debounce.
+      // Otherwise Enter belongs to the form; the debounce already applied it.
       if (isExpanded.value && activeIndex.value >= 0) {
         event.preventDefault()
         select(activeIndex.value)

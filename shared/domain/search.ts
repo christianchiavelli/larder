@@ -9,19 +9,15 @@ import { productSummarySchema } from './product'
 import { toFilterValue } from './taxonomy'
 
 /**
- * Search contract.
- *
- * This schema is the single definition of what a directory view can ask for. It
- * parses three different callers without forking: the URL query string, the
- * client-side API function, and the server route handler. Keeping one schema is
- * what makes a shareable URL and a valid API call the same thing by
- * construction, instead of two encodings someone has to keep in step by hand.
+ * One schema parses all three callers: the URL query string, the client API
+ * function and the server route. That is what makes a shareable URL and a valid
+ * API call the same thing by construction.
  */
 
 /**
- * Elasticsearch stops counting past this many matches and pins `count` there,
- * which also makes upstream's own `page_count` a lie beyond it. Paging past the
- * ceiling returns empty pages, so the schema refuses to ask.
+ * Elasticsearch stops counting past this and pins `count` there, which also
+ * makes upstream's `page_count` wrong beyond it. Paging past it returns empty
+ * pages, so the schema refuses to ask.
  */
 export const MAX_TRACKED_HITS = 10_000
 
@@ -29,14 +25,9 @@ export const PAGE_SIZES = [24, 48, 96] as const
 export const DEFAULT_PAGE_SIZE = 24
 
 /**
- * Sorts the whole result set, which limits us to fields upstream declares
- * sortable in its index mapping.
- *
- * Nutrient sorts are deliberately absent. `sort_by=nutriments.sugars_100g` is
- * rejected by upstream, and the tempting workaround, sorting the 24 rows we
- * already hold, would label a page-local reordering as if it ranked all 10,000
- * matches. The directory table offers column sorting instead, scoped and
- * labelled as the current page.
+ * Limited to fields upstream declares sortable. Nutrient sorts are absent on
+ * purpose: upstream rejects them, and sorting the 24 rows we hold would label a
+ * page-local reordering as if it ranked all 10,000 matches.
  */
 export const SORT_OPTIONS = [
   { value: 'relevance', label: 'Relevance' },
@@ -46,7 +37,6 @@ export const SORT_OPTIONS = [
 
 export type SortOption = (typeof SORT_OPTIONS)[number]['value']
 
-/** Maps our sort vocabulary to upstream's `sort_by`. Relevance sends nothing. */
 export const UPSTREAM_SORT_FIELDS: Record<SortOption, string | null> = {
   // nutriscore_score is a penalty score: lower is a better grade, so ascending.
   nutriscore: 'nutriscore_score',
@@ -144,62 +134,46 @@ export type ProductQuery = z.infer<typeof productQuerySchema>
 
 export const EMPTY_PRODUCT_QUERY: ProductQuery = productQuerySchema.parse({})
 
-/** Highest page that can return results for a given page size. */
 export function maxPageFor(pageSize: number): number {
   return Math.max(1, Math.floor(MAX_TRACKED_HITS / pageSize))
 }
 
-/**
- * How the reader chose to read the list, as opposed to what they chose to look
- * at. Everything else in the query is a filter.
- */
+/** How the list is read rather than what is in it. The rest are filters. */
 const READING_KEYS = ['sort', 'page', 'pageSize'] as const
 
 export type FilterKey = Exclude<keyof ProductQuery, (typeof READING_KEYS)[number]>
 
 /**
- * The filter dimensions, read off the schema rather than written out.
- *
- * Four separate places used to name them: whether any is set, how many are set,
- * how they serialise, and how they clear. Adding a dimension meant remembering
- * all four, and forgetting one failed silently in a different way each time,
- * the worst being a "Clear all" that leaves a filter applied while the panel
- * reports none. Derived here, the schema is the only list, and a dimension
- * cannot exist without the helpers knowing about it.
+ * Derived, so the schema is the only list. Written out, the four helpers below
+ * each held their own copy and forgetting one failed silently: a "Clear all"
+ * that leaves a filter applied while the panel reports none.
  */
 export const FILTER_KEYS = Object.keys(productQuerySchema.shape).filter(
   (key): key is FilterKey => !(READING_KEYS as readonly string[]).includes(key),
 )
 
-/** How many values a dimension is currently carrying. Free text counts as one. */
+/** Free text counts as one. */
 function appliedCount(query: ProductQuery, key: FilterKey): number {
   const value = query[key]
   if (Array.isArray(value)) return value.length
   return value.length > 0 ? 1 : 0
 }
 
-/** True when any filter is applied, ignoring pagination and sort. */
 export function hasActiveFilters(query: ProductQuery): boolean {
   return FILTER_KEYS.some((key) => appliedCount(query, key) > 0)
 }
 
-/** Number of filters applied, for the "N filters" affordance on narrow screens. */
 export function activeFilterCount(query: ProductQuery): number {
   return FILTER_KEYS.reduce((total, key) => total + appliedCount(query, key), 0)
 }
 
-/** A patch that switches every filter off, leaving sort and page size alone. */
 export function clearedFilters(): Pick<ProductQuery, FilterKey> {
   return Object.fromEntries(
     FILTER_KEYS.map((key) => [key, EMPTY_PRODUCT_QUERY[key]]),
   ) as Pick<ProductQuery, FilterKey>
 }
 
-/**
- * Serialises a query back to a URL-ready object, omitting anything at its
- * default. Without the omission every link would carry `?page=1&sort=relevance`
- * and a shared URL would be noise.
- */
+/** Omits anything at its default, or every link carries `?page=1&sort=relevance`. */
 export function toQueryParams(query: ProductQuery): Record<string, string | string[]> {
   const params: Record<string, string | string[]> = {}
 
@@ -217,7 +191,7 @@ export function toQueryParams(query: ProductQuery): Record<string, string | stri
   return params
 }
 
-/** Facet dimensions the directory can filter on, and the order they render in. */
+/** In render order. */
 export const FACET_FIELDS = [
   'categories_tags',
   'brands_tags',
@@ -227,7 +201,6 @@ export const FACET_FIELDS = [
 export type FacetField = (typeof FACET_FIELDS)[number]
 
 export const facetItemSchema = z.object({
-  /** Filter value, a taxonomy id for tag facets. */
   key: z.string(),
   label: z.string(),
   count: z.number().int().nonnegative(),
@@ -239,10 +212,7 @@ export const productSearchResultSchema = z.object({
   items: z.array(productSummarySchema),
   page: z.number().int().min(1),
   pageSize: z.number().int().min(1),
-  /**
-   * Matches found. Capped at MAX_TRACKED_HITS, which is what `isTotalExact`
-   * exists to tell the UI: render "10,000+" rather than claiming a real figure.
-   */
+  /** Capped at MAX_TRACKED_HITS, which is what `isTotalExact` is for. */
   totalCount: z.number().int().nonnegative(),
   isTotalExact: z.boolean(),
   pageCount: z.number().int().nonnegative(),
@@ -251,12 +221,8 @@ export const productSearchResultSchema = z.object({
   nutriScoreDistribution: z.record(nutriScoreSchema, z.number().int().nonnegative()),
 
   /**
-   * How many products carry any NOVA group at all.
-   *
-   * A count rather than a distribution, because the interesting figure is
-   * coverage: the facet has no bucket for a product without the field, so the
-   * only way to know how much of the catalogue is classified is to add up the
-   * four that exist and compare. Three quarters of it is not.
+   * A count rather than a distribution: the facet has no bucket for a product
+   * without the field, so coverage is only the sum of the four that exist.
    */
   novaClassifiedCount: z.number().int().nonnegative(),
 })

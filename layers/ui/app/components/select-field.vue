@@ -1,29 +1,17 @@
 <script setup lang="ts" generic="T extends string | number">
 /**
- * A styled select.
+ * A real `<select>`, not a listbox rebuilt out of divs, so keyboard navigation,
+ * type-ahead, screen reader semantics, form association and the native picker
+ * on touch all keep working.
  *
- * This is a real `<select>`, not a listbox rebuilt out of divs. The customizable
- * select API (`appearance: base-select`) lets the button *and* the open picker
- * be styled while the element stays a select, so keyboard navigation, type-ahead,
- * screen reader semantics, form association and the native picker on touch
- * devices all keep working, because none of them were reimplemented.
- *
- * Support in September 2026: stable in Chrome and Edge, behind a flag in Firefox
- * Nightly, in Safari Technology Preview. Not baseline, which is fine, because
- * the feature is additive by design. A browser without it renders the fallback:
- * the closed control is fully styled either way (`appearance: none` has worked
- * everywhere for years) and only the open list falls back to the platform's own.
- * A plainer dropdown in one browser is a better trade than a JS widget whose
- * accessibility has to be hand-maintained.
- *
- * The alternative considered was a headless library. For a control with three
- * options that means a dependency, a popover layer and a keyboard
- * implementation, to arrive at less than the platform already gives.
+ * `appearance: base-select` styles the open picker too. Not baseline in
+ * September 2026, which is fine: it is additive, the closed control is styled
+ * either way, and only the open list falls back to the platform's own.
  */
 const props = withDefaults(
   defineProps<{
     options: ReadonlyArray<{ value: T; label: string }>
-    /** Visible label. Omit only when `ariaLabel` names the control instead. */
+    /** Omit only when `ariaLabel` names the control instead. */
     label?: string
     ariaLabel?: string
     disabled?: boolean
@@ -36,12 +24,9 @@ const model = defineModel<T>({ required: true })
 const fieldId = useId()
 
 /**
- * Maps the DOM's string back to the option it came from.
- *
- * A `<select>` only ever reports a string, so casting that string to `T` would
- * be a lie for any non-string option: the model would hold `"48"` where the
- * rest of the app expects `48`, and every comparison against it would quietly
- * fail. Looking the value up in the options keeps the caller's own type.
+ * A `<select>` only reports strings, so casting to `T` would put `"48"` where
+ * the app expects `48` and every comparison would quietly fail. Looking the
+ * value up in the options keeps the caller's type.
  */
 function onChange(event: Event) {
   const raw = (event.target as HTMLSelectElement).value

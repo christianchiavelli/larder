@@ -1,46 +1,31 @@
 import { z } from 'zod'
 
 /**
- * Nutrition vocabulary.
- *
- * These are domain facts, not API shapes. Open Food Facts happens to be where
- * we read them from today, but Nutri-Score and NOVA are defined by public
- * health bodies and would mean the same thing sourced from anywhere else.
+ * Domain facts, not API shapes: Nutri-Score and NOVA are defined by public
+ * health bodies and mean the same thing sourced from anywhere else.
  */
 
-/** Nutri-Score front-of-pack grade, A (best) through E. */
+/** Front-of-pack grade, A (best) through E. */
 export const NUTRI_SCORE_GRADES = ['a', 'b', 'c', 'd', 'e'] as const
 export type NutriScoreGrade = (typeof NUTRI_SCORE_GRADES)[number]
 
 /**
- * Why a product carries no grade.
- *
- * Two facts, not one absence. `unknown` is a product nobody has graded yet, and
- * it may well carry a letter tomorrow: what is missing is the data.
- * `not-applicable` is a product the scheme excludes by design, such as a beer,
- * a wine or a vinegar, and no amount of community editing will ever give it
- * one.
- *
- * Together they are two thirds of the catalogue, and upstream reports them as
- * separate buckets. Folding them into a single absence throws away the only
- * thing that tells a gap in the data apart from a deliberate exclusion, which
- * is also the difference between "nobody has looked at this yet" and "there is
- * nothing to look at".
+ * Two facts, not one absence: `unknown` is a product nobody has graded yet,
+ * `not-applicable` one the scheme excludes by design, such as a beer or a
+ * vinegar. Upstream reports them separately and together they are two thirds of
+ * the catalogue, so folding them loses a data gap against a deliberate
+ * exclusion.
  */
 export const UNGRADED_REASONS = ['unknown', 'not-applicable'] as const
 export type UngradedReason = (typeof UNGRADED_REASONS)[number]
 
-/**
- * Every value a Nutri-Score takes, which is also everything the directory can
- * filter by. One vocabulary, so a filter cannot ask for something a product
- * cannot be.
- */
+/** One vocabulary, so a filter cannot ask for something a product cannot be. */
 export const NUTRI_SCORE_VALUES = [...NUTRI_SCORE_GRADES, ...UNGRADED_REASONS] as const
 
 export const nutriScoreSchema = z.enum(NUTRI_SCORE_VALUES)
 export type NutriScore = z.infer<typeof nutriScoreSchema>
 
-/** What fits in a badge or on a chart axis, where there is room for a glyph. */
+/** For a badge or a chart axis, where there is room for a glyph. */
 export const NUTRI_SCORE_SHORT_LABELS: Record<NutriScore, string> = {
   a: 'A',
   b: 'B',
@@ -51,7 +36,6 @@ export const NUTRI_SCORE_SHORT_LABELS: Record<NutriScore, string> = {
   'not-applicable': 'N/A',
 }
 
-/** What goes in a tooltip, a data table or an accessible name. */
 export const NUTRI_SCORE_LABELS: Record<NutriScore, string> = {
   a: 'Grade A',
   b: 'Grade B',
@@ -62,39 +46,29 @@ export const NUTRI_SCORE_LABELS: Record<NutriScore, string> = {
   'not-applicable': 'Not applicable',
 }
 
-/** True for a value that is an absence rather than a grade. */
 export function isUngraded(value: NutriScore): value is UngradedReason {
   return (UNGRADED_REASONS as readonly string[]).includes(value)
 }
 
-/** NOVA food processing classification, 1 (unprocessed) through 4 (ultra-processed). */
+/** Food processing classification, 1 (unprocessed) to 4 (ultra-processed). */
 export const NOVA_GROUPS = [1, 2, 3, 4] as const
 export type NovaGroup = (typeof NOVA_GROUPS)[number]
 
 export const novaGroupSchema = z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)])
 
 /**
- * How the directory asks for a product with no NOVA group.
- *
- * Three quarters of the catalogue has none, and unlike a missing Nutri-Score
- * the index does not spell it: the field is simply absent, so there is no
- * bucket in the facet and nothing to select by value. This token stands for
- * that absence in a URL, and the query builder turns it into the only thing
- * that can express it, a negation.
- *
- * Deliberately not a NOVA group. A product without one is not in a fifth
- * category of processing, it is unclassified, and the two must not read as the
- * same kind of answer.
+ * Three quarters of the catalogue has no group, and unlike a missing
+ * Nutri-Score the index does not spell it: the field is absent, so there is no
+ * bucket to select and the query builder has to negate instead. Not a fifth
+ * group, since an unclassified product is not a kind of processing.
  */
 export const NOVA_UNGROUPED = 'none'
 export type NovaUngrouped = typeof NOVA_UNGROUPED
 
-/** Everything the processing filter offers: the four groups, plus their absence. */
 export const NOVA_FILTER_VALUES = [...NOVA_GROUPS, NOVA_UNGROUPED] as const
 export type NovaFilterValue = (typeof NOVA_FILTER_VALUES)[number]
 
 export const novaFilterValueSchema = z.union([novaGroupSchema, z.literal(NOVA_UNGROUPED)])
-
 
 export const NOVA_LABELS: Record<NovaGroup, string> = {
   1: 'Unprocessed or minimally processed',
@@ -111,12 +85,9 @@ export const NOVA_SHORT_LABELS: Record<NovaGroup, string> = {
 }
 
 /**
- * What the processing filter shows beside each control.
- *
- * "Not classified" rather than "Unknown", which is what the badge says for a
- * product. The badge is reporting what is on record for one item; the filter is
- * naming a population, and three quarters of the catalogue being "unknown"
- * reads as a fault in the page rather than a fact about the data.
+ * "Not classified" rather than the badge's "Unknown": the badge reports one
+ * item, the filter names a population, and three quarters of a catalogue being
+ * unknown reads as a fault in the page.
  */
 export const NOVA_FILTER_LABELS: Record<NovaFilterValue, string> = {
   ...NOVA_SHORT_LABELS,
@@ -124,13 +95,9 @@ export const NOVA_FILTER_LABELS: Record<NovaFilterValue, string> = {
 }
 
 /**
- * The nutrients we model, keyed the way the domain names them rather than the
- * way upstream serialises them.
- *
- * Every value is per 100g or 100ml. Upstream also exposes per-serving figures,
- * but serving sizes are free text and frequently missing, so per-100 is the
- * only basis on which two products can honestly be compared. That constraint is
- * why the unit lives in the descriptor below and not on each reading.
+ * Per 100g or 100ml throughout. Upstream also exposes per-serving figures, but
+ * serving sizes are free text and often missing, so per-100 is the only basis
+ * on which two products compare honestly.
  */
 export const NUTRIENT_KEYS = [
   'energyKcal',
@@ -149,20 +116,12 @@ export type NutrientKey = (typeof NUTRIENT_KEYS)[number]
 export interface NutrientDescriptor {
   key: NutrientKey
   label: string
-  /** Unit of the per-100 value. */
   unit: 'kcal' | 'g'
-  /** Decimal places to render. Salt is dosed far below one gram, so it needs two. */
+  /** Salt is dosed far below a gram, so it needs two places. */
   precision: number
-  /**
-   * Reference intake per EU Regulation 1169/2011 Annex XIII, for an average
-   * adult on 8400 kJ / 2000 kcal. Absent where the regulation sets none.
-   */
+  /** EU Regulation 1169/2011 Annex XIII, adult on 2000 kcal. Absent where unset. */
   referenceIntake?: number
-  /**
-   * Whether more of this nutrient reads as better. Drives which end of a
-   * comparison chart is coloured as favourable, and nothing else: the app does
-   * not tell anyone what to eat.
-   */
+  /** Drives which end of a comparison chart reads as favourable, nothing more. */
   direction: 'higher-is-better' | 'lower-is-better' | 'neutral'
 }
 
@@ -240,9 +199,9 @@ export const NUTRIENTS: Record<NutrientKey, NutrientDescriptor> = {
 }
 
 /**
- * A nutrient reading is nullable per nutrient, not per product: a product can
- * declare sugars and omit fibre. Collapsing that into a single "has nutrition"
- * flag would force the UI to render zeroes it cannot vouch for.
+ * Nullable per nutrient, not per product: a product can declare sugars and omit
+ * fibre, and one "has nutrition" flag would mean rendering zeroes we cannot
+ * vouch for.
  */
 export const nutrientProfileSchema = z.object({
   energyKcal: z.number().nullable(),
@@ -270,7 +229,6 @@ export const EMPTY_NUTRIENT_PROFILE: NutrientProfile = {
   sodium: null,
 }
 
-/** How many of the modelled nutrients this product actually declares. */
 export function declaredNutrientCount(profile: NutrientProfile): number {
   return NUTRIENT_KEYS.reduce((total, key) => (profile[key] === null ? total : total + 1), 0)
 }

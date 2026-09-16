@@ -3,26 +3,15 @@ import { novaGroupSchema, nutriScoreSchema, nutrientProfileSchema } from './nutr
 import { taxonomyTagSchema } from './taxonomy'
 
 /**
- * The product contract our own API serves.
- *
- * Split in two on purpose. A directory page renders 24 rows at a time and needs
- * roughly a dozen fields; the deep dive needs everything. Serving one fat shape
- * to both would put ~250 upstream keys per row on the wire to render a table.
- * The summary is what a list costs; the detail is what a page costs.
+ * Summary and detail are split because a directory row needs a dozen fields and
+ * the deep dive needs everything; one shape would put ~250 upstream keys per
+ * row on the wire to render a table.
  */
 
 /**
- * The front-of-pack photograph, at the widths upstream publishes.
- *
- * Three URLs rather than one, because upstream already renders each product at
- * 100, 200 and 400 pixels and serves them from its own CDN. A single URL would
- * mean every consumer picks one size for every context: the directory draws
- * these at 48 pixels and the deep dive at 112, and the difference between
- * sending the 400 to both and sending the right one is most of the weight of a
- * directory page.
- *
- * Deriving the other two by rewriting the number in the path would also work,
- * and would break silently the first time upstream changes its filenames.
+ * Upstream publishes each product at three widths from its own CDN. Carrying
+ * all three lets the directory draw at 48px and the deep dive at 112px;
+ * rewriting the number in the path would break the day filenames change.
  */
 export const productImageSchema = z
   .object({
@@ -30,7 +19,7 @@ export const productImageSchema = z
     thumb: z.url().nullable(),
     /** 200px. */
     small: z.url().nullable(),
-    /** 400px. The largest upstream offers outside the original upload. */
+    /** 400px, the largest outside the original upload. */
     large: z.url().nullable(),
   })
   .nullable()
@@ -38,7 +27,7 @@ export const productImageSchema = z
 export type ProductImage = z.infer<typeof productImageSchema>
 
 export const productSummarySchema = z.object({
-  /** Barcode. The primary key everywhere, kept as a string: leading zeros matter. */
+  /** Barcode, kept as a string: leading zeros matter. */
   code: z.string().min(1),
   name: z.string(),
   brands: z.array(z.string()),
@@ -47,7 +36,7 @@ export const productSummarySchema = z.object({
   nutriScore: nutriScoreSchema,
   novaGroup: novaGroupSchema.nullable(),
   image: productImageSchema,
-  /** Per 100g or 100ml. Individually nullable, see NutrientProfile. */
+  /** Per 100g or 100ml, each nullable on its own. */
   nutrients: nutrientProfileSchema,
 })
 
@@ -57,30 +46,26 @@ export const productDetailSchema = productSummarySchema.extend({
   countries: z.array(taxonomyTagSchema),
   labels: z.array(taxonomyTagSchema),
   additives: z.array(taxonomyTagSchema),
-  /** Free text as printed on the pack, for example "400.0 g". Not parseable. */
+  /** Free text as printed on the pack ("400.0 g"). Not parseable. */
   quantity: z.string().nullable(),
   servingSize: z.string().nullable(),
   ingredientsText: z.string().nullable(),
   ingredientCount: z.number().int().nonnegative().nullable(),
-  /** Green Score, upstream's environmental grade. Same letter scale, different meaning. */
-  /** Canonical page upstream, shown as the provenance link. */
   sourceUrl: z.url(),
-  /** When upstream last changed the record. Drives the freshness note on the page. */
   lastModified: z.iso.datetime().nullable(),
 })
 
 export type ProductDetail = z.infer<typeof productDetailSchema>
 
-/** Products carry a display name only sometimes. Never render an empty heading. */
+/** A product does not always carry a name, and a heading cannot be empty. */
 export function productDisplayName(product: Pick<ProductSummary, 'code' | 'name'>): string {
   const trimmed = product.name.trim()
   return trimmed.length > 0 ? trimmed : `Unnamed product ${product.code}`
 }
 
 /**
- * Upstream concatenates brands into one comma-separated string, and the string
- * is user-entered, so it arrives with duplicate casings ("Nutella, NUTELLA"),
- * stray whitespace, and empty segments.
+ * Upstream concatenates brands into one user-entered string, so it arrives with
+ * duplicate casings ("Nutella, NUTELLA"), stray whitespace and empty segments.
  */
 export function normaliseBrands(raw: string | readonly string[] | null | undefined): string[] {
   const parts = typeof raw === 'string' ? raw.split(',') : (raw ?? [])
@@ -89,7 +74,7 @@ export function normaliseBrands(raw: string | readonly string[] | null | undefin
   for (const part of parts) {
     const brand = part.trim()
     if (brand.length === 0) continue
-    // First spelling wins; later casings of the same brand collapse into it.
+    // First spelling wins.
     const key = brand.toLowerCase()
     if (!seen.has(key)) seen.set(key, brand)
   }
