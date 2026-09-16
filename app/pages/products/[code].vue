@@ -36,7 +36,13 @@ const isNotFound = computed(
 <template>
   <div class="flex flex-col gap-6">
     <nav aria-label="Breadcrumb" class="text-label">
-      <NuxtLink to="/products" class="text-ink-muted hover:text-ink">&larr; All products</NuxtLink>
+      <NuxtLink
+        to="/products"
+        class="inline-flex items-center gap-1.5 text-ink-muted hover:text-ink"
+      >
+        <UiIcon name="chevron-left" class="size-2.5" />
+        All products
+      </NuxtLink>
     </nav>
 
     <UiEmptyState

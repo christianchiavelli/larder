@@ -3,6 +3,7 @@ import {
   faBox,
   faChartSimple,
   faChevronDown,
+  faChevronLeft,
   faChevronRight,
   faImage,
   faMoon,
@@ -22,6 +23,7 @@ export const ICONS = {
   moon: faMoon,
   sun: faSun,
   'chevron-down': faChevronDown,
+  'chevron-left': faChevronLeft,
   'chevron-right': faChevronRight,
   image: faImage,
 } as const satisfies Record<string, IconDefinition>
