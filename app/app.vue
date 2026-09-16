@@ -5,7 +5,7 @@ const { siteName } = useRuntimeConfig().public
 
 useHead({
   titleTemplate: (title) =>
-    title ? `${title} — ${siteName}` : `${siteName} — food product analytics`,
+    title ? `${title} | ${siteName}` : `${siteName} | food product analytics`,
   htmlAttrs: { lang: 'en' },
   script: [
     // Blocking, in head, before any paint. See use-theme.ts for why.
