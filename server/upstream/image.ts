@@ -42,6 +42,15 @@ function asUrl(candidate: string | null | undefined): string | null {
  *
  * Null when no width resolves at all, so a caller renders its placeholder
  * instead of an image element pointing at nothing.
+ *
+ * The two services do not agree on who has a photograph. Barcode
+ * 9100000906683 carries a front image on the v2 API and no image field at all
+ * on the search index, so a directory row falls back while the page it opens
+ * shows a picture. Roughly one row in twenty comes back without an image and
+ * most of those genuinely have none anywhere; this is the remainder. There is
+ * no cheap fix: the URLs carry a revision number and a language suffix, so
+ * they cannot be derived from a barcode, and asking the v2 API per row would
+ * be two dozen requests to fill in one thumbnail.
  */
 export function mapProductImage(raw: UpstreamImageFields): ProductImage {
   const image = {

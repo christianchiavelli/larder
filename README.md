@@ -68,10 +68,9 @@ The suites divide by what they can see. Vitest covers the domain, services, mapp
 
 ## Reading further
 
-- [docs/architecture.md](docs/architecture.md) — the BFF, the domain boundary, the design system, the layout, accessibility and how the suites divide.
-- [docs/findings.md](docs/findings.md) — bugs that raised nothing and looked right, most of them upstream disagreeing with itself.
-- [docs/decisions.md](docs/decisions.md) — what was chosen over what, and what it costs. Includes the limitations.
-- [docs/upstream-api.md](docs/upstream-api.md) — the two upstream contracts, gathered by probing the live services.
+[docs/upstream-api.md](docs/upstream-api.md) compares the two upstream contracts, gathered by probing the live services, because the published documentation lags behind them and they disagree with each other.
+
+Everything else is documented where it applies: a trap is a comment on the line that works around it, and the reasoning behind a change is in the commit that made it.
 
 ---
 

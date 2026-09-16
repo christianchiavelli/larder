@@ -243,9 +243,12 @@ test('the chosen grade is marked in a neutral colour, in both themes', async ({ 
  * The product page once drew its own NOVA chip with `text-white` fixed, which
  * on the lighter yellow is 1.95:1 against a floor of 4.5, and nothing caught it.
  *
- * Nutri-Score is excluded on purpose: its colours are prescribed, grade E is
- * 4.15, and darkening it would pass by misrepresenting a regulated mark. Those
- * are pinned to their official values above, and the shortfall is in the README.
+ * Nutri-Score is excluded on purpose. Its fill and ink are prescribed by the
+ * scheme, and grade E is white on #e63e11, which is 4.15:1 against the 4.5 AA
+ * asks of body text. Darkening the letter would pass this check by
+ * misrepresenting a regulated mark, so the colours stay and are pinned to their
+ * official values by the test above. The letter is never the only cue: the
+ * grade is in the accessible name and is a labelled row in every data table.
  */
 test('every badge the app colours itself is readable on its own fill', async ({
   page,
