@@ -1,24 +1,9 @@
-/* Design tokens.
+/* Primitives, semantics, domain. Components reference the last two, never the
+ * first, and only the semantic tier is redefined for dark mode.
  *
- * Three layers, in order:
- *   1. Primitives  raw scales, no meaning attached
- *   2. Semantics   roles the product speaks in (surface, border, content)
- *   3. Domain      values the food domain defines for us (Nutri-Score, NOVA)
- *
- * Only layer 2 is redefined for dark mode. Components reference layers 2 and 3,
- * never layer 1, so a palette change never turns into a find-and-replace.
- *
- * The palette is a deep navy over cool, blue-cast greys: near-black chrome
- * framing a page that is almost, but not quite, white.
- *
- * Hex rather than OKLCH, deliberately. Every primitive below is a literal that
- * has to stay verifiably equal to its source, and a converted value is only
- * ever approximately equal. Two hex columns can be diffed by eye in a second.
- *
- * The ramps carry only the steps layer 2 reaches for, so the gaps in them are
- * real: a value nothing references is one no contrast check covers and no
- * screen shows, and keeping it implies a decision that was never made.
- */
+ * Hex rather than OKLCH so each value can be diffed against its source. Gaps in
+ * the ramps are real: a step nothing references is one no contrast check
+ * covers. */
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -27,7 +12,6 @@
 
   --primitive-white: #ffffff;
 
-  /* Blue. The brand hue, and the only saturated colour in the chrome. */
   --primitive-blue-50: #e3f4ff;
   --primitive-blue-100: #28b4ff;
   --primitive-blue-200: #0a64c8;
@@ -35,8 +19,8 @@
   --primitive-blue-400: #002296;
   --primitive-blue-500: #002244;
 
-  /* Cool grey. Greys with a blue cast, carrying surfaces and the chrome, so a
-   * neutral can sit beside the brand blue without reading as dirty. */
+  /* Cool grey carries surfaces and chrome, flat grey carries text and borders:
+   * a blue cast competes with the links in the same paragraph. */
   --primitive-cool-25: #f7f9fc;
   --primitive-cool-50: #ebeff6;
   --primitive-cool-100: #d5dcea;
@@ -44,8 +28,6 @@
   --primitive-cool-400: #283656;
   --primitive-cool-500: #11192d;
 
-  /* Grey. Flatter than the cool ramp; carries text and borders, where a blue
-   * cast would compete with the links sitting in the same paragraph. */
   --primitive-grey-100: #cfd3db;
   --primitive-grey-150: #b2b9ca;
   --primitive-grey-200: #6e768a;
@@ -59,21 +41,9 @@
   --primitive-yellow-200: #eeaf00;
   --primitive-yellow-300: #d48013;
 
-  /* Dark-mode surfaces.
-   *
-   * The dark theme is not a second palette. It is the cool ramp read from the
-   * other end, and these are the steps that ramp does not ship: it jumps
-   * straight from #11192d to #283656, which is one move where a dark interface
-   * needs base, raised, overlay and hover to be separable from each other.
-   *
-   * Each is an OKLab interpolation between two shipped neighbours, so they land
-   * on the existing ramp rather than beside it. The fraction is recorded next
-   * to the value so it can be recomputed rather than trusted.
-   */
-  /* One neutral step the grey ramp does not ship either. Dark-mode tertiary
-   * text has to clear AA on both the page and the card, and everything in the
-   * cool ramp at that lightness is saturated enough to be mistaken for a link,
-   * which a facet count beside a checkbox absolutely will be. */
+  /* Steps the shipped ramps skip, needed by dark mode. Each is an OKLab
+   * interpolation between two shipped neighbours; the fraction is recorded so
+   * the value can be recomputed rather than trusted. */
   --primitive-grey-175: #8890a3; /* grey-200 -> grey-150, 40% */
 
   --primitive-cool-450: #1f2b46; /* cool-500 -> cool-400, 62% */
@@ -82,43 +52,25 @@
   --primitive-cool-550: #0e1526; /* cool-500 -> black,     9% */
   --primitive-cool-600: #0a1020; /* cool-500 -> black,    18% */
 
-  /* Blue tints for dark mode, where blue-50 would be a floodlight. */
+  /* Dark mode, where blue-50 would be a floodlight. */
   --primitive-blue-tint: #102552; /* cool-500 -> blue-300, 30% */
   --primitive-blue-tint-strong: #0f2a65; /* cool-500 -> blue-300, 45% */
-
-  /* What sits behind a photograph.
-   *
-   * White in both themes, and the one surface that does not follow the theme.
-   * Packaging shots are taken on a white sweep and carry it in the file, so a
-   * portrait bottle in a square tile puts two white bars against whatever is
-   * behind it. There is no cropping fix: cropping a pack loses the label, which
-   * is the part a reader came to look at. Matching the tile to the photograph
-   * is what the picture already decided. */
-
-  /* The selected state for a control that already carries its own colour.
-   *
-   * Neutral on purpose. A Nutri-Score badge runs green through red, and ringing
-   * it in accent blue puts a second hue beside a scale whose whole job is to be
-   * read by hue. Grey says "this one is on" without joining the argument.
-   * Accent stays correct where nothing competes, which is why pagination and
-   * the card focus ring keep it. */
 
   /* 2. Semantics: light ------------------------------------------------- */
 
   --surface-base: var(--primitive-cool-25);
   --surface-raised: var(--primitive-white);
   --surface-sunken: var(--primitive-cool-50);
-  --surface-media: var(--primitive-white);
+  --surface-media: var(--primitive-white); /* white in both themes, see .dark */
   --surface-overlay: var(--primitive-white);
   --surface-accent: var(--primitive-blue-50);
   --surface-hover: var(--primitive-blue-50);
+  /* Selected, for a control that already carries its own colour. Neutral so it
+   * does not add a second hue beside a scale read by hue. */
   --surface-selected: var(--primitive-cool-100);
 
-  /* The application chrome: the navigation rail.
-   *
-   * Its own pair rather than a reuse of the inverse surface, because it stays
-   * dark in both themes. Its job is to frame the page and give it an edge, and
-   * a light-on-light frame is a divider, not a frame. */
+  /* The navigation rail. Its own pair because it stays dark in both themes: a
+   * light-on-light frame is a divider, not a frame. */
   --chrome-base: var(--primitive-cool-500);
   --chrome-raised: var(--primitive-cool-400);
   --chrome-content: var(--primitive-grey-100);
@@ -140,8 +92,7 @@
   --accent-solid-hover: var(--primitive-blue-400);
   --accent-muted: var(--primitive-blue-50);
 
-  /* Each pair clears AA at body size. Error text is the darker red rather than
-   * the brand red, which only reaches 3.4 on its own tint. */
+  /* The darker red, not the brand red, which reaches only 3.4 on its own tint. */
   --status-danger-surface: var(--primitive-red-50);
   --status-danger-content: var(--primitive-red-300);
 
@@ -149,9 +100,8 @@
 
   /* 3. Domain ----------------------------------------------------------- */
 
-  /* Nutri-Score colours are set by the scheme's own guidelines, not by us.
-   * They stay fixed across themes: recolouring a regulated label would make
-   * the chart lie. Each grade ships the text colour that clears WCAG AA on it. */
+  /* Prescribed by the scheme, so fixed across themes: recolouring a regulated
+   * label would make the chart lie. Each grade ships its own AA ink. */
   --nutriscore-a: #038141;
   --nutriscore-a-content: #ffffff;
   --nutriscore-b: #85bb2f;
@@ -165,13 +115,9 @@
   --nutriscore-ungraded: var(--primitive-grey-100);
   --nutriscore-ungraded-content: var(--primitive-grey-300);
 
-  /* NOVA is an ordinal 1..4 processing scale, so it gets a sequential ramp
-   * rather than the categorical palette.
-   *
-   * Like Nutri-Score, each step ships its own ink. One ink for all four is what
-   * forces a ramp to be uniformly dark, and a uniformly dark green-to-red ramp
-   * is four browns. Each ink here is the step's own hue taken down to the
-   * lightness that clears AA on it, so no badge has to be read twice. */
+  /* Ordinal, so a sequential ramp. Per-step ink again: one ink for all four
+   * would force the ramp uniformly dark, and a dark green-to-red is four
+   * browns. */
   --nova-1: var(--primitive-green-300);
   --nova-1-content: #0e3406;
   --nova-2: var(--primitive-yellow-200);
@@ -183,12 +129,8 @@
   --nova-unknown: var(--primitive-grey-100);
   --nova-unknown-content: var(--primitive-grey-300);
 
-  /* Chart series.
-   *
-   * Categorical, so ordered for separation between neighbours rather than as a
-   * ramp. Every one clears 3:1 against the card it is drawn on, which is the
-   * non-text contrast bar, and the ordering keeps the two colours nearest the
-   * Nutri-Score arc out of the first positions. */
+  /* Categorical, ordered for separation between neighbours. Each clears 3:1 on
+   * the card, and the two nearest the Nutri-Score arc are kept out of front. */
   --viz-1: #003cb2;
   --viz-2: #ad7fe5;
   --viz-3: #00a69b;
@@ -207,17 +149,16 @@
   --surface-base: var(--primitive-cool-500);
   --surface-raised: var(--primitive-cool-490);
   --surface-sunken: var(--primitive-cool-550);
-  /* White in both themes. See the note beside the light value. */
+  /* Packaging is shot on a white sweep and carries it in the file, so a tinted
+   * tile puts a seam around every portrait bottle. */
   --surface-media: var(--primitive-white);
   --surface-overlay: var(--primitive-cool-475);
   --surface-accent: var(--primitive-blue-tint);
   --surface-hover: var(--primitive-cool-450);
   --surface-selected: var(--primitive-cool-400);
 
-  /* The chrome drops one step below the page rather than staying put. In the
-   * light theme it is the darkest thing on screen, and that is what makes it
-   * read as a frame; holding it at #11192d against a #11192d page would merge
-   * the two and lose the edge the rail exists to draw. */
+  /* The chrome drops a step rather than staying put: held at the page colour it
+   * would merge with it and lose the edge the rail exists to draw. */
   --chrome-base: var(--primitive-cool-600);
   --chrome-raised: var(--primitive-cool-475);
   --chrome-content: var(--primitive-grey-150);
@@ -235,9 +176,8 @@
   --content-accent: var(--primitive-blue-100);
   --content-on-accent: var(--primitive-white);
 
-  /* The brand blue is a text colour here, not a fill: #003cb2 on a dark page is
-   * a hole. Solid controls move up the ramp to the step that still carries
-   * white, and the bright blue is kept for text and borders. */
+  /* #003cb2 on a dark page is a hole, so solid controls move up the ramp to the
+   * step that still carries white and the bright blue stays for text. */
   --accent-solid: var(--primitive-blue-200);
   --accent-solid-hover: #1488e1; /* blue-200 -> blue-100, 45% */
   --accent-muted: var(--primitive-blue-tint-strong);
@@ -253,9 +193,7 @@
   --nova-unknown-content: var(--primitive-cool-100);
 
   /* Lifted toward white by a constant 34%, so a series keeps its hue across
-   * themes and a screenshot taken in either maps to the same colour. The two
-   * darkest, blue and turquoise, are why a lift is needed at all: untouched
-   * they sit at 1.7 and 2.2 against the card they are drawn on. */
+   * themes. Untouched, blue and turquoise sit at 1.7 and 2.2 on the card. */
   --viz-1: #5982d1;
   --viz-2: #c8abf0;
   --viz-3: #7ac4bc;

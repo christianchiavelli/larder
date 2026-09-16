@@ -1,15 +1,8 @@
 <script setup lang="ts">
 /**
- * What fills a picture's place when there is no picture.
- *
- * A filled tile with a muted glyph rather than an empty outline: an empty box
- * reads as an image that failed to load, and this one did not fail, it does not
- * exist. Filling the tile is what says the emptiness was on purpose.
- *
- * One component for every size, because a list and a detail page were answering
- * the same question two different ways, one with a shape and one with the words
- * "No image". Text in a slot reserved for a picture is a caption for something
- * that is not there.
+ * A filled tile rather than an empty outline: an empty box reads as an image
+ * that failed to load. One component for every size, because a list and a detail
+ * page were answering the same question two different ways.
  */
 withDefaults(
   defineProps<{

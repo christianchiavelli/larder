@@ -5,13 +5,8 @@ import { useProductClient } from '~~/server/utils/upstream-client'
 import { upstreamCache } from '~~/server/utils/cache-policy'
 
 /**
- * Single product record.
- *
- * Reads from the v2 REST API rather than the search index: the index carries
- * only what a result row needs, and a deep dive needs ingredients, additives,
- * labels and provenance that are not indexed.
- *
- * The lookup itself lives in ~~/server/services/product-detail.
+ * Reads the v2 REST API rather than the search index: the index carries only
+ * what a result row needs. The lookup lives in ~~/server/services/product-detail.
  */
 export default defineCachedEventHandler(
   async (event): Promise<ProductDetail> =>

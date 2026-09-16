@@ -9,10 +9,8 @@ import {
 import { EMPTY_NUTRIENT_PROFILE } from '#shared/domain/nutrition'
 
 /**
- * These fixtures are trimmed copies of real upstream responses, not invented
- * shapes. The omitted-key cases in particular are how the service actually
- * behaves: a field with no value is left out of the document entirely rather
- * than sent as null, which is the failure mode this suite exists to pin down.
+ * Trimmed copies of real responses. The omitted-key cases are how upstream
+ * actually behaves: a field with no value is left out entirely.
  */
 
 /** A real hit for barcode 7797599000049. Note what is absent. */
@@ -85,11 +83,8 @@ describe('mapSearchHits', () => {
   })
 
   /**
-   * Every width upstream publishes, so the consumer can choose.
-   *
-   * A single URL forces one size on every context. The directory draws these
-   * at 48 pixels and the deep dive at 112, and both used to receive the same
-   * file.
+   * Every width upstream publishes: the directory draws at 48px and the deep dive
+   * at 112, and both used to receive the same file.
    */
   it('carries the front image at each published width', () => {
     const { items } = mapSearchHits([RICH_HIT])
@@ -181,18 +176,16 @@ describe('mapNutriScore', () => {
   })
 
   /**
-   * The one absence upstream states rather than implies, and the one that
-   * cannot change: the scheme excludes these products, so no amount of
-   * community editing will give them a letter. It used to be flattened into
-   * `unknown` here, which is where the distinction was lost for good.
+   * The one absence upstream states rather than implies, and the one that cannot
+   * change. It used to be flattened into `unknown` here.
    */
   it('keeps not-applicable apart from a grade nobody has entered', () => {
     expect(mapNutriScore('not-applicable')).toBe('not-applicable')
   })
 
   /**
-   * An absence we cannot explain is a gap, not an exclusion. Guessing the other
-   * way would invent a rule the scheme does not have.
+   * An absence we cannot explain is a gap: guessing the other way invents a rule
+   * the scheme does not have.
    */
   it('reads an unrecognised value as ungraded rather than excluded', () => {
     expect(mapNutriScore('not-computed')).toBe('unknown')
@@ -241,10 +234,8 @@ describe('mapFacet', () => {
   })
 
   /**
-   * Elasticsearch's remainder bucket. It is not a tag, so it cannot be
-   * filtered on, and because it aggregates the entire long tail it outweighs
-   * every real value: left in, a category chart reports "Other" as the largest
-   * category of food at six million products.
+   * Elasticsearch's remainder bucket is not a tag and aggregates the long tail, so
+   * left in it reports "Other" as the largest category of food.
    */
   it('drops the --other-- remainder bucket', () => {
     const facets = mapFacet([

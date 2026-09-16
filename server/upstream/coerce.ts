@@ -1,20 +1,12 @@
 import { z } from 'zod'
 
 /**
- * Lenient readers for upstream's field types.
+ * The same field arrives as a number from one record and its string spelling
+ * from the next, so coercion happens once, here.
  *
- * Open Food Facts is community-edited through several clients and a long
- * history of import scripts, so the same field arrives as a number from one
- * record and the string spelling of that number from the next. Neither is
- * wrong upstream and neither should reach the domain, so the coercion happens
- * once, here, at the boundary.
- *
- * `.nullish()` on every one of them is load-bearing. Upstream omits a key
- * entirely when it has no value, and in Zod 4 a union that merely includes
- * `z.undefined()` still requires the key to be present: without this, every
- * record missing any optional field is rejected, which is most of the
- * catalogue. That is not hypothetical, it shipped, and the directory rendered
- * empty while reporting ten thousand matches.
+ * `.nullish()` is load-bearing: upstream omits a key entirely when it has no
+ * value, and in Zod 4 a union merely including `z.undefined()` still requires the
+ * key. Without it most of the catalogue fails to parse.
  */
 
 /** A number, the numeric string of a number, or any of the empty cases. */
@@ -39,16 +31,11 @@ const NAMED_ENTITIES: Record<string, string> = {
 }
 
 /**
- * Upstream text arrives with HTML entities still in it.
- *
- * Records are edited through several clients over a long history, and some of
- * them escaped on the way in: a mineral water lists "Nitrates NO3 - &lt;2 mg/l",
- * which renders as those six characters because the value is text and Vue
- * escapes text. Nothing fails; the reader simply sees `&lt;` where the label on
+ * Some records were escaped on the way in, so a value reads `&lt;2 mg/l` where
  * the bottle says `<`.
  *
- * One pass, never a chain of replacements. Decoding `&amp;` first would turn
- * the legitimately escaped `&amp;lt;` into `<` on a second pass.
+ * One pass, never a chain: decoding `&amp;` first would turn a legitimately
+ * escaped `&amp;lt;` into a `<` nobody wrote.
  */
 function decodeEntities(text: string): string {
   return text.replace(/&(#\d+|#x[0-9a-f]+|[a-z]+);/gi, (match, body: string) => {

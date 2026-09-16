@@ -3,17 +3,11 @@ import { watchDebounced } from '@vueuse/core'
 import { SORT_OPTIONS, type ProductQuery, type SortOption } from '#shared/domain/search'
 import type { TaxonomyName } from '#shared/domain/taxonomy'
 
-/**
- * The input is a combobox whose listbox offers filters, not search terms, so
- * the term and its suggestions are one control.
- */
-
 const { query, apply, setSearchTerm, setSort } = useProductQuery()
 
 /**
- * Debounced, or every keystroke is a history entry and the back button replays
- * the word letter by letter. Watched both ways, because the URL also changes
- * from the back button, a pasted link, or Clear all.
+ * Debounced, or every keystroke is a history entry. Watched both ways, since the
+ * URL also changes from the back button, a pasted link or Clear all.
  */
 const term = ref(query.value.q)
 
@@ -42,10 +36,6 @@ const sortValue = computed<SortOption>({
 
 /* -- Suggestions ----------------------------------------------------------- */
 
-/**
- * Only taxonomies that are also filter dimensions. Upstream autocompletes
- * `additive` too, and choosing one would do nothing.
- */
 const FILTERABLE = ['category', 'brand', 'country', 'label'] as const
 type FilterableTaxonomy = (typeof FILTERABLE)[number]
 
@@ -78,8 +68,7 @@ const activeOptionId = computed(() =>
 
 /**
  * Watched by contents, not by reference: `options` rebuilds on every evaluation,
- * so watching the array cleared the highlight between a keypress and the Enter
- * after it. The listbox looked correct and the keyboard did nothing.
+ * which cleared the highlight between a keypress and the Enter after it.
  */
 watch(
   () => options.value.map((option) => option.id).join(','),
@@ -89,9 +78,8 @@ watch(
 )
 
 /**
- * The term is cleared in the same patch as the filter, or both narrow and the
- * reader gets the intersection of a filter they chose and a word they were
- * only typing to find it.
+ * Cleared in the same patch as the filter, or both narrow and the reader gets
+ * the intersection.
  */
 function select(index: number) {
   const suggestion = options.value[index]

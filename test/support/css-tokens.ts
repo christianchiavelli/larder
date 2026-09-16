@@ -2,19 +2,9 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 /**
- * Reads design tokens out of the stylesheet, as text.
- *
- * Two palettes in this codebase exist twice: once as custom properties, and
- * once as a hard-coded copy shipped for the server and the first client render,
- * where no stylesheet has been applied. The copies are unavoidable and they
- * drift silently, so the specs that compare them need to resolve what the
- * browser would compute without being a browser.
- *
- * Read off disk rather than imported. A `?raw` import goes through Vite, and
- * Vite has the Tailwind plugin attached, which rewrites the file into something
- * that no longer contains the blocks being asserted on. The path resolves from
- * the project root, not from the caller, so moving a spec cannot quietly
- * repoint it at nothing.
+ * Read off disk, not imported: a `?raw` import goes through Vite with the
+ * Tailwind plugin attached, which rewrites the file. The path resolves from the
+ * project root, so moving a spec cannot repoint it at nothing.
  */
 const TOKENS_PATH = 'layers/ui/app/assets/css/tokens.css'
 

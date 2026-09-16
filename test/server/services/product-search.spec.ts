@@ -66,8 +66,8 @@ describe('searchProducts', () => {
   })
 
   /**
-   * Upstream pins `count` at the tracking ceiling and derives `page_count` from
-   * that same truncated figure, so it advertises pages that return nothing.
+   * Upstream derives `page_count` from the truncated count, so it advertises pages
+   * that return nothing.
    */
   it('clamps a page beyond the tracking ceiling to the last real page', async () => {
     const client = stubClient(upstreamResponse({ count: MAX_TRACKED_HITS, is_count_exact: false }))
@@ -178,9 +178,8 @@ describe('searchProducts', () => {
   })
 
   /**
-   * `hits` not being a list means the payload is not a search response at all.
-   * Treating it as zero results would present an outage as a legitimately empty
-   * search, which is the one failure mode a user cannot tell apart from data.
+   * `hits` not being a list means this is not a search response. Reading it as
+   * zero results presents an outage as a legitimately empty search.
    */
   it('refuses to read a structurally wrong response as an empty result', async () => {
     const client = stubClient({ hits: 'not a list', count: 0 })
@@ -191,9 +190,8 @@ describe('searchProducts', () => {
 
 describe('NOVA coverage', () => {
   /**
-   * A count rather than a distribution, because the facet cannot report the
-   * interesting number itself: there is no bucket for a product without the
-   * field, so coverage only exists as the sum of the buckets that do.
+   * The facet has no bucket for a product without the field, so coverage only
+   * exists as the sum of the buckets that do.
    */
   it('adds up the groups that exist, since the absence has no bucket', async () => {
     const client = stubClient(

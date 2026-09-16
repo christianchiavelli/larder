@@ -1,25 +1,13 @@
 import type { NutriScore } from '#shared/domain/nutrition'
 
 /**
- * The Nutri-Score colours, in the form a canvas can use.
- *
- * Lives in the app rather than in the UI layer because it is a domain fact
- * wearing a colour. The layer knows how to read a colour token and hand it to
- * ECharts; it does not know that a food catalogue grades products from A to E,
- * and the moment it does it stops being a design system.
- *
- * The values themselves stay in tokens.css, as a tier of the palette, because
- * they are values and not types: a stylesheet that declares `--nutriscore-a`
- * has no idea what a grade is.
+ * In the app rather than the UI layer: the layer reads colour tokens, it does not
+ * know a catalogue grades food from A to E.
  */
 
 /**
- * Both ungraded states read from one token.
- *
- * Not an oversight: they are different facts, and the axis label and the badge
- * glyph say which, but two neutral greys a step apart measure 1.3:1 against
- * each other. Colouring them separately would claim a distinction the eye
- * cannot make, so here the colour means only "no grade".
+ * One token on purpose: two neutral greys a step apart measure 1.3:1, so the
+ * axis label and the badge glyph carry the difference.
  */
 const TOKENS: Record<NutriScore, string> = {
   a: '--nutriscore-a',
@@ -32,11 +20,8 @@ const TOKENS: Record<NutriScore, string> = {
 }
 
 /**
- * Used before styles resolve, on the server and the first client render.
- *
- * A duplicate of the tokens, and unavoidably so: this runs where no stylesheet
- * has been applied. test/app/nutri-score-palette.spec.ts parses the real token
- * file and compares, so the copy cannot drift unnoticed.
+ * A copy of the tokens, unavoidably: this runs where no stylesheet has been
+ * applied. nutri-score-palette.spec.ts parses the real file and compares.
  */
 export const NUTRI_SCORE_PALETTE_FALLBACK: Record<NutriScore, string> = {
   a: '#038141',

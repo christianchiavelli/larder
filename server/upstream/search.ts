@@ -13,16 +13,8 @@ import { mapProductImage, upstreamImageFields } from './image'
 import type { FacetItem } from '#shared/domain/search'
 
 /**
- * Permissive about values, strict about structure. Almost every field is
- * optional in a community database, but `hits` not being a list means this is
- * not a search response, and guessing past that shows an empty directory as if
- * the query matched nothing.
- */
-
-/**
- * Upstream omits a key rather than sending null, and in Zod 4 a union merely
- * including `z.undefined()` still requires the key. So `.nullish()` is
- * load-bearing: without it most of the catalogue fails to parse.
+ * Permissive about values, strict about structure: `hits` not being a list means
+ * this is not a search response, and guessing past that shows an empty directory.
  */
 
 const looseStringArray = z
@@ -81,8 +73,8 @@ export const upstreamSearchResponseSchema = z.looseObject({
 export type UpstreamSearchResponse = z.infer<typeof upstreamSearchResponseSchema>
 
 /**
- * Only the `_100g` variant. The bare key and `_value` are in whatever unit the
- * pack declared, so comparing across products compares grams to ounces.
+ * Only `_100g`: the bare key and `_value` are in whatever unit the pack
+ * declared.
  */
 const NUTRIMENT_SOURCE_KEYS: Record<NutrientKey, string> = {
   energyKcal: 'energy-kcal_100g',
@@ -115,10 +107,8 @@ export function mapNutriments(raw: Record<string, unknown> | null | undefined): 
 }
 
 /**
- * Upstream spells "no grade" four ways and means two things by it.
- * `not-applicable` is the scheme excluding a product; a missing field, an empty
- * string and `unknown` all mean nobody has graded it. Anything unrecognised is
- * a gap rather than an exclusion, since guessing otherwise invents a rule.
+ * Upstream spells "no grade" four ways and means two things: `not-applicable` is
+ * the scheme excluding a product, the rest is nobody having graded it.
  */
 export function mapNutriScore(raw: string | null): NutriScore {
   if (!raw) return 'unknown'
@@ -158,8 +148,7 @@ export interface MappedHits {
 }
 
 /**
- * Per hit, so one malformed record renders 23 rows instead of none. Malformed
- * records are the normal condition in a community-edited database.
+ * Per hit, so one malformed record renders 23 rows instead of none.
  */
 export function mapSearchHits(hits: readonly unknown[]): MappedHits {
   const items: ProductSummary[] = []
@@ -178,16 +167,14 @@ export function mapSearchHits(hits: readonly unknown[]): MappedHits {
 }
 
 /**
- * Bookkeeping buckets, not values: `unknown` counts records missing the field
- * and `--other--` is Elasticsearch's remainder. No product carries either, so
- * a checkbox for them returns nothing, and `--other--` drawn as a bar reads as
- * "Other" being the largest category of food in the world.
+ * Bookkeeping buckets, not values: no product carries either, and `--other--`
+ * drawn as a bar reads as the largest category of food in the world.
  */
 const SENTINEL_FACET_KEYS = new Set(['unknown', '--other--', 'not-applicable', ''])
 
 /**
- * Facet keys differ by dimension: `categories_tags` is language-prefixed,
- * `brands_tags` is a bare slug. The taxonomy helper handles both.
+ * Facet keys differ by dimension: `categories_tags` is prefixed, `brands_tags`
+ * is a bare slug.
  */
 export function mapFacet(items: readonly z.infer<typeof upstreamFacetItemSchema>[]): FacetItem[] {
   return items

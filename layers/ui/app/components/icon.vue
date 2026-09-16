@@ -2,17 +2,11 @@
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 /**
- * The single seam between this product and the icon library.
+ * Templates name an icon and never import one. Decorative by default; pass
+ * `label` only where the icon is the whole control.
  *
- * Templates name an icon and never import one, so swapping the library is a
- * change to two files rather than to every component that draws something.
- *
- * Decorative by default: an icon beside a label repeats it to a screen reader.
- * Pass `label` only where the icon is the whole control.
- *
- * It sets no display of its own. A leaf that hardcodes one wins the cascade
- * against the `hidden` a caller passes, which is how the theme toggle came to
- * draw a sun and a moon at the same time.
+ * It sets no display of its own: a leaf that hardcodes one beats the `hidden` a
+ * caller passes, which is how the theme toggle drew two icons at once.
  */
 defineProps<{
   name: IconName

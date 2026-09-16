@@ -1,14 +1,7 @@
 <script setup lang="ts">
 /**
- * A single headline figure.
- *
- * Two things this deliberately does not do. It does not accept a pre-formatted
- * string for the value, because a figure formatted by the caller loses the
- * tabular alignment and the machine-readable form. And when the value is
- * absent, it renders an em-dash rather than a zero: in a catalogue where most
- * products declare only some of their nutrients, "not reported" and "none"
- * are different facts, and showing one as the other is a lie the reader
- * has no way to detect.
+ * No pre-formatted string: a value formatted by the caller loses the tabular
+ * alignment. An absent value renders an em-dash, never a zero.
  */
 const props = withDefaults(
   defineProps<{

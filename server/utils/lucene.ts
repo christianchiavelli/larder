@@ -4,8 +4,7 @@ import { NOVA_UNGROUPED } from '#shared/domain/nutrition'
 
 /**
  * Upstream parses `q` as Lucene, so the SQL rule applies: structure is ours,
- * values are always escaped. Unescaped input does not error, it reinterprets
- * the query and returns zero matches.
+ * values are escaped. Unescaped input does not error, it returns zero matches.
  */
 
 // `&` and `|` because the operators are `&&` and `||`.
@@ -27,9 +26,8 @@ function tagClause(field: string, values: readonly string[]): string {
 }
 
 /**
- * Quoted, not escaped. The escaper treats `-` as the NOT operator, which it is
- * only at the start of a term, and `nutriscore_grade:not\-applicable` matches
- * nothing.
+ * Quoted, not escaped: the escaper treats `-` as the NOT operator, which it is
+ * only at the start of a term, so `not\-applicable` matches nothing.
  */
 function enumClause(field: string, values: readonly (string | number)[]): string {
   if (values.length === 0) return ''
@@ -38,9 +36,8 @@ function enumClause(field: string, values: readonly (string | number)[]): string
 }
 
 /**
- * A missing NOVA group is an absent field rather than a value, so it has no
- * bucket to select and takes a negation. Upstream agrees the two are disjoint:
- * among balsamic vinegars, group 2 gives 1,483, the absence 71, together 1,554.
+ * An absent field rather than a value, so it takes a negation. Upstream agrees
+ * the two are disjoint: balsamic vinegars give 1,483 + 71 = 1,554.
  */
 function novaClause(values: readonly (string | number)[]): string {
   if (values.length === 0) return ''
@@ -55,8 +52,8 @@ function novaClause(values: readonly (string | number)[]): string {
 }
 
 /**
- * Escaped but unquoted, so upstream still tokenises it. Quoting would make
- * "dark chocolate" a phrase and drop every "chocolate, dark".
+ * Escaped but unquoted, so upstream still tokenises it: quoting would make "dark
+ * chocolate" a phrase and drop every "chocolate, dark".
  */
 function freeTextClause(text: string): string {
   const trimmed = text.trim()

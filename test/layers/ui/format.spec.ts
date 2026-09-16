@@ -7,17 +7,6 @@ import {
   formatShare,
 } from '~~/layers/ui/app/utils/format'
 
-/**
- * Number formatting.
- *
- * These were five separate declarations across five files, two of them a
- * character-for-character copy of each other. Pulled into one module, they are
- * also the first formatting decisions in this codebase that anything asserts:
- * the threshold where a count switches to compact, and the fact that a measured
- * figure pads to a fixed width, are both choices a column of numbers depends on
- * and neither was written down anywhere a reader would find it.
- */
-
 describe('formatCount', () => {
   it('groups thousands', () => {
     expect(formatCount(3_585_939)).toBe('3,585,939')
@@ -37,9 +26,8 @@ describe('formatCompact', () => {
 
 describe('formatCountCompact', () => {
   /**
-   * The threshold is the whole point of this one. Below it the exact figure is
-   * short enough to keep; above it the count and the label beside it fill the
-   * filter sidebar to within a pixel.
+   * Below the threshold the exact figure is short enough to keep; above it the
+   * count and its label fill the sidebar.
    */
   it('stays exact below ten thousand', () => {
     expect(formatCountCompact(9_999)).toBe('9,999')
@@ -73,8 +61,7 @@ describe('formatShare', () => {
   })
 
   /**
-   * An empty catalogue is a real state here: every filter applied and nothing
-   * matching. Dividing by it would put `NaN%` on the chart.
+   * An empty catalogue is a real state: every filter applied and nothing matching.
    */
   it('returns zero rather than NaN when the whole is empty', () => {
     expect(formatShare(0, 0)).toBe('0%')

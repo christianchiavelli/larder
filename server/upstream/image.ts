@@ -2,16 +2,8 @@ import type { ProductImage } from '#shared/domain/product'
 import { looseString } from './coerce'
 
 /**
- * Maps upstream's image URLs into the domain's image.
- *
- * Shared by both mappers because both upstream services publish the same six
- * fields, and the rule for reading them is the part worth stating once.
- */
-
-/**
- * The six fields, as a schema fragment both upstream services spread into
- * their own object. Declaring them twice is how one service quietly stops
- * reading a width the other one does.
+ * Declared once and spread into both upstream schemas: declaring them twice is
+ * how one service quietly stops reading a width the other does.
  */
 export const upstreamImageFields = {
   image_front_thumb_url: looseString,
@@ -32,25 +24,14 @@ function asUrl(candidate: string | null | undefined): string | null {
 }
 
 /**
- * The front photograph at each width upstream publishes.
+ * `image_front_*` is the packaging shot; `image_*` is whichever photograph is
+ * first, often a barcode or an ingredients panel. Decided per width, since a
+ * product can have a front thumbnail and no front original.
  *
- * `image_front_*` is the packaging shot. `image_*` is whichever photograph
- * happens to be first, which on a community-edited catalogue is often a
- * barcode or an ingredients panel. So the front one leads and the other backs
- * it up, decided per width, because a product can have a front thumbnail and
- * no front original.
- *
- * Null when no width resolves at all, so a caller renders its placeholder
- * instead of an image element pointing at nothing.
- *
- * The two services do not agree on who has a photograph. Barcode
- * 9100000906683 carries a front image on the v2 API and no image field at all
- * on the search index, so a directory row falls back while the page it opens
- * shows a picture. Roughly one row in twenty comes back without an image and
- * most of those genuinely have none anywhere; this is the remainder. There is
- * no cheap fix: the URLs carry a revision number and a language suffix, so
- * they cannot be derived from a barcode, and asking the v2 API per row would
- * be two dozen requests to fill in one thumbnail.
+ * The two services disagree about who has a photograph: a barcode can carry a
+ * front image on the v2 API and no image field on the search index, so a row
+ * falls back while the page it opens shows a picture. The URLs carry a revision
+ * number, so they cannot be derived from a barcode.
  */
 export function mapProductImage(raw: UpstreamImageFields): ProductImage {
   const image = {

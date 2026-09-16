@@ -1,10 +1,3 @@
-/**
- * Responsive image sources.
- *
- * Generic on purpose: a list of URLs with the width each one is, in, out a
- * `srcset` string. It knows nothing about what is being pictured.
- */
-
 export interface ImageSource {
   url: string | null
   /** Intrinsic width in pixels, as published. */
@@ -12,15 +5,8 @@ export interface ImageSource {
 }
 
 /**
- * Builds a `srcset` from the widths that actually exist.
- *
- * Returns `undefined` rather than an empty string when nothing resolves,
- * because an empty `srcset` attribute is not ignored: some engines treat it as
- * a candidate list with no valid entry and skip the `src` as well.
- *
- * Getting this wrong is silent in the direction that costs bandwidth. A browser
- * handed one oversized candidate downloads it happily, and the page looks
- * identical to one that picked correctly.
+ * Returns `undefined` rather than an empty string: some engines read an empty
+ * `srcset` as a candidate list with nothing valid and skip `src` too.
  */
 export function srcSet(sources: ImageSource[]): string | undefined {
   const entries = sources

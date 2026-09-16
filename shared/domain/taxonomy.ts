@@ -1,9 +1,8 @@
 import { z } from 'zod'
 
 /**
- * Taxonomy ids are language-prefixed (`en:sweet-spreads`). The prefix names the
- * language the term was authored in, not what you get back, and is part of the
- * entry's identity: strip it only when a human has to read the thing.
+ * Taxonomy ids are language-prefixed (`en:sweet-spreads`). The prefix is part of
+ * the identity: strip it only when a human has to read the thing.
  */
 
 export const TAXONOMIES = ['category', 'brand', 'label', 'country', 'additive'] as const
@@ -69,18 +68,15 @@ export function humanizeTagId(id: string): string {
 }
 
 /**
- * Brands are the one dimension the index stores unprefixed: categories come
- * back as `en:beverages`, brands as `carrefour`. Autocomplete prefixes
- * everything, so a suggested `en:olivari` matches no product and the filter
- * reads as applied over an empty result.
+ * Brands are the one dimension the index stores unprefixed, and autocomplete
+ * prefixes everything, so a suggested `en:olivari` matches no product.
  */
 export function toFilterValue(taxonomy: TaxonomyName, id: string): string {
   return taxonomy === 'brand' ? parseTagId(id).slug : id
 }
 
 /**
- * Upstream often echoes the slug back as the label: the brands facet answers
- * `{ key: "lu", name: "lu" }`. A label carrying no more than the id is no label.
+ * Upstream often echoes the slug back as the label (`{ key: "lu", name: "lu" }`).
  */
 export function toTaxonomyTag(id: string, label?: string | null): TaxonomyTag {
   const trimmed = label?.trim()

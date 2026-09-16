@@ -1,14 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { looseNumber, looseString } from '~~/server/upstream/coerce'
 
-/**
- * The lenient readers at the upstream boundary.
- *
- * Open Food Facts is edited through several clients over a long history, so the
- * same field arrives typed differently from one record to the next, and some of
- * it arrives escaped.
- */
-
 describe('looseString', () => {
   it.each([
     ['plain text', 'Nutella', 'Nutella'],
@@ -23,9 +15,8 @@ describe('looseString', () => {
   })
 
   /**
-   * A mineral water lists "Nitrates NO3 - &lt;2 mg/l". The value is text and Vue
-   * escapes text, so the reader saw those six characters where the bottle says
-   * `<`. Nothing failed anywhere.
+   * The value is text and Vue escapes text, so the reader saw the entity where the
+   * bottle says `<`.
    */
   it.each([
     ['&lt;2 mg/l', '<2 mg/l'],
@@ -43,8 +34,8 @@ describe('looseString', () => {
   })
 
   /**
-   * One pass, not a chain. Decoding `&amp;` and then running again would turn
-   * text that legitimately reads `&lt;` into a `<` nobody wrote.
+   * One pass, not a chain: decoding `&amp;` and running again would turn text that
+   * legitimately reads `&lt;` into a `<` nobody wrote.
    */
   it('does not decode twice', () => {
     expect(looseString.parse('&amp;lt;2')).toBe('&lt;2')
@@ -72,8 +63,8 @@ describe('looseNumber', () => {
   })
 
   /**
-   * JSON carries no NaN or Infinity literal, so what actually arrives from a
-   * bad record is the string spelling of one.
+   * JSON carries no NaN or Infinity literal, so a bad record sends the string
+   * spelling of one.
    */
   it.each([[null], [undefined], [''], ['banana'], ['NaN'], ['Infinity']])(
     'reads %s as absent',

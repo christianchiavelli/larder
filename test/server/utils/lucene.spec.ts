@@ -141,10 +141,8 @@ describe('buildProductQuery', () => {
 
 describe('the ungraded filter', () => {
   /**
-   * The index spells the absence two ways, and so does the filter. They used to
-   * be one value here, expanded into both keys on the way out, which selected
-   * the right population for the wrong reason: a reader asking for products
-   * nobody has graded got every beer and vinegar as well.
+   * These used to be one value expanded into both keys, which selected the right
+   * population for the wrong reason.
    */
   it.each([
     ['unknown', 'nutriscore_grade:"unknown"'],
@@ -155,12 +153,8 @@ describe('the ungraded filter', () => {
   })
 
   /**
-   * The hyphen is the reason these are quoted rather than escaped. Escaped, it
-   * reads as the NOT operator and upstream matches nothing at all.
-   *
-   * It stayed invisible while this value was reachable only as half of an OR
-   * whose other half returned more than the tracked ceiling. Now that it is a
-   * filter of its own, the same bug would empty the page instead.
+   * Escaped, the hyphen reads as NOT and upstream matches nothing. It stayed
+   * invisible while this was half of an OR whose other half exceeded the ceiling.
    */
   it('does not escape the hyphen out of existence', () => {
     expect(buildProductQuery(query({ nutriScore: 'not-applicable' })).q).not.toContain(
@@ -183,12 +177,8 @@ describe('the ungraded filter', () => {
 
 describe('the unclassified filter', () => {
   /**
-   * NOVA's absence is not a value, so it cannot be asked for like one.
-   *
-   * A product with no Nutri-Score carries a key saying so; a product with no
-   * NOVA group carries nothing, which is why this clause is a negation and the
-   * grade clause is not. Three quarters of the catalogue sits here, and none of
-   * it was reachable.
+   * A product with no Nutri-Score carries a key saying so; one with no NOVA group
+   * carries nothing, which is why this clause is a negation.
    */
   it('asks for the documents without the field', () => {
     expect(buildProductQuery(query({ nova: 'none' })).q).toBe('(NOT nova_groups:*)')
@@ -199,10 +189,8 @@ describe('the unclassified filter', () => {
   })
 
   /**
-   * The combination is the part worth pinning. A negated clause inside an OR is
-   * where Lucene parsers differ, and upstream agrees the two are disjoint:
-   * among balsamic vinegars, group 2 returns 1,483, the absence 71, and this
-   * query 1,554.
+   * A negated clause inside an OR is where Lucene parsers differ. Upstream agrees
+   * the two are disjoint: 1,483 + 71 = 1,554.
    */
   it('combines a group with the absence', () => {
     expect(buildProductQuery(query({ nova: ['2', 'none'] })).q).toBe(

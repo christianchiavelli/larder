@@ -1,10 +1,8 @@
 import { expect, test, type Page } from '@playwright/test'
 
 /**
- * Nothing here depends on a specific product: the catalogue is community-edited
- * and changes daily. What is asserted are the invariants, that filter state
- * lives in the URL, survives a reload, and never claims a number it cannot
- * support.
+ * Nothing here depends on a specific product: the catalogue changes daily. What
+ * is asserted are the invariants.
  */
 
 test.describe('product directory', () => {
@@ -41,8 +39,7 @@ test.describe('product directory', () => {
 
   /**
    * Removing is a different operation from applying, and the suite only ever
-   * applied: the URL writer merged two serialised queries, the serialiser omits
-   * defaults, so emptying a dimension had no key and the old value survived.
+   * applied.
    */
   test('switches a filter back off again', async ({ page }) => {
     await page.goto('/products')
@@ -68,9 +65,8 @@ test.describe('product directory', () => {
   })
 
   /**
-   * Most of the catalogue, and asserted one at a time: a single control that
-   * selected both could not tell a product nobody has graded from a beer the
-   * scheme never will.
+   * Asserted one at a time: a single control selecting both could not tell a
+   * product nobody has graded from a beer the scheme never will.
    */
   for (const { label, value } of [
     { label: 'Nutri-Score not reported', value: 'unknown' },
@@ -154,9 +150,8 @@ test.describe('product directory', () => {
   })
 
   /**
-   * The barcode, not the heading. The two upstream services disagree about
-   * names: 3274080005003 is "Eau de source" in the index and "Cristaline" in
-   * the product API, so a row and the page it opens may legitimately differ.
+   * The barcode, not the heading: the two upstream services disagree about names,
+   * so a row and the page it opens may legitimately differ.
    */
   test('navigates to the product the card links to', async ({ page }) => {
     await page.goto('/products')
@@ -195,9 +190,8 @@ test.describe('product directory', () => {
 
 test.describe('filter suggestions', () => {
   /**
-   * Driven with real key events, because the point of the pattern is the
-   * keyboard: the active option is pointed at rather than focused, so focus
-   * never leaves the input. None of that is observable without a browser.
+   * Real key events, because the point of the pattern is the keyboard: the active
+   * option is pointed at rather than focused.
    */
   const search = (page: Page) => page.getByRole('combobox', { name: 'Search products' })
 
@@ -259,9 +253,8 @@ test.describe('filter suggestions', () => {
   })
 
   /**
-   * Brands specifically, because they are the dimension upstream stores
-   * differently: the facet returns a bare slug and autocomplete returns the
-   * same brand with a language prefix.
+   * Brands specifically: the facet returns a bare slug and autocomplete returns
+   * the same brand with a language prefix.
    */
   test('applies a brand suggestion to a dimension that matches', async ({ page }) => {
     await page.goto('/products')
@@ -318,18 +311,9 @@ test.describe('filter suggestions', () => {
 })
 
 /**
- * The product page's first row: one column of cards filling the height of the
- * card beside it.
- *
- * Asserted as an arithmetic relationship rather than against pixel values, and
- * measured after a real layout, because this is the kind of rule a stray
- * `items-start` or an `h-full` somewhere up the tree switches off without
- * anything else changing. The page still renders; the column just stops
- * reaching the bottom.
- *
- * The mobile case is the other half of the requirement. There is one column
- * below `lg`, so there is nothing to fill, and stretching there would grow a
- * card for no reason.
+ * One column of cards filling the height of the card beside it, asserted as an
+ * arithmetic relationship: a stray `items-start` switches this off while the
+ * page still renders. Below `lg` there is one column and nothing to fill.
  */
 test.describe('the product page columns', () => {
   const CODE = '3017620425035'
@@ -379,10 +363,6 @@ test.describe('the product page columns', () => {
     expect(measured.composition + measured.gap + measured.source).toBeLessThan(measured.nutrition)
   })
 
-  /**
-   * The ingredients paragraph belongs under both columns rather than inside
-   * one, so it is as wide as the row above it.
-   */
   test('the ingredients list spans the full row', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto(`/products/${CODE}`)
@@ -400,13 +380,8 @@ test.describe('the product page columns', () => {
 })
 
 /**
- * Every value on the scale is drawn at one size.
- *
- * The badge is allowed to grow sideways: "N/A" is three glyphs where the rest
- * are one, and a box built for one would clip it. Nothing else about it may
- * differ. Setting it a type scale down so the box would grow less is the
- * version that shipped, and it fails nothing: the row simply carries two type
- * sizes, which is the part a reader sees.
+ * The badge may grow sideways for a three-glyph label. Nothing else about it may
+ * differ, and a type scale keyed on content fails nothing.
  */
 test.describe('the Nutri-Score filter row', () => {
   test('draws every value at the same height and type size', async ({ page }) => {

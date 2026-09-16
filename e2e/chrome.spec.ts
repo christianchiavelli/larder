@@ -1,9 +1,8 @@
 import { expect, test, type Page } from '@playwright/test'
 
 /**
- * Theme and the select control, together because both fail in only one theme or
- * one browser, and the suite used to run exclusively in the light Chromium
- * default. That is how a hydration mismatch shipped unnoticed.
+ * Both fail in only one theme or one browser, and the suite used to run only in
+ * the light Chromium default.
  */
 
 function collectErrors(page: Page): string[] {
@@ -17,10 +16,8 @@ function collectErrors(page: Page): string[] {
 
 test.describe('theme', () => {
   /**
-   * The server cannot know a visitor's theme, so anything branching on it
-   * during render produces one tree on the server and another on the client.
-   * The failure is a mismatch rather than a visual difference, which no
-   * screenshot catches, and only in one theme.
+   * Anything branching on the theme during render produces one tree on the server
+   * and another on the client. No screenshot catches that.
    */
   for (const colorScheme of ['light', 'dark'] as const) {
     test(`hydrates without a mismatch in ${colorScheme} mode`, async ({ browser }) => {
@@ -69,9 +66,8 @@ test.describe('theme', () => {
   })
 
   /**
-   * The toggle carries both icons and hides one. A leaf component that sets its
-   * own `display` wins the cascade against that `hidden`, which drew a sun and a
-   * moon side by side in the light theme while every test stayed green.
+   * A leaf component that sets its own `display` beats the `hidden` a caller
+   * passes, which drew a sun and a moon at once while every test stayed green.
    */
   test('the theme toggle shows exactly one icon, in both themes', async ({ page }) => {
     await page.goto('/products')
@@ -102,11 +98,8 @@ test.describe('select', () => {
   })
 
   /**
-   * The reason this is a real `<select>` rather than a listbox built from divs.
-   *
-   * Keyboard operation, type-ahead and the accessible role come from the
-   * element. Asserting them here is asserting that nobody has replaced it with
-   * a widget that looks the same and behaves worse.
+   * Keyboard, type-ahead and the accessible role come from the element. Asserting
+   * them is asserting nobody has replaced it with divs.
    */
   test('is a real select, operable by keyboard', async ({ page }) => {
     const select = page.getByLabel('Sort')
@@ -134,13 +127,8 @@ test.describe('select', () => {
   })
 
   /**
-   * The enhancement, where the browser supports it.
-   *
-   * `appearance: base-select` is what lets the open picker be styled rather
-   * than being drawn by the operating system. It is not baseline in September
-   * 2026, so this asserts the enhancement applies where it is available and
-   * skips where it is not, instead of failing on a browser that is simply
-   * getting the documented fallback.
+   * `appearance: base-select` is not baseline in September 2026, so this asserts
+   * where it applies and skips where the documented fallback is correct.
    */
   test('opts into the customizable select where supported', async ({ page }) => {
     const supported = await page.evaluate(() => CSS.supports('appearance', 'base-select'))

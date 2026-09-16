@@ -1,9 +1,5 @@
 /**
- * Regenerates the screenshots used in the README.
- *
- * A script rather than images dropped in by hand, so they can be refreshed
- * after a UI change instead of quietly ageing into a picture of a version that
- * no longer exists. Run against a production build:
+ * Regenerates the README screenshots against a production build:
  *
  *   pnpm run build
  *   node .output/server/index.mjs &
@@ -46,13 +42,8 @@ for (const shot of SHOTS) {
   await page.waitForTimeout(1200)
 
   /**
-   * Refuse to capture an unstyled page.
-   *
-   * Rebuilding while the production server is already running leaves it serving
-   * HTML that points at asset hashes the build has replaced, so every
-   * stylesheet 404s. The page still renders, the script still succeeds, and the
-   * README quietly gains a screenshot of the site with no CSS. Failing loudly
-   * here is the difference between a five-second fix and shipping that.
+   * Rebuilding while the production server runs leaves it serving HTML that points
+   * at replaced asset hashes, so every stylesheet 404s and the page still renders.
    */
   const styled = await page.evaluate(() => {
     const probe = document.createElement('div')

@@ -11,9 +11,8 @@ import type { NutriScore, NovaFilterValue } from '#shared/domain/nutrition'
 import { toFilterValue } from '#shared/domain/taxonomy'
 
 /**
- * The URL is the state, not a copy of it: no store and no two-way watcher, so
- * there is no moment where the address bar and the results disagree. Sharing,
- * bookmarking and the back button then work with nothing written for them.
+ * The URL is the state. No store and no two-way watcher, so there is no moment
+ * where the address bar and the results disagree.
  */
 
 type ListDimension = 'category' | 'brand' | 'country' | 'label'
@@ -26,12 +25,9 @@ export function useProductQuery() {
   const query = computed<ProductQuery>(() => productQuerySchema.parse(route.query))
 
   /**
-   * Merged onto the parsed query, never onto its serialised form:
-   * `toQueryParams` omits defaults, so merging two serialised objects cannot
-   * express removal and clearing a filter leaves it applied.
-   *
-   * A filter change resets to page one, or narrowing drops the reader on an
-   * empty page 8 of a result set that now has 3.
+   * Merged onto the parsed query, never its serialised form: `toQueryParams` omits
+   * defaults, so merging two serialised objects cannot express removal.
+   * A filter change resets to page one.
    */
   function apply(patch: Partial<ProductQuery>, options: { keepPage?: boolean } = {}) {
     const next = productQuerySchema.parse({
@@ -60,9 +56,8 @@ export function useProductQuery() {
   }
 
   /**
-   * Normalised first: the value arrives either as a facet key or as a taxonomy
-   * suggestion, which prefixes brands. Comparing the two raw means "remove"
-   * never matches and adds a second copy of the same filter.
+   * Normalised first: a facet key and a taxonomy suggestion spell a brand
+   * differently, so comparing them raw makes "remove" add a second copy.
    */
   function toggleTag(dimension: ListDimension, value: string) {
     const id = toFilterValue(dimension, value)

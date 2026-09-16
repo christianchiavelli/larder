@@ -28,9 +28,8 @@ describe('backoffDelay', () => {
   })
 
   /**
-   * Full jitter, not a fixed delay. An SSR render fires several upstream
-   * requests at once; without jitter a shared hiccup makes all of them retry on
-   * the same tick and hit the rate limiter together.
+   * Full jitter: SSR fires several requests at once, and without it a shared
+   * hiccup makes them retry on the same tick.
    */
   it('applies full jitter, so the delay spans zero to the ceiling', () => {
     expect(backoffDelay(1, () => 0)).toBe(0)
@@ -72,9 +71,8 @@ describe('toUpstreamError', () => {
   })
 
   /**
-   * A 4xx means we built a request upstream rejected: our bug. Forwarding 502
-   * would point an on-call engineer at a third party during an incident that is
-   * ours, so it surfaces as 500.
+   * A 4xx means we built a request upstream rejected, so it surfaces as 500: a 502
+   * would point an on-call engineer at a third party during our own incident.
    */
   it('reports a rejected request as our own 500, not as upstream being down', () => {
     expect(toUpstreamError(fetchError(422), context).statusCode).toBe(500)

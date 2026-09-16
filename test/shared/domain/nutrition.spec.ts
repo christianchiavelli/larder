@@ -10,13 +10,8 @@ import {
 } from '#shared/domain/nutrition'
 
 /**
- * The Nutri-Score vocabulary.
- *
- * Worth asserting because it used to be smaller than the truth. Upstream
- * reports two reasons a product has no grade and the boundary flattened them
- * into one, so a catalogue in which two thirds of everything is ungraded could
- * not say how much of that was missing data and how much was a scheme that does
- * not apply.
+ * It used to be smaller than the truth: the boundary flattened two reasons for
+ * having no grade into one.
  */
 
 describe('the Nutri-Score vocabulary', () => {
@@ -38,9 +33,8 @@ describe('the Nutri-Score vocabulary', () => {
   })
 
   /**
-   * A value with no label renders as `undefined` in a badge and on a chart
-   * axis, which is not a crash and not a failing build: it is a blank chip
-   * nobody notices until a screenshot goes out.
+   * A value with no label renders as `undefined` in a badge and on a chart axis:
+   * not a crash, a blank chip nobody notices until a screenshot goes out.
    */
   it('labels every value, long and short', () => {
     for (const value of NUTRI_SCORE_VALUES) {

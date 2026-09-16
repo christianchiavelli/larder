@@ -1,15 +1,8 @@
 <script setup lang="ts">
 /**
- * A checkbox and whatever goes beside it, as one clickable row.
- *
- * The chrome is the whole point: the wrapping `<label>` is what makes the row
- * a hit target rather than the sixteen pixels of the box itself, and the
- * native input is kept because `accent-color` styles it without giving up the
- * platform's own focus ring, keyboard behaviour or indeterminate state.
- *
- * Extracted because two filter lists were carrying the same decisions in
- * duplicate, which is how one of them ends up with a different hit area after
- * someone adjusts the other.
+ * The wrapping `<label>` is what makes the row a hit target rather than the
+ * sixteen pixels of the box. The native input keeps the platform focus ring and
+ * keyboard behaviour, and `accent-color` is enough to style it.
  */
 defineProps<{ checked: boolean }>()
 defineEmits<{ toggle: [] }>()

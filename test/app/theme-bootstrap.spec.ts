@@ -2,18 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { THEME_BOOTSTRAP_SCRIPT, THEME_STORAGE_KEY } from '~/composables/use-theme'
 
 /**
- * The inline script that applies the theme before the first paint.
- *
- * It is a hand-written string injected into `<head>`, which puts it outside
- * every check this repository otherwise has: the type checker does not read it,
- * the linter does not parse it, and a mistake inside it does not throw, it just
- * silently stops applying the class. The visible symptom is a white flash on
- * every page load for dark-mode users, which is exactly the thing the script
- * exists to prevent and exactly the thing nobody notices in a light-themed
- * screenshot.
- *
- * So it is executed here, against a fake window, in each of the states a real
- * visitor can arrive in.
+ * A hand-written string in `<head>`, so no type check or linter reads it and a
+ * mistake does not throw, it stops applying the class. Executed here against a
+ * fake window, in each state a visitor can arrive in.
  */
 
 interface FakeWindow {

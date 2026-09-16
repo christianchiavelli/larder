@@ -1,11 +1,7 @@
 <script setup lang="ts">
 /**
- * The standard raised container.
- *
- * `as` exists so a card can be a section, an article or a list item without a
- * wrapper element: the visual treatment and the document outline are separate
- * decisions, and forcing a div here would make every caller choose between
- * correct semantics and correct styling.
+ * `as` exists so a card can be a section, an article or a list item: the visual
+ * treatment and the document outline are separate decisions.
  */
 withDefaults(
   defineProps<{

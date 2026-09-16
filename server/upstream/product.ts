@@ -6,13 +6,9 @@ import { mapProductImage, upstreamImageFields } from './image'
 import { mapNovaGroup, mapNutriments, mapNutriScore } from './search'
 
 /**
- * Upstream contract for the v2 product endpoint.
- *
- * A separate service from search, with a separate shape for the same entity:
- * `brands` is a comma-joined string here and an array there, and the nutriment
- * bag carries four suffix variants per nutrient rather than just `_100g`.
- * Neither schema is derived from the other because they genuinely differ; what
- * they share is the mapping target.
+ * A separate service with a separate shape for the same entity: `brands` is a
+ * comma-joined string here and an array in search. What they share is the
+ * mapping target.
  */
 
 const looseTagArray = z
@@ -47,9 +43,7 @@ const upstreamProductSchema = z.looseObject({
 })
 
 /**
- * `status` is the field that says whether the product exists. A missing barcode
- * still answers 200, so treating HTTP status as the signal would render an
- * empty product page instead of a 404.
+ * `status`, not the HTTP status: a missing barcode still answers 200.
  */
 export const upstreamProductResponseSchema = z.looseObject({
   status: z.coerce.number().int().catch(0),

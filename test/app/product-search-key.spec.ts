@@ -3,13 +3,8 @@ import { productDetailQuery, productSearchKey } from '~/composables/use-products
 import { productQuerySchema } from '#shared/domain/search'
 
 /**
- * The cache key for a search.
- *
- * Worth its own file because both ways it can be wrong are invisible. Too
- * loose, and two different searches share an entry, so the directory shows
- * results for a filter the user has already changed. Too tight, and the same
- * search written two ways misses, which is precisely when a user is exploring
- * and toggling things on and off again.
+ * Both ways it can be wrong are invisible: too loose and two searches share an
+ * entry, too tight and the same search written two ways misses.
  */
 
 const query = (input: Record<string, unknown>) => productQuerySchema.parse(input)
@@ -59,10 +54,8 @@ describe('productDetailQuery', () => {
   })
 
   /**
-   * Defined as options rather than as a composable so that the deep dive page
-   * and a prefetch from a directory row share one cache entry. Two callers
-   * building the key separately is how that silently becomes two entries and
-   * two requests.
+   * Options rather than a composable, so the deep dive and a prefetch from a row
+   * share one cache entry.
    */
   it('gives two callers the same key for the same product', () => {
     expect(productDetailQuery('3017620425035').key).toEqual(productDetailQuery('3017620425035').key)

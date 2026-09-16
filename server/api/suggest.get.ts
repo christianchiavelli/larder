@@ -5,13 +5,8 @@ import { useSearchClient } from '~~/server/utils/upstream-client'
 import { upstreamCache } from '~~/server/utils/cache-policy'
 
 /**
- * Taxonomy autocomplete, backing the filter inputs.
- *
- * Fired on keystroke, against the endpoint with upstream's tightest published
- * ceiling. The cache is keyed on the prefix, which is what makes a keystroke
- * burst collapse into one upstream call per distinct prefix across all users.
- *
- * The lookup itself lives in ~~/server/services/suggest.
+ * Fired on keystroke against upstream's tightest published ceiling, so the cache
+ * is keyed on the prefix. The lookup lives in ~~/server/services/suggest.
  */
 export default defineCachedEventHandler(
   async (event): Promise<Suggestion[]> => suggestTaxonomy(useSearchClient(), getQuery(event)),

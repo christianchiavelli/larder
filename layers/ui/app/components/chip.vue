@@ -1,14 +1,8 @@
 <script setup lang="ts">
 /**
- * A small pill for a tag, label or category.
- *
- * `tone` is the whole API, because the only decision a caller has is what the
- * chip means: `accent` for something the product claims about itself (organic,
- * fair trade), `neutral` for a plain classification, `muted` for something
- * present but not endorsed, such as an additive code.
- *
- * Renders as a link when given `to`, and as a static span otherwise. A chip
- * that does nothing must not look identical to one that filters the catalogue.
+ * `tone` is the whole API: `accent` for something the product claims about
+ * itself, `neutral` for a classification, `muted` for something present but not
+ * endorsed. Renders as a link with `to`, a span without.
  */
 withDefaults(
   defineProps<{

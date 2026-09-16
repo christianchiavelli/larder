@@ -1,18 +1,9 @@
 import { ofetch } from 'ofetch'
 
 /**
- * HTTP client for the Open Food Facts services.
- *
- * Exists rather than calling `$fetch` inline for three reasons, in order of how
- * much they matter:
- *
- *  1. Open Food Facts identifies callers by User-Agent and throttles anonymous
- *     traffic. A browser cannot set that header, so every call has to originate
- *     here anyway.
- *  2. Retries need to distinguish transient failures from permanent ones.
- *     Retrying a 400 just burns the rate limit budget three times as fast.
- *  3. A timeout has to be enforced on our side. Upstream has no published
- *     ceiling, and an SSR request that hangs holds a Nitro worker hostage.
+ * Every call originates here: upstream identifies callers by User-Agent, which a
+ * browser cannot set. Retries distinguish transient from permanent, and the
+ * timeout is ours, since a hanging SSR request holds a Nitro worker.
  */
 
 export interface UpstreamRequestOptions {
@@ -46,11 +37,8 @@ function isRetryable(error: unknown): boolean {
 }
 
 /**
- * Exponential backoff with full jitter.
- *
- * Jitter matters more than the exponent here: SSR renders several requests in
- * parallel, and without it a shared upstream hiccup makes them all retry on the
- * same tick and hit the rate limiter together.
+ * Full jitter matters more than the exponent: SSR fires several requests in
+ * parallel, and without it a shared hiccup makes them all retry on one tick.
  */
 export function backoffDelay(attempt: number, random: () => number = Math.random): number {
   const ceiling = Math.min(MAX_BACKOFF_MS, BASE_BACKOFF_MS * 2 ** attempt)

@@ -3,13 +3,8 @@ import { suggestTaxonomy } from '~~/server/services/suggest'
 import type { UpstreamClient } from '~~/server/utils/upstream-client'
 
 /**
- * Taxonomy autocomplete.
- *
- * The merge is the reason this service is more than a passthrough. Upstream
- * accepts several taxonomies in one call and ranks them together, so the
- * highest-scoring one fills the whole response: "choc" across categories,
- * brands and labels comes back as eight brands and no category. One call per
- * taxonomy, interleaved here, is what makes the list usable.
+ * Upstream ranks a multi-taxonomy call globally, so the highest-scoring taxonomy
+ * fills the response: "choc" comes back as eight brands and no category.
  */
 
 /** Answers each taxonomy with its own list, and records every call. */
@@ -128,9 +123,8 @@ describe('suggestTaxonomy', () => {
   })
 
   /**
-   * Too short is not an error, it is the normal state of an input someone has
-   * just started typing into. A 400 would put a red line in the console on
-   * every first keystroke.
+   * Too short is not an error, it is an input someone has just started typing
+   * into. A 400 would put a red line in the console on every first keystroke.
    */
   it.each([[''], ['c'], ['  ']])('answers %j locally without calling upstream', async (q) => {
     const { client, get } = stubClient({ category: ['en:a'] })

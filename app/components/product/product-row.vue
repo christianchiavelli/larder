@@ -4,15 +4,9 @@ import { mostSpecificTag } from '#shared/domain/taxonomy'
 import { NUTRIENTS } from '#shared/domain/nutrition'
 
 /**
- * One product as a row.
- *
- * A row rather than a card, because the point of a directory of measurements is
- * comparing them. In a grid, energy for one product sits above sugar for
- * another and the eye has nothing to run down; in a row the same figure lands
- * in the same column every time, and the whole page becomes scannable.
- *
- * The nutrient columns are fixed and in a fixed order, never "whichever three
- * this product declares", for the same reason.
+ * A row, not a card: in a grid one product's energy sits above another's sugar
+ * and the eye has nothing to run down. Fixed columns in a fixed order, same
+ * reason.
  */
 const props = defineProps<{ product: ProductSummary }>()
 

@@ -2,8 +2,8 @@ import type { BarSeriesOption, EChartsOption } from 'echarts'
 import type { ChartTheme } from '../composables/use-chart-theme'
 
 /**
- * Shared chart fragments rather than a `makeChart()` wrapper, which would be a
- * second API to learn that grows a parameter per chart.
+ * Fragments rather than a `makeChart()` wrapper, which would be a second API
+ * that grows a parameter per chart.
  */
 
 /** Its prose description is worse than the real table `UiChart` renders. */
@@ -42,7 +42,7 @@ export function categoryAxis(
 
 /**
  * ECharts types the formatter argument as item-or-array for shared-axis
- * triggers. These are all `trigger: 'item'`, so it narrows once here.
+ * triggers. These are all `trigger: 'item'`.
  */
 export function itemTooltip(
   theme: ChartTheme,
@@ -61,8 +61,8 @@ export function itemTooltip(
 }
 
 /**
- * One bucket routinely holds two thirds of the catalogue, leaving the rest a
- * few pixels long. The label is what keeps a short bar legible.
+ * One bucket routinely holds two thirds of the catalogue, leaving the rest a few
+ * pixels long. The label is what keeps a short bar legible.
  */
 export function barValueLabel(theme: ChartTheme): BarSeriesOption['label'] {
   return {

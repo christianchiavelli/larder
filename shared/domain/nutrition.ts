@@ -1,20 +1,12 @@
 import { z } from 'zod'
 
-/**
- * Domain facts, not API shapes: Nutri-Score and NOVA are defined by public
- * health bodies and mean the same thing sourced from anywhere else.
- */
-
 /** Front-of-pack grade, A (best) through E. */
 export const NUTRI_SCORE_GRADES = ['a', 'b', 'c', 'd', 'e'] as const
 export type NutriScoreGrade = (typeof NUTRI_SCORE_GRADES)[number]
 
 /**
- * Two facts, not one absence: `unknown` is a product nobody has graded yet,
- * `not-applicable` one the scheme excludes by design, such as a beer or a
- * vinegar. Upstream reports them separately and together they are two thirds of
- * the catalogue, so folding them loses a data gap against a deliberate
- * exclusion.
+ * `unknown` is a product nobody has graded yet; `not-applicable` one the scheme
+ * excludes by design. Together they are two thirds of the catalogue.
  */
 export const UNGRADED_REASONS = ['unknown', 'not-applicable'] as const
 export type UngradedReason = (typeof UNGRADED_REASONS)[number]
@@ -58,9 +50,8 @@ export const novaGroupSchema = z.union([z.literal(1), z.literal(2), z.literal(3)
 
 /**
  * Three quarters of the catalogue has no group, and unlike a missing
- * Nutri-Score the index does not spell it: the field is absent, so there is no
- * bucket to select and the query builder has to negate instead. Not a fifth
- * group, since an unclassified product is not a kind of processing.
+ * Nutri-Score the index does not spell it: the field is absent, so the query
+ * builder has to negate. Not a fifth group.
  */
 export const NOVA_UNGROUPED = 'none'
 export type NovaUngrouped = typeof NOVA_UNGROUPED
@@ -86,8 +77,7 @@ export const NOVA_SHORT_LABELS: Record<NovaGroup, string> = {
 
 /**
  * "Not classified" rather than the badge's "Unknown": the badge reports one
- * item, the filter names a population, and three quarters of a catalogue being
- * unknown reads as a fault in the page.
+ * item, the filter names a population.
  */
 export const NOVA_FILTER_LABELS: Record<NovaFilterValue, string> = {
   ...NOVA_SHORT_LABELS,
@@ -95,9 +85,7 @@ export const NOVA_FILTER_LABELS: Record<NovaFilterValue, string> = {
 }
 
 /**
- * Per 100g or 100ml throughout. Upstream also exposes per-serving figures, but
- * serving sizes are free text and often missing, so per-100 is the only basis
- * on which two products compare honestly.
+ * Per 100g or 100ml: serving sizes upstream are free text and often missing.
  */
 export const NUTRIENT_KEYS = [
   'energyKcal',
@@ -199,9 +187,8 @@ export const NUTRIENTS: Record<NutrientKey, NutrientDescriptor> = {
 }
 
 /**
- * Nullable per nutrient, not per product: a product can declare sugars and omit
- * fibre, and one "has nutrition" flag would mean rendering zeroes we cannot
- * vouch for.
+ * Nullable per nutrient, not per product: one "has nutrition" flag would mean
+ * rendering zeroes we cannot vouch for.
  */
 export const nutrientProfileSchema = z.object({
   energyKcal: z.number().nullable(),
@@ -234,9 +221,8 @@ export function declaredNutrientCount(profile: NutrientProfile): number {
 }
 
 /**
- * Share of an adult reference intake covered by 100g of the product, as a
- * fraction. Returns null when the nutrient has no regulated reference value,
- * which is the honest answer for fibre and sodium.
+ * Null where the nutrient has no regulated reference value, which is the honest
+ * answer for fibre and sodium.
  */
 export function referenceIntakeShare(key: NutrientKey, value: number | null): number | null {
   const reference = NUTRIENTS[key].referenceIntake

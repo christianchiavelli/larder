@@ -3,14 +3,8 @@ import type { EChartsOption } from 'echarts'
 import type { FacetItem } from '#shared/domain/search'
 
 /**
- * Top values of one facet dimension, as horizontal bars.
- *
- * Horizontal because these are category names, and vertical bars would force
- * them to be rotated, truncated, or set in a size nobody can read.
- *
- * A single hue rather than the categorical palette: the bars are one series
- * measured on one axis, and colouring each differently would imply a grouping
- * that does not exist. Colour is reserved for encoding something.
+ * Horizontal because these are category names. One hue, since the bars are one
+ * series on one axis.
  */
 const props = withDefaults(
   defineProps<{

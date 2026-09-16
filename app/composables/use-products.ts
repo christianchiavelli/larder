@@ -3,9 +3,8 @@ import { fetchProduct, fetchProducts } from '~/api/products'
 import type { ProductQuery } from '#shared/domain/search'
 
 /**
- * Pinia Colada rather than `useFetch`: the directory refetches on every filter
- * change, and a cache keyed on the query turns a toggle off and back on into no
- * request at all.
+ * Pinia Colada, not `useFetch`: a cache keyed on the query turns a toggle off and
+ * back on into no request.
  */
 
 /** Sorted, so filters picked in a different order are one cache entry. */

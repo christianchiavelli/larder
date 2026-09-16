@@ -8,16 +8,8 @@ import {
 import type { TaxonomyName } from '#shared/domain/taxonomy'
 
 /**
- * Typed client for our own API.
- *
- * A thin layer, and worth having anyway: it is the only place that knows a
- * route's path and its response type belong together. Components call these
- * functions, never `$fetch` with a string, so renaming a route is a compiler
- * error rather than a runtime 404 somewhere in a template.
- *
- * These are plain async functions with no caching or reactivity. That belongs
- * to the composables in app/composables, which is what keeps them callable from
- * a test without a Vue instance.
+ * Route paths and response types in one place, so renaming a route is a
+ * compiler error rather than a runtime 404 in a template.
  */
 
 export function fetchProducts(query: ProductQuery): Promise<ProductSearchResult> {

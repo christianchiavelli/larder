@@ -7,12 +7,8 @@ import { NUTRI_SCORE_VALUES } from '#shared/domain/nutrition'
 import { resolveToken } from '../support/css-tokens'
 
 /**
- * The Nutri-Score palette, and the copy of it shipped for the first paint.
- *
- * Same drift risk as the chart theme's fallback, and one more reason to assert
- * it here: these are not decorative colours. They are set by the scheme's own
- * guidelines, so a value that quietly diverges from the token does not look
- * slightly off, it misrepresents a regulated label.
+ * These colours are prescribed by the scheme, so a value that drifts from the
+ * token does not look slightly off, it misrepresents a regulated label.
  */
 
 describe('the Nutri-Score palette', () => {
@@ -42,11 +38,8 @@ describe('the Nutri-Score palette', () => {
   })
 
   /**
-   * The two ungraded states deliberately share a swatch, and this is the test
-   * that says so on purpose rather than by accident. They are different facts,
-   * carried by the glyph and the accessible name; two neutral greys a step
-   * apart measure 1.3:1 against each other, which is a distinction the eye
-   * cannot make and the colour should therefore not claim.
+   * The shared swatch is deliberate, so it is asserted rather than left looking
+   * like an oversight.
    */
   it('gives both ungraded states the same colour, on purpose', () => {
     expect(NUTRI_SCORE_PALETTE_TOKENS.unknown).toBe(NUTRI_SCORE_PALETTE_TOKENS['not-applicable'])

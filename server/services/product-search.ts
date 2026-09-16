@@ -17,14 +17,8 @@ import { toContractError, toUpstreamError } from '~~/server/utils/upstream-error
 import type { UpstreamClient } from '~~/server/utils/upstream-client'
 
 /**
- * Directory search, as a function of a query and an HTTP client.
- *
- * Deliberately not an event handler. Everything interesting here, the page
- * clamp, the facet mapping, the way a partly malformed page still renders, is
- * decision-making, and none of it needs an HTTP request to exercise. Keeping it
- * out of the route means the tests can drive it with a stub client instead of
- * booting a server, and the route is left with the one job it is good at:
- * reading the query string and setting cache headers.
+ * A function rather than an event handler, so the page clamp, the facet mapping
+ * and the partly-malformed page can be driven with a stub client.
  */
 
 /** Only the fields the summary contract needs. The full record is ~250 keys. */
@@ -107,10 +101,9 @@ export async function searchProducts(
     distribution[key] = (distribution[key] ?? 0) + item.count
   }
 
-  /*
-   * Coverage rather than a distribution. The facet has four buckets and no
-   * fifth for a product without the field, so "how much of the catalogue is
-   * classified" is only answerable by adding up the four that exist.
+  /**
+   * Coverage, not a distribution: the facet has no bucket for a product without
+   * the field, so it is only the sum of the four that exist.
    */
   const novaClassifiedCount = (response.facets?.nova_groups?.items ?? []).reduce(
     (total, item) => total + item.count,

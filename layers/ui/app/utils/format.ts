@@ -1,8 +1,6 @@
 /**
- * Number formatting, in one place because these are decisions rather than
- * conveniences. The locale is fixed: the figures are European reference
- * intakes on an English page, and switching separators alone would leave it
- * half localised.
+ * The locale is fixed: these are European reference intakes on an English page,
+ * and switching separators alone would leave it half localised.
  */
 const LOCALE = 'en'
 

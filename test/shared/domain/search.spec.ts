@@ -13,9 +13,8 @@ import {
 } from '#shared/domain/search'
 
 /**
- * The inputs are whatever someone can put in an address bar. The governing rule
- * is that a malformed filter drops out and the page still renders: throwing
- * would turn one stale bookmark into a broken page.
+ * The inputs are whatever someone can put in an address bar. A malformed filter
+ * drops out and the page still renders.
  */
 describe('productQuerySchema', () => {
   it('fills in defaults for an empty query string', () => {
@@ -195,7 +194,7 @@ describe('the brand filter', () => {
 describe('the Nutri-Score filter', () => {
   /**
    * The schema used to drop these as invalid, and a dropped filter narrows
-   * nothing: the control read as applied over the whole unfiltered catalogue.
+   * nothing: the control read as applied over the whole catalogue.
    */
   it.each(['a', 'b', 'c', 'd', 'e', 'unknown', 'not-applicable'])('accepts %s', (value) => {
     expect(productQuerySchema.parse({ nutriScore: value }).nutriScore).toEqual([value])
@@ -218,14 +217,13 @@ describe('the Nutri-Score filter', () => {
 })
 
 /**
- * Four helpers used to enumerate the same seven names by hand, each with its
- * own passing spot check, so forgetting one would have shipped: a count one
- * short, a link missing a filter, a "Clear all" that leaves one applied.
+ * Four helpers used to enumerate the same seven names by hand, each with its own
+ * passing spot check.
  */
 describe('the filter dimensions', () => {
   /**
    * Typed on `FilterKey`, so a new dimension stops this compiling until someone
-   * says what a set value looks like. The assertion below catches the reverse.
+   * says what a set value looks like.
    */
   const EVERY_DIMENSION: Record<FilterKey, unknown> = {
     q: 'granola',

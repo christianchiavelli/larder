@@ -9,22 +9,14 @@ import { useSearchClient } from '~~/server/utils/upstream-client'
 import { upstreamCache } from '~~/server/utils/cache-policy'
 
 /**
- * Product directory search.
- *
- * Cached rather than proxied. Upstream publishes a 100 req/min ceiling and this
- * route fires on every filter change, so a shared cache is the difference
- * between a browsable UI and a throttled one. Ten minutes is well inside how
- * often the underlying database changes.
- *
- * The search itself lives in ~~/server/services/product-search.
+ * Cached rather than proxied: upstream publishes a 100 req/min ceiling and this
+ * fires on every filter change. The search lives in
+ * ~~/server/services/product-search.
  */
 
 /**
- * Cache key built from the validated query, not the raw URL.
- *
- * `?brand=b&brand=a` and `?brand=a&brand=b` are the same search, and so are
- * `?page=1` and no page at all. Keying on the URL would store them as separate
- * entries and miss a cache hit that was already paid for.
+ * Built from the validated query, not the raw URL: `?brand=b&brand=a` and
+ * `?brand=a&brand=b` are the same search.
  */
 function cacheKeyFor(query: ProductQuery): string {
   const parts = [

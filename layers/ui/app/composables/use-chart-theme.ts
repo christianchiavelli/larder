@@ -1,8 +1,6 @@
 /**
- * A canvas cannot inherit a colour, so ECharts needs every value as a literal
- * string. Keeping a second palette in TypeScript is the trap: the copies drift
- * and a chart with slightly wrong colours still renders. So the tokens stay the
- * source and this reads them back, which also makes theme switching free.
+ * A canvas cannot inherit a colour, so ECharts needs literal strings. The tokens
+ * stay the source and this reads them back, which makes theme switching free.
  */
 
 const VIZ_SERIES_TOKENS = [
@@ -31,7 +29,6 @@ export interface ChartTheme {
 /**
  * Used before the DOM exists, so unavoidably a copy of tokens.css. Light,
  * because a dark first paint under a light theme is the worse mistake.
- * chart-theme.spec.ts resolves the real tokens and compares.
  */
 const SSR_FALLBACK: ChartTheme = {
   series: ['#003cb2', '#ad7fe5', '#00a69b', '#ff547c', '#106076', '#009bee', '#b05223', '#968f88'],
@@ -48,15 +45,10 @@ const SSR_FALLBACK: ChartTheme = {
 let rasteriser: CanvasRenderingContext2D | null | undefined
 
 /**
- * zrender parses only hex, rgb and hsl, and it parses to derive hover states.
- * Given anything newer the derived fill comes out transparent and the bar under
- * the pointer vanishes while the chart still renders perfectly. This shipped
- * once, with an OKLCH palette.
- *
- * Today's palette is hex, so this is usually a no-op. It stays so the palette
- * file is not governed by an unwritten rule about colour syntax that nothing
- * enforces. Rasterising is the only reliable conversion: a computed `color` and
- * `ctx.fillStyle` both hand back the space the value was authored in.
+ * zrender parses only hex, rgb and hsl, and it parses to derive hover states:
+ * anything newer gives a transparent fill and the bar vanishes under the pointer
+ * while the chart still renders. Rasterising is the only reliable conversion,
+ * since `getComputedStyle` and `ctx.fillStyle` both hand back the authored space.
  */
 function toRgb(value: string): string | null {
   if (rasteriser === undefined) {
@@ -108,9 +100,8 @@ function readTheme(): ChartTheme {
 }
 
 /**
- * Bumps when a token's resolved value could have changed. Shared, because
- * resolving forces a style recalculation. Stays at zero until mount, so the
- * server and the first client render agree on the fallback.
+ * Bumps when a resolved token could have changed. Shared, since resolving forces
+ * a style recalculation, and zero until mount so SSR and first paint agree.
  */
 function useThemeRevision() {
   const revision = useState('ui:theme-revision', () => 0)
@@ -134,9 +125,8 @@ function useThemeRevision() {
 }
 
 /**
- * Generic on purpose: the layer knows how to read a token safely, not which
- * tokens a product has. A palette that means something in a domain is assembled
- * by that domain, which keeps this file free of any import from it.
+ * Generic on purpose: the layer knows how to read a token, not which tokens a
+ * product has.
  */
 export function useThemeColors<K extends string>(
   tokens: Readonly<Record<K, string>>,

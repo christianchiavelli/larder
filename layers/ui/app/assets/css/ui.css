@@ -1,32 +1,17 @@
 @import 'tailwindcss';
 @import './tokens.css';
 
-/* Explicit source registration.
- *
- * Tailwind 4 discovers class names by scanning from the Vite root, and Nuxt
- * sets that root to the app directory. Everything under `layers/` therefore
- * falls outside the scan, and any utility used *only* inside the design system
- * is never generated.
- *
- * The failure is completely silent, which is what makes it worth this comment:
- * the class is present in the markup, the token resolves, the build succeeds,
- * lint and types and tests all pass, and the element simply renders unstyled.
- * It cost an afternoon to find that `bg-nutri-a` was transparent while
- * `bg-surface-raised`, which the app also used, was fine.
- *
- * `app` is listed too: registering any source at all replaces auto-detection
- * rather than adding to it, so naming only `layers` would break the app.
- *
- * e2e/design-tokens.spec.ts asserts these utilities actually resolve in a real
- * browser, because nothing in the type system can.
- */
+/* Tailwind scans from the Vite root, which Nuxt sets to `app`, so a utility
+ * used only under `layers/` is never generated and the element renders
+ * unstyled with nothing reporting why. Listing any source replaces
+ * auto-detection rather than adding to it, so `app` has to be named too.
+ * e2e/design-tokens.spec.ts asserts these resolve in a real browser. */
 @source "../../../../../app";
 @source "../../../../../layers";
 
-/* `@theme inline` emits `var(--surface-base)` into the utility instead of
- * copying its computed value. That is what lets `.dark` swap one custom
- * property and have every `bg-surface` in the app follow, with no duplicate
- * `dark:` class anywhere in the markup. */
+/* `inline` emits `var(--surface-base)` into the utility rather than its
+ * computed value, so `.dark` swaps one property and every `bg-surface` follows
+ * with no `dark:` class in the markup. */
 @theme inline {
   /* Surfaces */
   --color-surface: var(--surface-base);
@@ -38,7 +23,7 @@
   --color-surface-hover: var(--surface-hover);
   --color-surface-selected: var(--surface-selected);
 
-  /* Application chrome: sidebar and top bar. Dark in both themes. */
+  /* Chrome: dark in both themes */
   --color-chrome: var(--chrome-base);
   --color-chrome-raised: var(--chrome-raised);
   --color-chrome-ink: var(--chrome-content);
@@ -94,19 +79,13 @@
   --color-nova-unknown: var(--nova-unknown);
   --color-nova-unknown-ink: var(--nova-unknown-content);
 
-  /* Charts.
-   *
-   * Only the first series is mapped to a utility. The rest are read as custom
-   * properties by useChartTheme and handed to a canvas, which cannot use a
-   * class, so mapping them generated utilities no markup ever asked for. */
+  /* Only the first series is a utility. The rest are read as custom properties
+   * and handed to a canvas, which cannot use a class. */
   --color-viz-1: var(--viz-1);
 }
 
 @theme {
-  /* Lora for headings, Open Sans for everything a reader scans or compares.
-   * Lora has enough contrast between thick and thin to hold a page title
-   * without turning it into decoration, and its numerals are legible at the
-   * sizes a heading uses, which most display serifs are not. */
+  /* Lora for headings, Open Sans for anything a reader scans or compares. */
   --font-serif: 'Lora', 'Lora Fallback', Georgia, 'Times New Roman', serif;
   --font-sans: 'Open Sans', 'Open Sans Fallback', ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', monospace;
@@ -116,43 +95,24 @@
   --radius-shell: 1rem;
   --radius-pill: 999px;
 
-  /**
-   * A frame drawn around a control, with its corners concentric.
-   *
-   * The outer radius has to be the inner radius plus the distance between the
-   * two edges, or the curves do not run parallel. Equal radii fail in a
-   * specific and recognisable way: the frame reads as a square drawn around a
-   * rounded chip, which is exactly what it looks like.
-   *
-   * The 0.3125rem is the inset it is built for: `p-1` plus a one-pixel border.
-   */
+  /* Concentric with the control inside it: the outer radius has to be the
+   * inner one plus the gap, or the curves do not run parallel. 0.3125rem is
+   * the inset it is built for, `p-1` plus a one-pixel border. */
   --radius-control-frame: calc(var(--radius-control) + 0.3125rem);
 
-  /* Tinted with the darkest blue rather than with black. A neutral shadow over
-   * a blue-cast surface reads as grime; the same shadow in the surface's own
-   * hue reads as depth. */
+  /* Tinted, not black: a neutral shadow over a blue-cast surface reads as
+   * grime. */
   --shadow-card: 0 1px 2px -1px rgb(0 34 68 / 0.08), 0 1px 3px 0 rgb(0 34 68 / 0.06);
   --shadow-raised: 0 4px 6px -2px rgb(0 34 68 / 0.06), 0 10px 20px -6px rgb(0 34 68 / 0.1);
   --shadow-overlay: 0 12px 24px -8px rgb(0 34 68 / 0.18), 0 4px 8px -4px rgb(0 34 68 / 0.1);
 
-  /* Chrome dimensions. Tokens rather than repeated numbers, because the sticky
-   * header and the sidebar have to agree on them in several places. */
+  /* The sticky header and the sidebar have to agree on these. */
   --spacing-rail: 3.75rem;
 }
 
-/* Type scale.
- *
- * Declared as utilities rather than `--text-*` theme entries because a step has
- * to carry its family as well as its size. The whole point of this scale is
- * that headings are serif and everything a reader scans or compares is sans,
- * and `--text-*` has no slot for a font family.
- *
- * There is no `text-lg` here. A size with no role attached is how a design
- * system starts drifting. For the same reason there is no step without a
- * consumer: Tailwind generates a utility only when it finds the class name, so
- * an unused step is not merely dead, it does not exist, and the first component
- * to reach for it would render unstyled with nothing reporting why.
- */
+/* Utilities rather than `--text-*` entries: a step has to carry its family as
+ * well as its size, and `--text-*` has no slot for one. Every step here has a
+ * consumer, since Tailwind only generates a utility it finds in source. */
 
 @utility text-title {
   font-family: var(--font-serif);
@@ -206,8 +166,8 @@
   text-transform: uppercase;
 }
 
-/* Figures a reader compares. Always tabular, never serif: Lora's numerals are
- * old-style, which is lovely in a sentence and unusable in a column. */
+/* Tabular, never serif: Lora's numerals are old-style and cannot be compared
+ * down a column. */
 @utility text-metric {
   font-family: var(--font-sans);
   font-size: 2.125rem;
@@ -252,23 +212,13 @@
     text-rendering: optimizeLegibility;
   }
 
-  /**
-   * A control that does something gets the hand cursor.
-   *
-   * Browsers give `<button>` the default arrow, and Tailwind's reset does not
-   * change it, so every one of the ten buttons in this app looked like text
-   * until something said otherwise. Stated once here rather than as a class on
-   * each, because it is not a decision any individual button gets to make.
-   *
-   * Disabled is excluded: the pointer says "this will do something", and the
-   * disabled state says the opposite.
-   */
+  /* Browsers give `<button>` the arrow and Tailwind's reset leaves it. Stated
+   * once, because it is not a decision an individual button makes. */
   :is(button, [role='button'], summary):not(:disabled) {
     cursor: pointer;
   }
 
-  /* Digits in a column must line up. Applied globally because in this product
-   * almost every number is one a reader compares against another. */
+  /* Global: almost every number here is one a reader compares. */
   :is(td, th, [data-numeric]) {
     font-variant-numeric: tabular-nums;
   }
@@ -307,13 +257,8 @@
   }
 }
 
-/* Select.
- *
- * Two layers of styling for one control. The first works everywhere and covers
- * the closed state; the second only applies where the customizable select API
- * exists and covers the open picker. Written in that order deliberately, so the
- * fallback is the thing that always holds and the enhancement is additive.
- */
+/* Two layers: the closed state works everywhere, the open picker only where
+ * the customizable select API exists. Fallback first, enhancement additive. */
 @layer components {
   .ui-select {
     appearance: none;
@@ -349,16 +294,14 @@
     }
   }
 
-  /* From here down: only browsers that can style the picker itself. Everything
-   * above already gave them a correct control, so nothing here is required. */
+  /* Progressive enhancement from here down. */
   @supports (appearance: base-select) {
     .ui-select,
     .ui-select::picker(select) {
       appearance: base-select;
     }
 
-    /* The engine draws its own arrow once the picker is stylable; the component
-     * already renders one that follows the theme. */
+    /* The component already renders one that follows the theme. */
     .ui-select::picker-icon {
       display: none;
     }
@@ -373,7 +316,7 @@
       background-color: var(--color-surface-overlay);
       box-shadow: var(--shadow-overlay);
       padding: 0.25rem;
-      /* The picker is a popover in the top layer, so it inherits nothing. */
+      /* A popover in the top layer, so it inherits nothing. */
       color: var(--color-ink);
       font-family: var(--font-sans);
       /* Anchored to the control rather than to the viewport. */
@@ -420,9 +363,8 @@
       cursor: pointer;
     }
 
-    /* `:checked` is the selected value, `:hover`/`:focus` is where the pointer
-     * or the keyboard currently is. They are different states and the picker
-     * shows both at once, so they must not share a treatment. */
+    /* Selected and focused are different states, and the picker shows both at
+     * once, so they must not share a treatment. */
     .ui-select option:hover,
     .ui-select option:focus {
       background-color: var(--color-surface-hover);
@@ -434,8 +376,7 @@
       font-weight: 600;
     }
 
-    /* The tick the engine adds for the selected option. Sized and coloured
-     * rather than hidden: it is the only cue distinguishing the selected row
+    /* Kept rather than hidden: it is the only cue separating the selected row
      * from the one under the pointer. */
     .ui-select option::checkmark {
       order: 1;

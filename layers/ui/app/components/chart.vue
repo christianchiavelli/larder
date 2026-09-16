@@ -2,22 +2,9 @@
 import type { EChartsOption } from 'echarts'
 
 /**
- * Chart container.
- *
- * Three problems it solves so that no caller has to solve them again.
- *
- * ECharts draws to a canvas, which is invisible to assistive technology and to
- * anyone who cannot distinguish the colours. Passing `dataTable` renders the
- * same figures as a real table, visually hidden but reachable by a screen
- * reader and by find-in-page. A chart that cannot be read is not accessible
- * because it has an alt text saying "bar chart".
- *
- * The library has no server rendering, so the chart is client-only. The height
- * is required and reserved on both sides of hydration, which is what stops the
- * page reflowing under the reader when the canvas appears.
- *
- * Theme colours come from useChartTheme, which reads the CSS tokens, so charts
- * follow a theme switch without a second palette existing anywhere.
+ * ECharts draws to a canvas, so `dataTable` renders the same figures as a real
+ * table for a screen reader and for find-in-page. Client-only, with the height
+ * reserved on both sides of hydration. Colours come from useChartTheme.
  */
 const props = withDefaults(
   defineProps<{

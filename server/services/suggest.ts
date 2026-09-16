@@ -5,9 +5,8 @@ import { toUpstreamError } from '~~/server/utils/upstream-error'
 import type { UpstreamClient } from '~~/server/utils/upstream-client'
 
 /**
- * One upstream call per taxonomy, merged here. Upstream accepts a list in one
- * call but ranks it globally, so the highest-scoring taxonomy fills the whole
- * response: "choc" across categories, brands and labels returns eight brands.
+ * One call per taxonomy: upstream accepts a list but ranks it globally, so the
+ * highest-scoring taxonomy fills the whole response.
  */
 
 const suggestQuerySchema = z.object({
@@ -93,17 +92,15 @@ async function suggestOne(
 }
 
 /**
- * A share plus one, so a taxonomy returning fewer than its share leaves the
- * others a spare. Asking each for the full limit multiplies load on the
- * endpoint with upstream's tightest published ceiling.
+ * A share plus one, so a taxonomy that comes up short leaves the others a spare.
  */
 function quotaFor(limit: number, taxonomies: number): number {
   return Math.ceil(limit / taxonomies) + 1
 }
 
 /**
- * Round-robin rather than concatenation, which would put every category above
- * every brand and show one taxonomy until the reader scrolls.
+ * Round-robin, not concatenation, which would show one taxonomy until the reader
+ * scrolls.
  */
 function interleave(lists: Suggestion[][]): Suggestion[] {
   const merged: Suggestion[] = []

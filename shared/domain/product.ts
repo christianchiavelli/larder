@@ -3,15 +3,13 @@ import { novaGroupSchema, nutriScoreSchema, nutrientProfileSchema } from './nutr
 import { taxonomyTagSchema } from './taxonomy'
 
 /**
- * Summary and detail are split because a directory row needs a dozen fields and
- * the deep dive needs everything; one shape would put ~250 upstream keys per
- * row on the wire to render a table.
+ * Summary and detail are split: one shape would put ~250 upstream keys per row
+ * on the wire to render a table.
  */
 
 /**
- * Upstream publishes each product at three widths from its own CDN. Carrying
- * all three lets the directory draw at 48px and the deep dive at 112px;
- * rewriting the number in the path would break the day filenames change.
+ * Three widths from upstream's own CDN. Rewriting the number in the path would
+ * break the day filenames change.
  */
 export const productImageSchema = z
   .object({
@@ -65,7 +63,7 @@ export function productDisplayName(product: Pick<ProductSummary, 'code' | 'name'
 
 /**
  * Upstream concatenates brands into one user-entered string, so it arrives with
- * duplicate casings ("Nutella, NUTELLA"), stray whitespace and empty segments.
+ * duplicate casings, stray whitespace and empty segments.
  */
 export function normaliseBrands(raw: string | readonly string[] | null | undefined): string[] {
   const parts = typeof raw === 'string' ? raw.split(',') : (raw ?? [])

@@ -1,10 +1,6 @@
 <script setup lang="ts">
 /**
- * Loading placeholder.
- *
- * The pulse is suppressed under `prefers-reduced-motion`, where a page of
- * breathing rectangles is not a neutral choice. The static shape still reads as
- * "loading" on its own.
+ * The pulse is suppressed under `prefers-reduced-motion`.
  */
 withDefaults(defineProps<{ rounded?: 'control' | 'card' | 'full' }>(), { rounded: 'control' })
 </script>

@@ -45,8 +45,8 @@ describe('getProductDetail', () => {
   })
 
   /**
-   * Upstream answers 200 with `status: 0` for a code it considers malformed,
-   * so HTTP status alone is not enough to detect a missing product.
+   * Upstream answers 200 with `status: 0` for a malformed code, so HTTP status
+   * alone cannot detect a missing product.
    */
   it('maps a 200 carrying status 0 to a 404', async () => {
     const client = stubClient({ status: 0, status_verbose: 'no code or invalid code' })

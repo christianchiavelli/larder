@@ -67,9 +67,8 @@ describe('mapProductDetail', () => {
   })
 
   /**
-   * The shape most of the catalogue is actually in: a barcode, a name, and
-   * nothing else. Every optional key is absent from the payload rather than
-   * present and null.
+   * The shape most of the catalogue is in: every optional key absent from the
+   * payload rather than present and null.
    */
   it('maps a record that carries nothing but a code', () => {
     const product = parse({ code: '123' })

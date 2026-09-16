@@ -1,15 +1,7 @@
 <script setup lang="ts">
 /**
- * The header every page opens with.
- *
- * The title is serif and the supporting text is sans. That pairing is doing the
- * work of a whole visual identity: it marks where a page begins without a rule,
- * a coloured band or a larger font size, and it is the difference between a
- * layout that reads as a product and one that reads as a starter template.
- *
- * `eyebrow` carries breadcrumbs or a section name. `actions` is right-aligned
- * and drops below the title on narrow screens rather than shrinking the title,
- * because a truncated heading is worse than a wrapped toolbar.
+ * Serif title over sans supporting text. `actions` drops below the title on
+ * narrow screens rather than shrinking it.
  */
 defineProps<{
   title: string

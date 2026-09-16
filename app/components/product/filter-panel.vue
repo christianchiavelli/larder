@@ -9,13 +9,8 @@ import { activeFilterCount, hasActiveFilters } from '#shared/domain/search'
 import type { ProductSearchResult } from '#shared/domain/search'
 
 /**
- * The directory's filter panel.
- *
- * Takes the facets as a prop and the filter state from the URL, which is the
- * split that matters: the counts are data the page fetched, and the selection
- * is not state this component owns or that anyone has to hand it. That is the
- * practical payoff of keeping the query in the address bar, and the reason this
- * has two props instead of seven props and six events.
+ * Facets come in as a prop, the selection is read from the URL. Two props
+ * instead of seven props and six events.
  */
 defineProps<{
   facets: ProductSearchResult['facets'] | null

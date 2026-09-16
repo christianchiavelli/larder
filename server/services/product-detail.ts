@@ -10,17 +10,9 @@ import { toContractError, toUpstreamError } from '~~/server/utils/upstream-error
 import type { UpstreamClient } from '~~/server/utils/upstream-client'
 
 /**
- * Single product lookup. See the note in ./product-search.ts on why this is a
- * function rather than an event handler.
- */
-
-/**
- * Barcodes are EAN-8 through GTIN-14, plus the internal codes upstream assigns
- * to products without one. All digits, never longer than 14.
- *
- * This value is interpolated into an outbound URL, so a permissive pattern here
- * is a request-forgery primitive rather than a cosmetic concern. Validating the
- * shape is what keeps `../` from ever reaching it.
+ * Barcodes are EAN-8 through GTIN-14, plus upstream's internal codes: digits,
+ * never longer than 14. This is interpolated into an outbound URL, so a
+ * permissive pattern here is a request-forgery primitive.
  */
 const barcodeSchema = z.string().regex(/^\d{1,14}$/, 'A barcode is between 1 and 14 digits.')
 

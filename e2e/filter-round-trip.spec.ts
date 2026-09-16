@@ -1,16 +1,8 @@
 import { expect, test, type APIRequestContext } from '@playwright/test'
 
 /**
- * Every filter the UI offers, applied, checked for a result.
- *
- * It exists for a bug with no error and no log: the brands facet stores a bare
- * slug, autocomplete prefixes everything, and a suggested brand applied a
- * filter the index does not use. No type system or unit test sees a
- * disagreement between two upstream services about a vocabulary, so this walks
- * the same path a reader does.
- *
- * Presence only, never counts: upstream is community-edited and the numbers
- * move daily.
+ * Every filter the UI offers, applied, checked for a result. Presence only,
+ * never counts: upstream is community-edited and the numbers move daily.
  */
 
 const DIMENSIONS = [
@@ -62,9 +54,8 @@ test.describe('filters round-trip', () => {
   })
 
   /**
-   * One known-good value rather than every suggestion: autocomplete answers
-   * from the taxonomy, a superset of what is indexed, so some suggestions
-   * legitimately match nothing. What must hold is that the vocabularies agree.
+   * One known-good value: autocomplete answers from the taxonomy, a superset of
+   * what is indexed, so some suggestions legitimately match nothing.
    */
   test('a suggested brand reaches the products under it', async ({ request }) => {
     const suggestions = await json(request, '/api/suggest?q=nestle&taxonomy=brand&limit=5')

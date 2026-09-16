@@ -2,16 +2,8 @@
 import type { FacetItem } from '#shared/domain/search'
 
 /**
- * One facet dimension in the filter panel.
- *
- * Long facet lists are truncated with a "show more" rather than scrolled,
- * because a nested scroll area inside a sidebar that also scrolls is a trap on
- * a trackpad.
- *
- * A value that is already selected is always rendered, even when it falls
- * outside the top N or disappears from the facet counts entirely. Otherwise
- * applying a filter can make its own checkbox vanish, leaving a user with a
- * narrowed result set and no visible way to undo it.
+ * A selected value is always rendered, even when it falls outside the top N or
+ * out of the facet counts, or applying a filter can hide its own checkbox.
  */
 const props = withDefaults(
   defineProps<{

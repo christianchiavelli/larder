@@ -2,12 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createUpstreamClient } from '~~/server/utils/upstream-client'
 
 /**
- * Retry policy, exercised against a stubbed global fetch.
- *
- * The behaviour worth pinning down is not that retries happen, it is which
- * failures consume one. Retrying a 400 spends the upstream rate-limit budget
- * three times over to receive the same rejection, and on a service that
- * throttles by User-Agent that is a self-inflicted outage.
+ * What matters is which failures consume a retry: spending the rate-limit budget
+ * three times to receive the same 400 is a self-inflicted outage.
  */
 
 const USER_AGENT = 'Larder/test'
@@ -121,8 +117,7 @@ describe('createUpstreamClient', () => {
   })
 
   /**
-   * An aborted SSR render must not leave retries running against upstream. The
-   * user has navigated away; the budget spent on their behalf should stop.
+   * An aborted SSR render must not leave retries running upstream.
    */
   it('stops immediately when the caller aborts, without spending a retry', async () => {
     const controller = new AbortController()

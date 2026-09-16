@@ -1,11 +1,9 @@
 import { expect, test, type Page } from '@playwright/test'
 
 /**
- * Tailwind generates a utility only if it finds the class name while scanning
- * source. Nuxt sets the Vite root to the app directory, so nothing under
- * `layers/` was scanned and every design-system-only utility was dead: markup
- * intact, build green, elements unstyled. The `@source` block in ui.css is the
- * fix and this spec is what notices if the paths drift.
+ * Nothing under `layers/` was scanned, so every design-system-only utility was
+ * dead with the build green and the elements unstyled. This notices if the
+ * `@source` paths drift.
  */
 
 async function selectors(page: Page): Promise<string[]> {
@@ -75,8 +73,8 @@ test.describe('design tokens reach the browser', () => {
   })
 
   /**
-   * The rule existing, not each step having a unique size: `text-subheading`
-   * and `text-body` share a size and differ only in weight.
+   * The rule existing, not each step having a unique size: `text-subheading` and
+   * `text-body` share a size and differ in weight.
    */
   test('every named typography step is generated', async ({ page }) => {
     const rules = await selectors(page)
@@ -142,9 +140,8 @@ test.describe('design tokens reach the browser', () => {
 })
 
 /**
- * Outer radius = inner radius + the gap between the edges, or the curves do not
- * run parallel and the frame reads as a square around a rounded chip. Asserted
- * as the relationship, so changing the padding alone is what fails.
+ * Outer radius = inner radius + the gap, or the curves do not run parallel.
+ * Asserted as the relationship, so changing the padding alone is what fails.
  */
 test('the grade filter frame is concentric with the badge inside it', async ({ page }) => {
   await page.goto('/products')
@@ -173,10 +170,8 @@ test('the grade filter frame is concentric with the badge inside it', async ({ p
 })
 
 /**
- * Neutral because the ring wraps a colour scale, and an accent hue means
- * nothing beside hues that mean everything. Visible because the ring is the
- * only thing separating on from off, and WCAG 1.4.11 puts that floor at 3:1.
- * Asserted on the filter rather than the token: accent is right for pagination.
+ * Neutral because the ring wraps a colour scale, and visible because WCAG 1.4.11
+ * puts a non-text indicator at 3:1. Asserted on the filter, not the token.
  */
 test('the chosen grade is marked in a neutral colour, in both themes', async ({ page }) => {
   await page.goto('/products')
@@ -240,15 +235,10 @@ test('the chosen grade is marked in a neutral colour, in both themes', async ({ 
 })
 
 /**
- * The product page once drew its own NOVA chip with `text-white` fixed, which
- * on the lighter yellow is 1.95:1 against a floor of 4.5, and nothing caught it.
+ * The product page once drew its own NOVA chip at 1.95:1 and nothing caught it.
  *
- * Nutri-Score is excluded on purpose. Its fill and ink are prescribed by the
- * scheme, and grade E is white on #e63e11, which is 4.15:1 against the 4.5 AA
- * asks of body text. Darkening the letter would pass this check by
- * misrepresenting a regulated mark, so the colours stay and are pinned to their
- * official values by the test above. The letter is never the only cue: the
- * grade is in the accessible name and is a labelled row in every data table.
+ * Nutri-Score is excluded on purpose: its colours are prescribed, and grade E is
+ * 4.15:1 against the 4.5 AA asks. The grade is never carried by colour alone.
  */
 test('every badge the app colours itself is readable on its own fill', async ({
   page,

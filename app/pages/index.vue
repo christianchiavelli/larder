@@ -5,12 +5,8 @@ import { NUTRI_SCORE_GRADES, type NutriScore } from '#shared/domain/nutrition'
 useHead({ title: 'Overview' })
 
 /**
- * Catalogue overview.
- *
- * Reads the unfiltered search, which already returns facet counts across the
- * whole match set. A dedicated aggregation endpoint would be a second thing to
- * cache, rate-limit and keep consistent with the directory, to serve numbers
- * the directory's own response already carries.
+ * Reads the unfiltered search, which already returns facet counts over the whole
+ * match set.
  */
 const query = computed(() => EMPTY_PRODUCT_QUERY)
 const { state, asyncStatus, refresh } = useProductSearch(query)
@@ -30,14 +26,8 @@ const graded = computed(() =>
 )
 
 /**
- * Population size, taken from the facet buckets rather than the hit count.
- *
- * These are different numbers describing different things. Elasticsearch stops
- * tracking hits at 10,000 and pins `totalCount` there, but it still aggregates
- * over every matching document, so the facets are real totals across the whole
- * catalogue. Feeding a headline figure from `totalCount` while the chart beside
- * it is drawn from the facets would put 10,000 and 3.5 million on the same
- * screen as if they measured the same population.
+ * From the facet buckets, not the hit count: Elasticsearch pins `totalCount` at
+ * 10,000 but still aggregates over every matching document.
  */
 const catalogueSize = computed(() => {
   // Every bucket, rather than a list of the ones that existed when this was
@@ -55,11 +45,8 @@ const scored = computed(() => {
 })
 
 /**
- * Share of the catalogue carrying a NOVA group.
- *
  * This tile used to read "Categories represented: 10", which was the number of
- * buckets the facet returns, not a fact about the catalogue: it is ten for
- * every query and would have been ten for an empty one.
+ * buckets a facet page returns, not a fact about the catalogue.
  */
 const classified = computed(() => {
   const total = catalogueSize.value

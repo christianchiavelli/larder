@@ -2,13 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 import type { LocationQuery } from 'vue-router'
 
-/**
- * Every rule here is one a user notices only when it is wrong: an empty page 8,
- * a checkbox that will not switch off, a cleared panel that also reset the
- * sort. The matrix is combinatorial and belongs where a case costs a
- * millisecond.
- */
-
 const currentQuery = ref<LocationQuery>({})
 const push = vi.fn((to: { query: LocationQuery }) => {
   currentQuery.value = to.query
@@ -16,14 +9,8 @@ const push = vi.fn((to: { query: LocationQuery }) => {
 })
 
 /**
- * The router is replaced wholesale, because the point of this composable is
- * what it writes to the URL, and a real router would answer that question with
- * a navigation.
- *
- * No Nuxt runtime either, which is why the composable imports `computed` from
- * Vue rather than relying on the auto-import: a module that can only be loaded
- * inside a framework runtime can only be tested inside one too, and that is a
- * second or two per file for nothing.
+ * The router is replaced wholesale, and there is no Nuxt runtime: the composable
+ * imports `computed` from Vue so it can be tested without one.
  */
 vi.mock('vue-router', () => ({
   useRoute: () => ({
@@ -71,9 +58,8 @@ describe('useProductQuery', () => {
 
   describe('the page number', () => {
     /**
-     * The rule worth the most here. Narrowing a result set while holding the
-     * page number lands the user on an empty page of a set that now has three,
-     * and the reasonable conclusion is that the filter is broken.
+     * Narrowing while holding the page number lands the reader on an empty page of
+     * a set that now has three.
      */
     it('resets when a filter changes', () => {
       currentQuery.value = { page: '8' }
@@ -145,9 +131,8 @@ describe('useProductQuery', () => {
     )
 
     /**
-     * Brands take a value from either of two vocabularies. The facet checkbox
-     * passes the stored slug; a taxonomy suggestion passes the same brand with
-     * a language prefix the search index does not use.
+     * Brands take a value from either of two vocabularies: the facet passes the
+     * stored slug, a suggestion passes the same brand prefixed.
      */
     it('adds a brand from the facet and from a suggestion as one filter', () => {
       const { toggleTag } = useProductQuery()
@@ -217,9 +202,8 @@ describe('useProductQuery', () => {
     })
 
     /**
-     * Sort and page size are how the user chose to read the list, not what they
-     * chose to look at. Resetting them alongside the filters is the kind of
-     * helpfulness that reads as a bug.
+     * Sort and page size are how the reader chose to read the list, not what they
+     * chose to look at.
      */
     it('keeps the sort and the page size', () => {
       currentQuery.value = { category: ['en:snacks'], sort: 'popularity', pageSize: '48' }

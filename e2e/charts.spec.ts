@@ -2,11 +2,6 @@ import { expect, test, type Page } from '@playwright/test'
 
 /**
  * A canvas has no element to assert on, so these sample the rendered image.
- *
- * It exists because of a bug that shipped: the palette was authored in OKLCH, a
- * canvas accepts it, but ECharts parses colours to derive hover states and
- * zrender does not handle OKLCH. The bar under the pointer disappeared while
- * everything else passed. A person found it by moving a mouse.
  */
 
 interface Point {
@@ -27,9 +22,8 @@ async function readPixel(page: Page, canvasIndex: number, point: Point): Promise
 }
 
 /**
- * The middle of the longest horizontal run of non-background pixels, which is
- * the middle of a bar. Derived from the image, so a layout change does not
- * leave the probe pointing at empty space and passing.
+ * The middle of the longest horizontal run of non-background pixels. Derived
+ * from the image, so a layout change cannot leave the probe passing on nothing.
  */
 async function findBarInterior(page: Page, canvasIndex: number): Promise<Point | null> {
   return page.evaluate(
@@ -82,7 +76,7 @@ test.describe('charts', () => {
 
   /**
    * A hovered bar may change shade; it may not disappear. Compared against the
-   * background rather than the original fill, since emphasis alters the fill.
+   * background, since emphasis alters the fill.
    */
   test('a hovered bar stays visible', async ({ page }) => {
     const canvases = await page.locator('figure canvas').count()
@@ -114,11 +108,9 @@ test.describe('charts', () => {
   })
 
   /**
-   * The conversion itself, probed with an explicit OKLCH value rather than a
-   * token, so it keeps testing the mechanism after the palette changes again.
-   * It also rules out both shortcuts: a computed `color` and `ctx.fillStyle`
-   * each preserve the authored colour space, and swapping in either would leave
-   * every chart rendering perfectly and break hover.
+   * Probed with an explicit OKLCH value rather than a token, so it keeps testing
+   * the mechanism after the palette changes. Both shortcuts are ruled out here:
+   * `getComputedStyle` and `ctx.fillStyle` preserve the authored colour space.
    */
   test('a colour syntax zrender cannot parse survives the conversion', async ({ page }) => {
     const result = await page.evaluate(() => {
@@ -163,9 +155,8 @@ test.describe('charts', () => {
   })
 
   /**
-   * A figure is a number or the em-dash meaning nothing was reported, never
-   * NaN, which is what a headline prints when the field behind it is added to
-   * one side of the boundary and not the other.
+   * A figure is a number or an em-dash, never NaN, which is what a headline prints
+   * when a field is added to one side of the boundary only.
    */
   test('no figure on the overview renders as NaN', async ({ page }) => {
     const figures = await page.locator('[data-numeric]').allInnerTexts()
@@ -178,9 +169,8 @@ test.describe('charts', () => {
   })
 
   /**
-   * Computed separately, and the headline used to name the buckets it summed:
-   * the day the ungraded bucket became two, it went short by 71,025 products
-   * without throwing. Asserted as a relationship, since the catalogue grows.
+   * The headline used to name the buckets it summed, and went short by 71,025 the
+   * day the ungraded bucket became two. Asserted as a relationship.
    */
   test('the headline counts the same catalogue the chart draws', async ({ page }) => {
     const table = page.locator('figure table').first()

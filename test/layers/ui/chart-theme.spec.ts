@@ -3,14 +3,9 @@ import { FALLBACK_CHART_THEME } from '~~/layers/ui/app/composables/use-chart-the
 import { LIGHT_TOKENS, resolveToken } from '../../support/css-tokens'
 
 /**
- * The generic chart palette, and the one copy of it the codebase cannot avoid.
- *
- * Charts are drawn to a canvas, so ECharts needs literal colour strings. In the
- * browser those come from the tokens; on the server no stylesheet has been
- * applied, so the composable ships a hard-coded copy of the light theme for the
- * first paint. That copy is exactly the kind of thing that drifts: change a
- * token, forget the fallback, and every cold load flashes the old palette for a
- * frame. Nothing else would report it.
+ * The server has no stylesheet, so the composable ships a hard-coded copy of the
+ * light theme. Change a token, forget the copy, and every cold load flashes the
+ * old palette for a frame.
  */
 
 const GENERIC_TOKENS = [
@@ -63,11 +58,8 @@ describe('the chart palette', () => {
   })
 
   /**
-   * The layer boundary, asserted rather than trusted.
-   *
-   * The chart theme used to resolve `--nutriscore-*` and `--nova-*` as well,
-   * which made the design system the one place that knew a food catalogue
-   * grades things from A to E. Nothing stops that being added back except this.
+   * The chart theme used to resolve `--nutriscore-*` too, which made the design
+   * system the one place that knew a catalogue grades things A to E.
    */
   it('carries no domain palette', () => {
     expect(Object.keys(FALLBACK_CHART_THEME)).not.toContain('nutriScore')
@@ -75,15 +67,9 @@ describe('the chart palette', () => {
   })
 
   /**
-   * The bug the conversion path exists for.
-   *
-   * zrender parses a colour to derive a hover state, and it understands only
-   * hex, rgb/rgba and hsl/hsla. A palette in OKLCH renders perfectly and turns
-   * transparent under the pointer, which is how it shipped once. The composable
-   * now normalises whatever it reads, so this is no longer load-bearing for the
-   * tokens as written, and it is still worth pinning: a palette that is legal
-   * in tokens.css but unparseable downstream should be a decision, not an
-   * accident on a Friday.
+   * zrender understands only hex, rgb and hsl, and a palette in OKLCH renders
+   * perfectly and turns transparent under the pointer. Today's tokens are hex, so
+   * this pins the mechanism rather than the current palette.
    */
   it('is written in a syntax zrender can parse', () => {
     const literals = [...LIGHT_TOKENS.keys()]

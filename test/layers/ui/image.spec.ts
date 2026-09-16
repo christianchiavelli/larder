@@ -2,12 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { srcSet } from '~~/layers/ui/app/utils/image'
 
 /**
- * `srcset` construction.
- *
- * Worth testing because every way it can be wrong is invisible. A malformed
- * entry, a duplicated width, an empty attribute: none of them break the layout,
- * and the page renders identically whether the browser picked the 100px file or
- * the 400px one. The only symptom is bandwidth.
+ * Every way it can be wrong is invisible: the page renders identically whether
+ * the browser picked the 100px file or the 400px one. The symptom is bandwidth.
  */
 
 describe('srcSet', () => {
@@ -30,9 +26,8 @@ describe('srcSet', () => {
   })
 
   /**
-   * An empty `srcset` attribute is not the same as no attribute. Some engines
-   * read it as a candidate list containing nothing valid and decline to fall
-   * back to `src`, which turns a missing thumbnail into a missing image.
+   * An empty `srcset` is not the same as no attribute: some engines read it as a
+   * candidate list with nothing valid and decline to fall back to `src`.
    */
   it('returns undefined rather than an empty string', () => {
     expect(

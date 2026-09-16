@@ -1,10 +1,7 @@
 <script setup lang="ts">
 /**
- * Page navigation.
- *
- * Renders a fixed-width window of page numbers with ellipses, so the control
- * does not change width as the user moves through the set. A pager that
- * reflows every time you click it is a pager that is hard to click twice.
+ * A fixed-width window of page numbers, so the control does not reflow as the
+ * reader moves through the set.
  */
 const props = withDefaults(
   defineProps<{

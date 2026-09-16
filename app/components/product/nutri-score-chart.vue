@@ -8,18 +8,9 @@ import {
 } from '#shared/domain/nutrition'
 
 /**
- * Distribution of Nutri-Score grades across a result set.
- *
- * A bar chart rather than a donut. The grades are an ordered scale from A to E,
- * and a donut arranges them in a ring where that order is arbitrary and the
- * lengths cannot be compared. Bars on a shared baseline preserve both.
- *
- * The two ungraded bars are shown rather than dropped, and shown apart. They
- * are routinely most of the catalogue, so hiding them would imply the graded
- * products are the whole population and overstate every percentage on the page.
- * Keeping them apart is the same argument one level down: "nobody has graded
- * this yet" and "the scheme does not grade this" are different findings, and a
- * single bar would report the second as though it were more of the first.
+ * Bars, not a donut: the grades are ordered and a ring makes that arbitrary.
+ * The two ungraded bars are kept, and kept apart, since they are routinely most
+ * of the catalogue.
  */
 const props = defineProps<{
   distribution: Partial<Record<NutriScore, number>>

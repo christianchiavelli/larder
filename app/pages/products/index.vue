@@ -4,12 +4,8 @@ import { hasActiveFilters } from '#shared/domain/search'
 useHead({ title: 'Products' })
 
 /**
- * The directory.
- *
- * The page fetches and lays out. The filter panel and the search controls read
- * the query from the URL themselves, so neither is handed it here: what the
- * user is looking at is not this component's state, and threading it through
- * props would be inventing an owner for something that already has one.
+ * The filter panel and the search controls read the query from the URL
+ * themselves, so neither is handed it here.
  */
 const { query, setPage, clearFilters } = useProductQuery()
 const { state, asyncStatus, refresh } = useProductSearch(query)
@@ -20,9 +16,7 @@ const error = computed(() => state.value.error)
 const showingFilters = computed(() => hasActiveFilters(query.value))
 
 /**
- * Upstream stops counting at its tracking ceiling, so past that point the
- * figure is a floor rather than a total. Printing it plainly would be stating a
- * number we know to be wrong.
+ * Past the tracking ceiling the figure is a floor, not a total.
  */
 const totalLabel = computed(() => {
   if (!result.value) return null

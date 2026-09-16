@@ -2,12 +2,8 @@ import { createError, type H3Error } from 'h3'
 import type { ZodError } from 'zod'
 
 /**
- * Translates upstream failures into statuses that mean something to our client.
- *
- * The distinction that matters here is between "upstream said no" and "upstream
- * misbehaved". Forwarding a raw 500 would tell the browser our API is broken,
- * when in fact a third party is; 502 and 504 say that accurately and let the
- * client decide whether retrying is worth it.
+ * Separates "upstream said no" from "upstream misbehaved": forwarding a raw 500
+ * would report our API as broken when a third party is.
  */
 
 export interface UpstreamFailureContext {
@@ -35,12 +31,8 @@ function isAbort(error: unknown): boolean {
 }
 
 /**
- * Maps a thrown fetch error to an H3 error.
- *
- * `data.reason` is a stable machine-readable code the client switches on;
- * `statusMessage` is prose for a human reading a log or a network tab. Upstream
- * response bodies are deliberately not forwarded: they leak internal hostnames
- * and are not written for our users.
+ * `data.reason` is a stable code the client switches on; `statusMessage` is
+ * prose for a log. Upstream bodies are not forwarded: they leak hostnames.
  */
 export function toUpstreamError(error: unknown, context: UpstreamFailureContext): H3Error {
   if (isAbort(error)) {
@@ -91,10 +83,8 @@ export function toUpstreamError(error: unknown, context: UpstreamFailureContext)
 }
 
 /**
- * Raised when upstream answers 200 with a body that does not match its own
- * contract. That is a 502: the response is unusable, and it is not the caller's
- * fault. The Zod issue paths go to the log so the schema can be fixed, because
- * upstream shapes drift without announcement.
+ * Upstream answering 200 with a body that breaks its own contract is a 502. The
+ * Zod issue paths go to the log, since upstream shapes drift unannounced.
  */
 export function toContractError(error: ZodError, context: UpstreamFailureContext): H3Error {
   console.error(`[${context.service}] contract violation on ${context.operation}`, {

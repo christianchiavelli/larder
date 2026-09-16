@@ -31,8 +31,8 @@ describe('humanizeTagId', () => {
   })
 
   /**
-   * Certification marks have fixed casing. Naive title-casing renders these as
-   * "Pdo" and "Igp", which reads as a bug to anyone who knows the labels.
+   * Certification marks have fixed casing: naive title-casing renders these as
+   * "Pdo" and "Igp".
    */
   it.each([
     ['en:pdo', 'PDO'],
@@ -57,9 +57,7 @@ describe('toTaxonomyTag', () => {
   })
 
   /**
-   * The brands facet answers `{ key: "lu", name: "lu" }`. Taking that as a
-   * label prints lowercase slugs beside properly cased entries from other
-   * dimensions, so a label that only echoes the id is treated as no label.
+   * A label that only echoes the id is treated as no label.
    */
   it('ignores a label that merely echoes the slug', () => {
     expect(toTaxonomyTag('lu', 'lu').label).toBe('Lu')
@@ -98,12 +96,8 @@ describe('mostSpecificTag', () => {
 
 describe('toFilterValue', () => {
   /**
-   * The one dimension upstream stores differently.
-   *
-   * The categories facet returns `en:beverages` and the brands facet returns
-   * `carrefour`, but autocomplete prefixes everything. A brand suggestion
-   * therefore arrives as `en:olivari` and matches no product, which presents as
-   * an applied filter over an empty catalogue rather than as an error.
+   * The categories facet returns `en:beverages` and the brands facet `carrefour`,
+   * but autocomplete prefixes everything, so a brand suggestion matches nothing.
    */
   it('strips the language prefix from a brand', () => {
     expect(toFilterValue('brand', 'en:olivari')).toBe('olivari')

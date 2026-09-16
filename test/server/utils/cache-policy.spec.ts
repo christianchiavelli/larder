@@ -2,13 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { upstreamCache } from '~~/server/utils/cache-policy'
 
 /**
- * The shared cache policy.
- *
- * Small enough to look self-evident, and it holds one invariant that is only
- * ever noticed when it is missing: every upstream route bypasses the cache in
- * development. Without it, a cached response outlives the code that produced
- * it, so editing a mapper appears to do nothing and the obvious conclusion is
- * the wrong one.
+ * One invariant, only ever noticed when it is missing: every upstream route
+ * bypasses the cache in development.
  */
 
 describe('upstreamCache', () => {

@@ -1,12 +1,8 @@
 <script setup lang="ts">
 /**
- * The state a view shows when it has nothing to render.
- *
- * `tone` separates the two cases that look identical and are not: a search that
- * legitimately matched nothing, and a request that failed. Presenting an outage
- * as an empty result set is the one failure a reader cannot detect, because
- * "no products match" is a perfectly plausible answer. The error tone says so
- * and offers the retry; the empty tone does not.
+ * `tone` separates a search that matched nothing from a request that failed.
+ * Presenting an outage as an empty result set is the one failure a reader cannot
+ * detect.
  */
 withDefaults(
   defineProps<{

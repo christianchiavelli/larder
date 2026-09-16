@@ -1,12 +1,8 @@
 <script setup lang="ts" generic="T extends string | number">
 /**
- * A real `<select>`, not a listbox rebuilt out of divs, so keyboard navigation,
- * type-ahead, screen reader semantics, form association and the native picker
- * on touch all keep working.
- *
- * `appearance: base-select` styles the open picker too. Not baseline in
- * September 2026, which is fine: it is additive, the closed control is styled
- * either way, and only the open list falls back to the platform's own.
+ * A real `<select>`, so keyboard, type-ahead, screen reader semantics, form
+ * association and the touch picker keep working. `appearance: base-select`
+ * styles the open picker where it exists, and is additive.
  */
 const props = withDefaults(
   defineProps<{
@@ -25,8 +21,7 @@ const fieldId = useId()
 
 /**
  * A `<select>` only reports strings, so casting to `T` would put `"48"` where
- * the app expects `48` and every comparison would quietly fail. Looking the
- * value up in the options keeps the caller's type.
+ * the app expects `48`. The value is looked up in the options instead.
  */
 function onChange(event: Event) {
   const raw = (event.target as HTMLSelectElement).value

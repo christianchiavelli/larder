@@ -2,21 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { productQuerySchema } from '#shared/domain/search'
 
 /**
- * The typed client for our own API.
- *
- * Thin enough that it looks like it does not need testing, and it holds two
- * things that are wrong silently rather than loudly: the route paths, and the
- * fact that a search request has to carry exactly the state the address bar
- * shows. A drift between those two means the shared link and the request behind
- * it disagree, which nobody sees until a bug report says the filter "did not
- * apply".
- */
-
-/**
- * Stubbed before the module under test is loaded, because `$fetch` is a Nuxt
- * ambient global: the binding is resolved at import time, so replacing it
- * afterwards would leave the real one in place and every assertion here would
- * be measuring a network call that cannot succeed in Node anyway.
+ * Stubbed before the module loads: `$fetch` is a Nuxt ambient global, so the
+ * binding is resolved at import time.
  */
 const $fetch = vi.fn().mockResolvedValue({})
 vi.stubGlobal('$fetch', $fetch)

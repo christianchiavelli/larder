@@ -13,26 +13,10 @@ export default defineVitestConfig({
       provider: 'v8',
       reporter: ['text', 'json-summary'],
       /**
-       * Scoped to what a unit test is the right tool for.
-       *
-       * The rule is one line: a module whose behaviour is only observable in a
-       * browser is verified by the Playwright suite, not by this one. That
-       * covers every `.vue` file, the chart theme composable, and the route
-       * handlers, and it is applied uniformly rather than per awkward file.
-       *
-       * The alternative was measuring them here, which means one of two things.
-       * Either the number reads 43% while the behaviour is in fact covered by
-       * 58 end-to-end assertions, which trains everyone to ignore it, or the
-       * gap gets filled with jsdom renders written to move the number: a chart
-       * whose hover state cannot be drawn, a hydration mismatch that cannot
-       * occur because nothing was server-rendered, a Tailwind utility that
-       * resolves to nothing because no stylesheet was built. Each of those is
-       * a real bug this project has already shipped once, and not one of them
-       * is visible outside a browser.
-       *
-       * `server/api` is excluded in the other direction: the handlers are
-       * transport over `server/services`, which is measured here at 93%, and
-       * covering them would mean booting Nitro to re-assert it.
+       * A module whose behaviour is only observable in a browser is verified by
+       * Playwright, not here: every `.vue` file, the chart theme composable and the
+       * route handlers. `server/api` is excluded in the other direction, as transport
+       * over `server/services`, which is measured.
        */
       include: [
         'shared/**/*.ts',
@@ -45,13 +29,8 @@ export default defineVitestConfig({
       ],
       exclude: ['**/*.d.ts', '**/types.ts'],
       /**
-       * The measured figures, floored to the whole number.
-       *
-       * Not a round number comfortably underneath them: a threshold with slack
-       * in it permits a regression silently, which is the failure it exists to
-       * prevent. Flooring the real figure leaves under a point of slack and
-       * makes the rule reproducible, so raising these is a matter of re-reading
-       * the report rather than guessing at a new round number.
+       * The measured figures, floored. A threshold with slack in it permits a
+       * regression silently.
        */
       thresholds: {
         statements: 92,

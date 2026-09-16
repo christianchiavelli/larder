@@ -7,15 +7,8 @@ import {
 } from '#shared/domain/nutrition'
 
 /**
- * Declared nutrition per 100g or 100ml, against the EU reference intake.
- *
- * Per 100g rather than per serving. Serving sizes are free text upstream, often
- * missing, and set by the manufacturer, so a per-serving table would compare
- * products on a basis each of them chose for itself.
- *
- * Reference intake percentages are shown only where Regulation 1169/2011 sets
- * one. Fibre and sodium have none, and inventing a denominator so the column
- * looks complete would be presenting our arithmetic as a regulated figure.
+ * Per 100g, not per serving: serving sizes are free text set by the manufacturer.
+ * Reference intake percentages only where Regulation 1169/2011 sets one.
  */
 const props = defineProps<{ nutrients: NutrientProfile }>()
 

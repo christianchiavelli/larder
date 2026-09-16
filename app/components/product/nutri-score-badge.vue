@@ -7,17 +7,11 @@ import {
 } from '#shared/domain/nutrition'
 
 /**
- * Nutri-Score grade badge.
+ * The letter is always rendered and the accessible name spells the scale out:
+ * green to red is the exact pair a red-green deficiency collapses.
  *
- * Colour alone cannot carry the grade: the scale runs green to red, which is
- * the exact pair a red-green colour deficiency collapses. The letter is always
- * rendered, and the accessible name spells the scale out, so the value survives
- * both colour blindness and a screen reader.
- *
- * The same reasoning decides the two ungraded states. They are different facts,
- * but two neutral greys a step apart measure 1.3:1 against each other, and a
- * difference nobody can see reliably would promise a distinction the colour
- * cannot deliver. So they share a swatch, and the glyph and the name say which.
+ * The two ungraded states share a swatch. Two neutral greys a step apart measure
+ * 1.3:1, so the glyph and the name carry the difference instead.
  */
 const props = withDefaults(
   defineProps<{
@@ -38,14 +32,9 @@ const CHIP_CLASSES: Record<NutriScore, string> = {
 }
 
 /**
- * A minimum width rather than a fixed one, so the one value that is not a
- * single glyph becomes a pill instead of being clipped.
- *
- * The type scale follows the size and never the content. "N/A" used to step
- * down a scale so the box would grow less, which is the wrong thing to trade:
- * the chips sit in a row together, and a reader reads two type sizes long
- * before anyone notices a box is wider. The step-down bought under two pixels
- * at `sm` and ten at `lg`.
+ * A minimum width, so the one value that is not a single glyph becomes a pill.
+ * The type scale follows the size and never the content: two type sizes in a row
+ * is what a reader notices, a wider box is not.
  */
 const SIZE_CLASSES = {
   sm: 'h-5 min-w-5 text-caption',

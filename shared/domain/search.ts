@@ -9,15 +9,13 @@ import { productSummarySchema } from './product'
 import { toFilterValue } from './taxonomy'
 
 /**
- * One schema parses all three callers: the URL query string, the client API
- * function and the server route. That is what makes a shareable URL and a valid
- * API call the same thing by construction.
+ * One schema for the URL, the client function and the route, so a shareable link
+ * and a valid API call are the same thing by construction.
  */
 
 /**
- * Elasticsearch stops counting past this and pins `count` there, which also
- * makes upstream's `page_count` wrong beyond it. Paging past it returns empty
- * pages, so the schema refuses to ask.
+ * Elasticsearch stops counting past this and derives `page_count` from the
+ * truncated figure, so it advertises pages that return nothing.
  */
 export const MAX_TRACKED_HITS = 10_000
 
@@ -25,9 +23,8 @@ export const PAGE_SIZES = [24, 48, 96] as const
 export const DEFAULT_PAGE_SIZE = 24
 
 /**
- * Limited to fields upstream declares sortable. Nutrient sorts are absent on
- * purpose: upstream rejects them, and sorting the 24 rows we hold would label a
- * page-local reordering as if it ranked all 10,000 matches.
+ * Only fields upstream declares sortable. Nutrient sorts are absent on purpose:
+ * reordering 24 rows would be labelled as a ranking over every match.
  */
 export const SORT_OPTIONS = [
   { value: 'relevance', label: 'Relevance' },
@@ -47,10 +44,8 @@ export const UPSTREAM_SORT_FIELDS: Record<SortOption, string | null> = {
 export const sortSchema = z.enum(SORT_OPTIONS.map((option) => option.value))
 
 /**
- * Query string values arrive as `string | string[] | undefined` depending on how
- * many times the key appears. Normalising before validation keeps every filter
- * field a plain array in the parsed result, so `?brand=a` and `?brand=a&brand=b`
- * do not take different code paths downstream.
+ * Normalised before validation, so `?brand=a` and `?brand=a&brand=b` do not take
+ * different code paths downstream.
  */
 const tagList = z
   .preprocess(
@@ -70,11 +65,8 @@ export const productQuerySchema = z.object({
 
   category: tagList.default([]),
   /**
-   * Language prefix stripped. The search index stores brands as a bare slug
-   * while every other dimension is prefixed, so `en:olivari` and `olivari` are
-   * the same brand and only the second one matches anything. Normalising here
-   * covers the suggestion that produced it, the link someone shared, and the
-   * URL a reader edited by hand.
+   * Language prefix stripped: the index stores brands as a bare slug while every
+   * other dimension is prefixed, so only `olivari` matches anything.
    */
   brand: tagList
     .transform((values) => [...new Set(values.map((id) => toFilterValue('brand', id)))])
@@ -102,11 +94,9 @@ export const productQuerySchema = z.object({
         value === undefined || value === '' ? [] : Array.isArray(value) ? value : [value],
       z.array(z.union([z.string(), z.number()])),
     )
-    /*
-     * Coerced one value at a time rather than all at once. A URL carries every
-     * NOVA group as a numeral, but the absence is a word, and `Number('none')`
-     * is NaN: coercing the array turned "products with no group" into a value
-     * the filter then dropped, which is the whole catalogue back again.
+    /**
+     * One value at a time: a URL carries every NOVA group as a numeral and the
+     * absence as a word, and `Number('none')` is NaN.
      */
     .transform((values) =>
       values
@@ -145,8 +135,7 @@ export type FilterKey = Exclude<keyof ProductQuery, (typeof READING_KEYS)[number
 
 /**
  * Derived, so the schema is the only list. Written out, the four helpers below
- * each held their own copy and forgetting one failed silently: a "Clear all"
- * that leaves a filter applied while the panel reports none.
+ * each held a copy and forgetting one failed silently.
  */
 export const FILTER_KEYS = Object.keys(productQuerySchema.shape).filter(
   (key): key is FilterKey => !(READING_KEYS as readonly string[]).includes(key),
@@ -222,8 +211,8 @@ export const productSearchResultSchema = z.object({
   nutriScoreDistribution: z.record(nutriScoreSchema, z.number().int().nonnegative()),
 
   /**
-   * A count rather than a distribution: the facet has no bucket for a product
-   * without the field, so coverage is only the sum of the four that exist.
+   * A count, not a distribution: the facet has no bucket for a product without the
+   * field.
    */
   novaClassifiedCount: z.number().int().nonnegative(),
 })

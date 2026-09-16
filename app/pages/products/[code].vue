@@ -23,10 +23,8 @@ const modifiedLabel = computed(() => {
 })
 
 /**
- * Upstream sends "not found" as a 404, and Pinia Colada surfaces it as an
- * error like any other. Distinguishing them matters: a missing product is a
- * normal outcome a user can act on, while an outage is not, and offering
- * "try again" for a barcode that does not exist is advice that cannot work.
+ * A missing product is a normal outcome a reader can act on; an outage is not,
+ * and offering "try again" for a barcode that does not exist cannot work.
  */
 const isNotFound = computed(
   () => (error.value as { statusCode?: number } | null)?.statusCode === 404,

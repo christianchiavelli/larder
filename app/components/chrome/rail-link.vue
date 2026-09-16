@@ -1,11 +1,7 @@
 <script setup lang="ts">
 /**
- * One destination in the navigation rail.
- *
- * The rail is icon-only, which means the accessible name has to come from
- * somewhere other than the visible label. It carries a real `aria-label`, and
- * the tooltip is presentational only, so a screen reader announces the
- * destination once rather than twice.
+ * Icon-only, so the accessible name comes from `aria-label` and the tooltip
+ * stays presentational.
  */
 defineProps<{
   to: string
