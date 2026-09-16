@@ -1,4 +1,5 @@
 import { defineQueryOptions, useQuery } from '@pinia/colada'
+import type { Ref } from 'vue'
 import { fetchProduct, fetchProducts } from '~/api/products'
 import type { ProductQuery } from '#shared/domain/search'
 

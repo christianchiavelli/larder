@@ -27,16 +27,23 @@ export default defineVitestConfig({
         'app/composables/**/*.ts',
         'layers/ui/app/utils/**/*.ts',
       ],
-      exclude: ['**/*.d.ts', '**/types.ts'],
+      exclude: [
+        '**/*.d.ts',
+        '**/types.ts',
+        // A registry of icon definitions and one Font Awesome setting. Whether a
+        // name resolves is a type error, and whether it draws is a browser
+        // question, so a spec here could only restate the file.
+        'layers/ui/app/utils/icons.ts',
+      ],
       /**
        * The measured figures, floored. A threshold with slack in it permits a
        * regression silently.
        */
       thresholds: {
-        statements: 92,
-        branches: 91,
-        functions: 89,
-        lines: 92,
+        statements: 94,
+        branches: 93,
+        functions: 95,
+        lines: 94,
       },
     },
   },

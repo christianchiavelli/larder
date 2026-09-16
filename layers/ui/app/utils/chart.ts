@@ -1,4 +1,5 @@
 import type { BarSeriesOption, EChartsOption } from 'echarts'
+import { formatCompact } from './format'
 import type { ChartTheme } from '../composables/use-chart-theme'
 
 /**

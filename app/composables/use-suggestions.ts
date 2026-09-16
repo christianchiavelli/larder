@@ -1,4 +1,5 @@
 import { useQuery } from '@pinia/colada'
+import { computed, type Ref } from 'vue'
 import { fetchSuggestions } from '~/api/products'
 
 /**
