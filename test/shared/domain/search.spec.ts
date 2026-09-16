@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import {
   DEFAULT_PAGE_SIZE,
+  FILTER_KEYS,
   MAX_TRACKED_HITS,
   activeFilterCount,
+  clearedFilters,
   hasActiveFilters,
   maxPageFor,
   productQuerySchema,
   toQueryParams,
+  type FilterKey,
 } from '#shared/domain/search'
 
 /**
@@ -229,5 +232,66 @@ describe('the Nutri-Score filter', () => {
 
   it('still drops a value that is neither', () => {
     expect(productQuerySchema.parse({ nutriScore: 'z' }).nutriScore).toEqual([])
+  })
+})
+
+/**
+ * The filter dimensions, asserted as one list rather than four.
+ *
+ * Whether any filter is set, how many are set, how they serialise and how they
+ * clear were four hand-written enumerations of the same seven names. Each had
+ * a test, and every test passed on a spot check, so forgetting a dimension in
+ * one of them would have shipped: a count that reads one short, a shared link
+ * missing a filter, or a "Clear all" that leaves one applied while the panel
+ * says none are.
+ */
+describe('the filter dimensions', () => {
+  /**
+   * Typed on `FilterKey`, so a dimension added to the schema stops compiling
+   * here until someone says what a set value looks like for it. The runtime
+   * assertion below catches the other direction, a key left behind after a
+   * dimension is removed.
+   */
+  const EVERY_DIMENSION: Record<FilterKey, unknown> = {
+    q: 'granola',
+    category: ['en:snacks'],
+    brand: ['lu'],
+    country: ['en:france'],
+    label: ['en:organic'],
+    nutriScore: ['a'],
+    nova: ['4'],
+  }
+
+  it('are exactly what the schema declares, minus how the list is read', () => {
+    expect(Object.keys(EVERY_DIMENSION).sort()).toEqual([...FILTER_KEYS].sort())
+    expect(FILTER_KEYS).not.toContain('sort')
+    expect(FILTER_KEYS).not.toContain('page')
+    expect(FILTER_KEYS).not.toContain('pageSize')
+  })
+
+  it('are each counted once when each carries a value', () => {
+    const query = productQuerySchema.parse(EVERY_DIMENSION)
+
+    expect(hasActiveFilters(query)).toBe(true)
+    expect(activeFilterCount(query)).toBe(FILTER_KEYS.length)
+  })
+
+  it('each reach the URL', () => {
+    const params = toQueryParams(productQuerySchema.parse(EVERY_DIMENSION))
+
+    expect(Object.keys(params).sort()).toEqual([...FILTER_KEYS].sort())
+  })
+
+  it('are all switched off together, and nothing else is', () => {
+    const cleared = productQuerySchema.parse({
+      ...EVERY_DIMENSION,
+      sort: 'popularity',
+      pageSize: '48',
+      ...clearedFilters(),
+    })
+
+    expect(hasActiveFilters(cleared)).toBe(false)
+    expect(activeFilterCount(cleared)).toBe(0)
+    expect(toQueryParams(cleared)).toEqual({ sort: 'popularity', pageSize: '48' })
   })
 })

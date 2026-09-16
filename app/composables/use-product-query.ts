@@ -1,6 +1,7 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
+  clearedFilters,
   productQuerySchema,
   toQueryParams,
   type ProductQuery,
@@ -121,15 +122,7 @@ export function useProductQuery() {
 
   /** Clears every filter. Sort and page size are preferences, so they survive. */
   function clearFilters() {
-    return apply({
-      q: '',
-      category: [],
-      brand: [],
-      country: [],
-      label: [],
-      nutriScore: [],
-      nova: [],
-    })
+    return apply(clearedFilters())
   }
 
   return {

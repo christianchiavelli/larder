@@ -134,30 +134,50 @@ export function maxPageFor(pageSize: number): number {
   return Math.max(1, Math.floor(MAX_TRACKED_HITS / pageSize))
 }
 
+/**
+ * How the reader chose to read the list, as opposed to what they chose to look
+ * at. Everything else in the query is a filter.
+ */
+const READING_KEYS = ['sort', 'page', 'pageSize'] as const
+
+export type FilterKey = Exclude<keyof ProductQuery, (typeof READING_KEYS)[number]>
+
+/**
+ * The filter dimensions, read off the schema rather than written out.
+ *
+ * Four separate places used to name them: whether any is set, how many are set,
+ * how they serialise, and how they clear. Adding a dimension meant remembering
+ * all four, and forgetting one failed silently in a different way each time,
+ * the worst being a "Clear all" that leaves a filter applied while the panel
+ * reports none. Derived here, the schema is the only list, and a dimension
+ * cannot exist without the helpers knowing about it.
+ */
+export const FILTER_KEYS = Object.keys(productQuerySchema.shape).filter(
+  (key): key is FilterKey => !(READING_KEYS as readonly string[]).includes(key),
+)
+
+/** How many values a dimension is currently carrying. Free text counts as one. */
+function appliedCount(query: ProductQuery, key: FilterKey): number {
+  const value = query[key]
+  if (Array.isArray(value)) return value.length
+  return value.length > 0 ? 1 : 0
+}
+
 /** True when any filter is applied, ignoring pagination and sort. */
 export function hasActiveFilters(query: ProductQuery): boolean {
-  return (
-    query.q.length > 0 ||
-    query.category.length > 0 ||
-    query.brand.length > 0 ||
-    query.country.length > 0 ||
-    query.label.length > 0 ||
-    query.nutriScore.length > 0 ||
-    query.nova.length > 0
-  )
+  return FILTER_KEYS.some((key) => appliedCount(query, key) > 0)
 }
 
 /** Number of filters applied, for the "N filters" affordance on narrow screens. */
 export function activeFilterCount(query: ProductQuery): number {
-  return (
-    (query.q.length > 0 ? 1 : 0) +
-    query.category.length +
-    query.brand.length +
-    query.country.length +
-    query.label.length +
-    query.nutriScore.length +
-    query.nova.length
-  )
+  return FILTER_KEYS.reduce((total, key) => total + appliedCount(query, key), 0)
+}
+
+/** A patch that switches every filter off, leaving sort and page size alone. */
+export function clearedFilters(): Pick<ProductQuery, FilterKey> {
+  return Object.fromEntries(
+    FILTER_KEYS.map((key) => [key, EMPTY_PRODUCT_QUERY[key]]),
+  ) as Pick<ProductQuery, FilterKey>
 }
 
 /**
