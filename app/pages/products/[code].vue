@@ -123,18 +123,16 @@ const isNotFound = computed(
       </header>
 
       <!--
-        Two columns that end where their content ends, rather than one stretched
-        to match the other. The nutrition table is nine fixed rows; the right
-        column runs from a single label to a dozen, and filling it to match
-        would leave a card two thirds empty, which reads as something that
-        failed to load.
+        The nutrition table sets the height of the row, and the column beside it
+        divides that height rather than ending where its content does.
 
-        The ingredients paragraph sits in that column for the same reason it no
-        longer spans the page: prose at the full width of a desktop is far past
-        a readable measure, and it is what balances the two sides for most
-        products.
+        Mechanically: the grid stretches both columns to the taller of the two,
+        and the two cards inside the right one are `flex-1`, so they take an
+        equal share of whatever is left once the gap between them is removed.
+        No height is declared anywhere, so the row still grows with the content
+        of either side and collapses to a single column below `lg`.
       -->
-      <div class="grid items-start gap-4 lg:grid-cols-3">
+      <div class="grid gap-4 lg:grid-cols-3">
         <UiSurfaceCard class="lg:col-span-2">
           <h2 class="mb-3 text-heading text-ink">Nutrition</h2>
 
@@ -146,7 +144,7 @@ const isNotFound = computed(
         </UiSurfaceCard>
 
         <div class="flex flex-col gap-4">
-          <UiSurfaceCard>
+          <UiSurfaceCard class="flex-1">
             <h2 class="mb-3 text-heading text-ink">Composition</h2>
 
             <dl class="flex flex-col gap-3 text-label">
@@ -190,12 +188,7 @@ const isNotFound = computed(
             </dl>
           </UiSurfaceCard>
 
-          <UiSurfaceCard v-if="product?.ingredientsText">
-            <h2 class="mb-2 text-heading text-ink">Ingredients list</h2>
-            <p class="text-body text-ink-muted">{{ product.ingredientsText }}</p>
-          </UiSurfaceCard>
-
-          <UiSurfaceCard v-if="product">
+          <UiSurfaceCard v-if="product" class="flex-1">
             <h2 class="mb-2 text-heading text-ink">Source</h2>
             <p class="text-caption text-ink-muted">
               Contributed to Open Food Facts by the public.
@@ -212,6 +205,11 @@ const isNotFound = computed(
           </UiSurfaceCard>
         </div>
       </div>
+
+      <UiSurfaceCard v-if="product?.ingredientsText">
+        <h2 class="mb-2 text-heading text-ink">Ingredients list</h2>
+        <p class="text-body text-ink-muted">{{ product.ingredientsText }}</p>
+      </UiSurfaceCard>
 
     </template>
   </div>

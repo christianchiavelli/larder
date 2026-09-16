@@ -316,3 +316,93 @@ test.describe('filter suggestions', () => {
     await expect(page).not.toHaveURL(/(category|brand|country|label)=/)
   })
 })
+
+/**
+ * The product page's first row: one column of cards filling the height of the
+ * card beside it.
+ *
+ * Asserted as an arithmetic relationship rather than against pixel values, and
+ * measured after a real layout, because this is the kind of rule a stray
+ * `items-start` or an `h-full` somewhere up the tree switches off without
+ * anything else changing. The page still renders; the column just stops
+ * reaching the bottom.
+ *
+ * The mobile case is the other half of the requirement. There is one column
+ * below `lg`, so there is nothing to fill, and stretching there would grow a
+ * card for no reason.
+ */
+test.describe('the product page columns', () => {
+  const CODE = '3017620425035'
+
+  /** Heights of the three cards in the first row, plus the gap between two of them. */
+  async function measure(page: Page) {
+    return page.evaluate(() => {
+      const card = (heading: string) =>
+        [...document.querySelectorAll('h2')]
+          .find((node) => node.textContent?.trim() === heading)
+          ?.closest('div[class*="rounded-card"]') as HTMLElement | undefined
+
+      const nutrition = card('Nutrition')!
+      const composition = card('Composition')!
+      const source = card('Source')!
+
+      return {
+        nutrition: nutrition.getBoundingClientRect().height,
+        composition: composition.getBoundingClientRect().height,
+        source: source.getBoundingClientRect().height,
+        gap: parseFloat(getComputedStyle(composition.parentElement!).rowGap),
+        // Every height here has to come from the layout, never from a number
+        // someone typed.
+        declared: [nutrition, composition, source].map((el) => el.style.height).join(''),
+      }
+    })
+  }
+
+  test('the right column fills the height of the nutrition card', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.goto(`/products/${CODE}`)
+    await page.getByRole('heading', { name: 'Source' }).waitFor()
+
+    const measured = await measure(page)
+
+    expect(measured.declared, 'a height was hard-coded').toBe('')
+    expect(measured.composition + measured.gap + measured.source).toBeCloseTo(
+      measured.nutrition,
+      0,
+    )
+  })
+
+  test('nothing is stretched once the columns stack', async ({ page }) => {
+    await page.setViewportSize({ width: 400, height: 900 })
+    await page.goto(`/products/${CODE}`)
+    await page.getByRole('heading', { name: 'Source' }).waitFor()
+
+    const measured = await measure(page)
+
+    expect(measured.composition + measured.gap + measured.source).toBeLessThan(
+      measured.nutrition,
+    )
+  })
+
+  /**
+   * The ingredients paragraph belongs under both columns rather than inside
+   * one, so it is as wide as the row above it.
+   */
+  test('the ingredients list spans the full row', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.goto(`/products/${CODE}`)
+
+    const ingredients = page
+      .getByRole('heading', { name: 'Ingredients list' })
+      .locator('xpath=..')
+    const nutrition = page.getByRole('heading', { name: 'Nutrition' }).locator('xpath=..')
+
+    const [wide, narrow] = await Promise.all([
+      ingredients.evaluate((el) => el.getBoundingClientRect().width),
+      nutrition.evaluate((el) => el.getBoundingClientRect().width),
+    ])
+
+    expect(wide).toBeGreaterThan(narrow)
+  })
+})
+

@@ -45,12 +45,13 @@ supports 7.
 
 ---
 
-**Cards are not stretched to equal height.** On the product page the nutrition
-table is nine fixed rows while the column beside it runs from one label to a
-dozen. Filling the short column to match would leave a card two thirds empty,
-which reads as something that failed to load; the ingredients paragraph moved
-into that column instead, which balances the two for most products and takes
-the prose off the full width of a desktop.
+**The product page's first row is sized by the nutrition table.** The column
+beside it divides that height rather than ending where its content does: the
+grid stretches both columns to the taller, and the two cards inside the right
+one are `flex-1`, so they take an equal share of what is left after the gap.
+Nothing declares a height, so the row still grows with either side and collapses
+to a single unstretched column below `lg`. The ingredients paragraph sits under
+both columns, where it is as wide as the row above it.
 
 ---
 
