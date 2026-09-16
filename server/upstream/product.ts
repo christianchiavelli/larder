@@ -36,7 +36,6 @@ const upstreamProductSchema = z.looseObject({
   nutriscore_grade: looseString,
   nova_group: looseNumber,
   nova_groups: looseNumber,
-  ecoscore_grade: looseString,
   ...upstreamImageFields,
   nutriments: z.record(z.string(), z.unknown()).nullish(),
   quantity: looseString,
@@ -72,7 +71,6 @@ export const PRODUCT_FIELDS = [
   'additives_tags',
   'nutriscore_grade',
   'nova_group',
-  'ecoscore_grade',
   'image_front_thumb_url',
   'image_front_small_url',
   'image_front_url',
@@ -108,9 +106,6 @@ export function mapProductDetail(
     additives: raw.additives_tags.map((id) => toTaxonomyTag(id)),
     nutriScore: mapNutriScore(raw.nutriscore_grade),
     novaGroup: mapNovaGroup(raw),
-    // Upstream renamed Eco-Score to Green Score but kept the field name. Same
-    // letter scale as Nutri-Score, measuring something entirely different.
-    ecoScore: mapNutriScore(raw.ecoscore_grade),
     image: mapProductImage(raw),
     nutrients: mapNutriments(raw.nutriments),
     quantity: raw.quantity,

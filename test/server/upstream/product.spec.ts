@@ -16,7 +16,6 @@ const RAW_NUTELLA = {
   additives_tags: ['en:e322'],
   nutriscore_grade: 'e',
   nova_group: 4,
-  ecoscore_grade: 'd',
   image_front_url: 'https://images.openfoodfacts.org/images/products/front_en.400.jpg',
   nutriments: { 'energy-kcal_100g': 539, sugars_100g: 56.3, salt_100g: 0.107 },
   quantity: '400 g',
@@ -39,7 +38,6 @@ describe('mapProductDetail', () => {
     expect(product.name).toBe('Nutella')
     expect(product.nutriScore).toBe('e')
     expect(product.novaGroup).toBe(4)
-    expect(product.ecoScore).toBe('d')
     expect(product.quantity).toBe('400 g')
     expect(product.ingredientCount).toBe(8)
   })

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { useQuery } from '@pinia/colada'
 import { productDisplayName } from '#shared/domain/product'
-import { NOVA_LABELS } from '#shared/domain/nutrition'
 
 const route = useRoute('products-code')
 const code = computed(() => String(route.params.code))
@@ -117,24 +116,7 @@ const isNotFound = computed(
             <span class="text-caption text-ink-subtle">Nutri-Score</span>
           </div>
           <div class="flex flex-col items-center gap-1">
-            <span
-              class="inline-flex size-10 items-center justify-center rounded-control text-heading font-semibold text-white"
-              :class="{
-                'bg-nova-1': product.novaGroup === 1,
-                'bg-nova-2': product.novaGroup === 2,
-                'bg-nova-3': product.novaGroup === 3,
-                'bg-nova-4': product.novaGroup === 4,
-                'bg-nova-unknown text-ink-muted': product.novaGroup === null,
-              }"
-              role="img"
-              :aria-label="
-                product.novaGroup === null
-                  ? 'NOVA processing group not available'
-                  : `NOVA group ${product.novaGroup}, ${NOVA_LABELS[product.novaGroup]}`
-              "
-            >
-              <span aria-hidden="true">{{ product.novaGroup ?? '?' }}</span>
-            </span>
+            <ProductNovaBadge :group="product.novaGroup" size="lg" />
             <span class="text-caption text-ink-subtle">NOVA</span>
           </div>
         </div>

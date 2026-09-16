@@ -377,6 +377,13 @@ Things a reviewer would find, listed so nobody has to.
   Segura S.C.A." is a real brand with no product tagged to it. Knowing the count
   before offering a suggestion would mean a query per suggestion, against the
   endpoint with upstream's tightest published limit.
+- **Nutri-Score grade E is 4.15:1, below the 4.5 that AA asks of body text.** The
+  fill and the white letter on it are both prescribed by the scheme, and every
+  other badge in the app clears 4.5 and is held there by a test. Darkening the
+  letter would pass the check by misrepresenting a regulated mark, so the grade
+  keeps its official colours and the letter is never the only cue: the value is
+  in the accessible name, and the same figure is a labelled row in every chart's
+  data table.
 - **English only.** The locale is fixed in `layers/ui/app/utils/format.ts`, while
   the catalogue is multilingual and mostly European. Switching separators without
   translating anything would be worse than leaving them.

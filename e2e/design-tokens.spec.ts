@@ -275,3 +275,65 @@ test('the chosen grade is marked in a neutral colour, in both themes', async ({ 
     )
   }
 })
+
+/**
+ * Every badge the app colours itself has to be readable on its own fill.
+ *
+ * The product page used to draw its own copy of the NOVA chip with `text-white`
+ * fixed, rather than using the badge that ships an ink per step. On the lighter
+ * yellow that measured 1.95:1 against a floor of 4.5, and nothing caught it:
+ * the page rendered, the tests passed, and the number was simply not readable.
+ *
+ * The Nutri-Score scale is excluded on purpose. Its fills and inks are set by
+ * the scheme's own guidelines rather than chosen here, and grade E is white on
+ * #e63e11, which is 4.15. Darkening it would clear the threshold by
+ * misrepresenting a regulated mark, so those colours are pinned to their
+ * official values by the test above and the shortfall is in the README instead.
+ */
+test('every badge the app colours itself is readable on its own fill', async ({ page, request }) => {
+  const directory = await request.get('/api/products?nova=2')
+  const [product] = (await directory.json()).items
+  expect(product, 'no product came back to check').toBeTruthy()
+
+  for (const url of ['/products', `/products/${product.code}`]) {
+    await page.goto(url)
+    await page.locator('[role="img"]').first().waitFor()
+
+    const measured = await page.locator('[role="img"]').evaluateAll((nodes) =>
+      nodes
+        .filter((node) => !/^Nutri-Score/.test(node.getAttribute('aria-label') || ''))
+        .map((node) => {
+          const style = getComputedStyle(node)
+          const parse = (value: string) =>
+            (value.match(/\d+(\.\d+)?/g) || []).slice(0, 3).map(Number)
+
+          const luminance = (rgb: number[]) => {
+            const [r, g, b] = rgb.map((channel) => {
+              const c = channel / 255
+              return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
+            }) as [number, number, number]
+            return 0.2126 * r + 0.7152 * g + 0.0722 * b
+          }
+
+          const ink = parse(style.color)
+          const fill = parse(style.backgroundColor)
+          const [high, low] = [luminance(ink), luminance(fill)].sort((a, b) => b - a) as [
+            number,
+            number,
+          ]
+
+          return {
+            label: node.getAttribute('aria-label') || '',
+            contrast: (high + 0.05) / (low + 0.05),
+          }
+        }),
+    )
+
+    expect(measured.length, `${url} rendered no badge to check`).toBeGreaterThan(0)
+
+    for (const badge of measured) {
+      expect(badge.contrast, `${badge.label} on ${url}`).toBeGreaterThanOrEqual(4.5)
+    }
+  }
+})
+

@@ -63,7 +63,6 @@ export const productDetailSchema = productSummarySchema.extend({
   ingredientsText: z.string().nullable(),
   ingredientCount: z.number().int().nonnegative().nullable(),
   /** Green Score, upstream's environmental grade. Same letter scale, different meaning. */
-  ecoScore: nutriScoreSchema,
   /** Canonical page upstream, shown as the provenance link. */
   sourceUrl: z.url(),
   /** When upstream last changed the record. Drives the freshness note on the page. */

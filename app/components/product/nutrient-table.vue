@@ -7,7 +7,7 @@ import {
 } from '#shared/domain/nutrition'
 
 /**
- * Declared nutrition per 100g, against the EU reference intake.
+ * Declared nutrition per 100g or 100ml, against the EU reference intake.
  *
  * Per 100g rather than per serving. Serving sizes are free text upstream, often
  * missing, and set by the manufacturer, so a per-serving table would compare
@@ -47,12 +47,13 @@ const declaredCount = computed(() => rows.value.filter((row) => row.value !== nu
   <div class="flex flex-col gap-3">
     <table class="w-full border-collapse text-label">
       <caption class="sr-only">
-        Nutrition per 100 grams, with the share of an adult daily reference intake
+        Nutrition per 100 grams or millilitres, with the share of an adult daily reference
+        intake
       </caption>
       <thead>
         <tr class="border-b border-edge">
           <th scope="col" class="py-2 pr-3 text-left font-medium text-ink-muted">Nutrient</th>
-          <th scope="col" class="py-2 pr-6 text-right font-medium text-ink-muted">Per 100g</th>
+          <th scope="col" class="py-2 pr-6 text-right font-medium text-ink-muted">Per 100 g/ml</th>
           <th scope="col" class="w-2/5 py-2 text-left font-medium text-ink-muted">
             <span class="sr-only">Share of daily reference intake</span>
             <span aria-hidden="true">% RI</span>
