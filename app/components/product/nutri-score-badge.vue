@@ -38,22 +38,19 @@ const CHIP_CLASSES: Record<NutriScore, string> = {
 }
 
 /**
- * A minimum width rather than a fixed one.
+ * A minimum width rather than a fixed one, so the one value that is not a
+ * single glyph becomes a pill instead of being clipped.
  *
- * Every other value is a single glyph and stays square. "N/A" is three, and a
- * box built for one would clip it, so the box grows and the type steps down to
- * keep the growth to a few pixels.
+ * The type scale follows the size and never the content. "N/A" used to step
+ * down a scale so the box would grow less, which is the wrong thing to trade:
+ * the chips sit in a row together, and a reader reads two type sizes long
+ * before anyone notices a box is wider. The step-down bought under two pixels
+ * at `sm` and ten at `lg`.
  */
 const SIZE_CLASSES = {
   sm: 'h-5 min-w-5 text-caption',
   md: 'h-7 min-w-7 text-subheading',
   lg: 'h-10 min-w-10 text-heading',
-} as const
-
-const NARROW_SIZE_CLASSES = {
-  sm: 'h-5 min-w-5 text-overline normal-case tracking-normal',
-  md: 'h-7 min-w-7 text-caption',
-  lg: 'h-10 min-w-10 text-label',
 } as const
 
 const display = computed(() => NUTRI_SCORE_SHORT_LABELS[props.grade])
@@ -63,16 +60,12 @@ const label = computed(() =>
     ? `Nutri-Score ${NUTRI_SCORE_LABELS[props.grade].toLowerCase()}`
     : `Nutri-Score ${props.grade.toUpperCase()}, on a scale from A, best, to E, worst`,
 )
-
-const sizeClass = computed(() =>
-  display.value.length > 1 ? NARROW_SIZE_CLASSES[props.size] : SIZE_CLASSES[props.size],
-)
 </script>
 
 <template>
   <span
     class="inline-flex shrink-0 items-center justify-center rounded-control px-1 font-semibold"
-    :class="[CHIP_CLASSES[grade], sizeClass]"
+    :class="[CHIP_CLASSES[grade], SIZE_CLASSES[size]]"
     role="img"
     :aria-label="label"
   >

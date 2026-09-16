@@ -398,3 +398,43 @@ test.describe('the product page columns', () => {
     expect(wide).toBeGreaterThan(narrow)
   })
 })
+
+/**
+ * Every value on the scale is drawn at one size.
+ *
+ * The badge is allowed to grow sideways: "N/A" is three glyphs where the rest
+ * are one, and a box built for one would clip it. Nothing else about it may
+ * differ. Setting it a type scale down so the box would grow less is the
+ * version that shipped, and it fails nothing: the row simply carries two type
+ * sizes, which is the part a reader sees.
+ */
+test.describe('the Nutri-Score filter row', () => {
+  test('draws every value at the same height and type size', async ({ page }) => {
+    await page.goto('/products')
+
+    const chips = await page.getByRole('group', { name: 'Nutri-Score' }).evaluate((fieldset) =>
+      [...fieldset.querySelectorAll('[role="img"]')].map((node) => {
+        const style = getComputedStyle(node)
+        return {
+          label: node.getAttribute('aria-label') ?? '',
+          height: node.getBoundingClientRect().height,
+          fontSize: style.fontSize,
+          letterSpacing: style.letterSpacing,
+          textTransform: style.textTransform,
+        }
+      }),
+    )
+
+    // Derived from the domain, so a value added there arrives here unmeasured
+    // rather than silently unchecked.
+    expect(chips.length).toBeGreaterThan(1)
+
+    const first = chips[0]!
+    for (const chip of chips) {
+      expect(chip.height, chip.label).toBeCloseTo(first.height, 1)
+      expect(chip.fontSize, chip.label).toBe(first.fontSize)
+      expect(chip.letterSpacing, chip.label).toBe(first.letterSpacing)
+      expect(chip.textTransform, chip.label).toBe(first.textTransform)
+    }
+  })
+})
