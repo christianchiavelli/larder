@@ -29,6 +29,23 @@ test.describe('the landing page', () => {
     await expect(page.getByTestId('product-row').first()).toBeVisible()
   })
 
+  /**
+   * Enter, not only the button. A search box is typed into and submitted from
+   * the keyboard far more often than it is clicked, and the implicit submit is
+   * the browser's behaviour rather than anything this page wires up: it is
+   * exactly the kind of thing a stray `type="button"` or a `@keydown.prevent`
+   * switches off with the button still working.
+   */
+  test('submits from the keyboard', async ({ page }) => {
+    await page.goto('/')
+
+    const box = page.getByRole('searchbox', { name: 'Search the catalogue' })
+    await box.fill('chocolate')
+    await box.press('Enter')
+
+    await expect(page).toHaveURL(/\/products\?q=chocolate/)
+  })
+
   /** An empty term is a request for the whole catalogue, not for `?q=`. */
   test('opens the directory unfiltered when nothing was typed', async ({ page }) => {
     await page.goto('/')
