@@ -2,9 +2,11 @@ import { z } from 'zod'
 import {
   NOVA_UNGROUPED,
   NUTRI_SCORE_GRADES,
+  novaGroupSchema,
   NUTRI_SCORE_VALUES,
   novaFilterValueSchema,
   nutriScoreSchema,
+  type NovaGroup,
   type NutriScore,
 } from './nutrition'
 import { productSummarySchema } from './product'
@@ -212,6 +214,9 @@ export const productSearchResultSchema = z.object({
   /** Distribution over the whole match set, not just this page. */
   nutriScoreDistribution: z.record(nutriScoreSchema, z.number().int().nonnegative()),
 
+  /** Per group. The absence has no bucket, which is what the count below is for. */
+  novaDistribution: z.record(novaGroupSchema, z.number().int().nonnegative()),
+
   /**
    * A count, not a distribution: the facet has no bucket for a product without the
    * field.
@@ -227,6 +232,9 @@ export type ProductSearchResult = z.infer<typeof productSearchResultSchema>
  * the data ever is.
  */
 export type NutriScoreDistribution = Partial<Record<NutriScore, number>>
+
+/** Partial for the same reason as the Nutri-Score one. */
+export type NovaDistribution = Partial<Record<NovaGroup, number>>
 
 /**
  * How many products the distribution describes.

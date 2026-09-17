@@ -47,96 +47,137 @@ function search() {
 }
 
 /**
- * Filters rather than search terms, because a filter is the thing this catalogue
- * can do that a search box cannot: each of these is a facet of the whole
- * population, and the third is the largest group in it.
+ * Filters rather than search terms, because a filter is what this catalogue can
+ * do that a search box cannot. Each carries its own size, read off the same
+ * facets the figures above come from, so a card states what it will return
+ * instead of promising something.
  *
  * Typed against the domain, so renaming a grade breaks the build rather than
  * producing a link that applies nothing.
  */
 const EXAMPLES = [
-  { label: 'Nutri-Score A', query: { nutriScore: 'a' satisfies NutriScore } },
-  { label: 'Ultra-processed', query: { nova: String(4 satisfies NovaGroup) } },
-  { label: 'No grade on record', query: { nutriScore: 'unknown' satisfies NutriScore } },
+  {
+    dimension: 'Nutri-Score',
+    label: 'Graded A',
+    detail: 'The best grade the scheme gives',
+    query: { nutriScore: 'a' satisfies NutriScore },
+    count: () => distribution.value.a,
+  },
+  {
+    dimension: 'Processing',
+    label: 'Ultra-processed',
+    detail: 'NOVA group 4, the most processed',
+    query: { nova: String(4 satisfies NovaGroup) },
+    count: () => result.value?.novaDistribution[4],
+  },
+  {
+    dimension: 'Nutri-Score',
+    label: 'No grade on record',
+    detail: 'The largest group in the catalogue',
+    query: { nutriScore: 'unknown' satisfies NutriScore },
+    count: () => distribution.value.unknown,
+  },
 ]
 </script>
 
 <template>
-  <div class="flex flex-col gap-6">
+  <div>
     <UiGradientHero>
-      <h1 class="font-serif text-[2.5rem] leading-tight font-semibold text-chrome-ink-strong">
-        Larder
+      <h1
+        class="max-w-3xl font-serif text-[2rem] leading-[1.15] font-semibold text-ink sm:text-[2.75rem] sm:leading-[1.1] lg:text-[3.25rem]"
+      >
+        Every packaged food, measured the same way
       </h1>
 
-      <p class="mt-2 max-w-xl text-body text-chrome-ink">
-        Nutrition, processing and labelling across a public catalogue of packaged food.
+      <p class="mt-4 max-w-xl text-lead text-ink-muted">
+        Nutrition, processing and labelling across a public catalogue of
+        <span data-numeric class="text-ink">{{
+          figures ? formatCount(figures.total) : '3.5 million'
+        }}</span>
+        products.
       </p>
 
-      <!-- The figures land late and the line is kept at its full height either
-           way, so the search below it does not jump under the pointer. -->
-      <p class="mt-4 flex min-h-5 items-center gap-2 text-caption text-chrome-ink">
-        <template v-if="figures">
-          <span data-numeric>{{ formatCount(figures.total) }}</span>
-          <span>products</span>
-          <span aria-hidden="true">·</span>
-          <span data-numeric>{{ figures.graded?.toFixed(1) }}%</span>
-          <span>carry a Nutri-Score</span>
-          <span aria-hidden="true">·</span>
-          <span data-numeric>{{ figures.classified?.toFixed(1) }}%</span>
-          <span>a NOVA group</span>
-        </template>
-      </p>
-
-      <form class="mt-6 flex w-full max-w-xl gap-2" role="search" @submit.prevent="search">
+      <!-- Stacked below `sm`: side by side, the button takes enough width from a
+           375px screen that the placeholder is cut mid-word. -->
+      <form
+        class="mt-8 flex w-full max-w-2xl flex-col gap-2 sm:flex-row"
+        role="search"
+        @submit.prevent="search"
+      >
         <label for="hero-search" class="sr-only">Search the catalogue</label>
-        <input
-          id="hero-search"
-          v-model="term"
-          type="search"
-          placeholder="Search a product, brand or category"
-          class="min-w-0 flex-1 rounded-control border border-chrome-raised bg-chrome-raised px-4 py-3 text-body text-chrome-ink-strong placeholder:text-chrome-ink focus-visible:border-edge-accent focus-visible:outline-none"
-        />
+        <div class="relative min-w-0 flex-1">
+          <UiIcon
+            name="search"
+            class="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-ink-subtle"
+          />
+          <input
+            id="hero-search"
+            v-model="term"
+            type="search"
+            placeholder="Search a product, brand or category"
+            class="w-full rounded-control border border-edge bg-surface-raised py-3.5 pr-4 pl-11 text-body text-ink shadow-raised placeholder:text-ink-subtle focus-visible:border-edge-accent focus-visible:outline-none"
+          />
+        </div>
         <button
           type="submit"
-          class="shrink-0 rounded-control bg-accent px-5 text-label text-ink-on-accent transition-colors hover:bg-accent-hover motion-reduce:transition-none"
+          class="shrink-0 rounded-control bg-accent px-6 py-3 text-label text-ink-on-accent shadow-raised transition-colors hover:bg-accent-hover motion-reduce:transition-none sm:py-0"
         >
           Search
         </button>
       </form>
 
-      <ul class="mt-4 flex flex-wrap justify-center gap-2">
+      <!--
+        The examples carry their own size. A card that says how many products
+        it will return is the difference between showing what the catalogue is
+        and advertising that it has filters.
+      -->
+      <ul class="mt-8 grid w-full max-w-4xl gap-3 sm:grid-cols-3">
         <li v-for="example in EXAMPLES" :key="example.label">
           <NuxtLink
             :to="{ path: '/products', query: example.query }"
-            class="inline-flex rounded-pill border border-chrome-raised px-3 py-1.5 text-caption text-chrome-ink transition-colors hover:border-edge-accent hover:text-chrome-ink-strong motion-reduce:transition-none"
+            class="group flex h-full flex-col gap-1 rounded-card border border-edge-subtle bg-surface-raised/80 p-4 text-left backdrop-blur-sm transition-colors hover:border-edge-accent motion-reduce:transition-none"
           >
-            {{ example.label }}
+            <span class="text-overline text-ink-subtle">{{ example.dimension }}</span>
+            <span class="text-subheading text-ink group-hover:text-ink-accent">
+              {{ example.label }}
+            </span>
+            <span class="text-caption text-ink-muted">{{ example.detail }}</span>
+            <!-- Reserved either way, so the cards do not resize under the pointer
+                 when the counts land. -->
+            <span class="mt-1 min-h-4 text-caption text-ink-subtle">
+              <template v-if="example.count() !== undefined">
+                <span data-numeric>{{ formatCountCompact(example.count()!) }}</span>
+                products
+              </template>
+            </span>
           </NuxtLink>
         </li>
       </ul>
     </UiGradientHero>
 
-    <section data-scroll-section class="flex scroll-mt-6 flex-col gap-3">
-      <div class="flex items-baseline justify-between gap-4">
-        <h2 class="text-heading text-ink">Most scanned</h2>
-        <NuxtLink
-          to="/products?sort=popularity"
-          class="inline-flex items-center gap-1.5 text-label text-ink-muted hover:text-ink-accent"
-        >
-          See all
-          <UiIcon name="chevron-right" class="size-2.5" />
-        </NuxtLink>
-      </div>
+    <UiPageContainer>
+      <section data-scroll-section class="flex scroll-mt-6 flex-col gap-3">
+        <div class="flex items-baseline justify-between gap-4">
+          <h2 class="text-heading text-ink">Most scanned</h2>
+          <NuxtLink
+            to="/products?sort=popularity"
+            class="inline-flex items-center gap-1.5 text-label text-ink-muted hover:text-ink-accent"
+          >
+            See all
+            <UiIcon name="chevron-right" class="size-2.5" />
+          </NuxtLink>
+        </div>
 
-      <ul class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-        <template v-if="isLoading">
-          <li v-for="placeholder in 8" :key="placeholder">
-            <UiSkeleton class="aspect-[4/3] w-full rounded-card" />
-          </li>
-        </template>
+        <ul class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+          <template v-if="isLoading">
+            <li v-for="placeholder in 8" :key="placeholder">
+              <UiSkeleton class="aspect-[4/3] w-full rounded-card" />
+            </li>
+          </template>
 
-        <ProductCard v-for="product in featured" v-else :key="product.code" :product="product" />
-      </ul>
-    </section>
+          <ProductCard v-for="product in featured" v-else :key="product.code" :product="product" />
+        </ul>
+      </section>
+    </UiPageContainer>
   </div>
 </template>

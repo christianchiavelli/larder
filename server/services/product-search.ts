@@ -4,6 +4,7 @@ import {
   maxPageFor,
   type ProductQuery,
   type ProductSearchResult,
+  type NovaDistribution,
 } from '#shared/domain/search'
 import type { NutriScore } from '#shared/domain/nutrition'
 import { buildProductQuery } from '~~/server/utils/lucene'
@@ -101,12 +102,20 @@ export async function searchProducts(
     distribution[key] = (distribution[key] ?? 0) + item.count
   }
 
+  const novaDistribution: NovaDistribution = {}
+  for (const item of response.facets?.nova_groups?.items ?? []) {
+    const group = Number(item.key)
+    if (group === 1 || group === 2 || group === 3 || group === 4) {
+      novaDistribution[group] = (novaDistribution[group] ?? 0) + item.count
+    }
+  }
+
   /**
    * Coverage, not a distribution: the facet has no bucket for a product without
-   * the field, so it is only the sum of the four that exist.
+   * the field, so it is only the sum of the groups that exist.
    */
-  const novaClassifiedCount = (response.facets?.nova_groups?.items ?? []).reduce(
-    (total, item) => total + item.count,
+  const novaClassifiedCount = Object.values(novaDistribution).reduce(
+    (total, count) => total + count,
     0,
   )
 
@@ -122,6 +131,7 @@ export async function searchProducts(
     pageCount: Math.min(response.page_count, maxPageFor(query.pageSize)),
     facets,
     nutriScoreDistribution: distribution as ProductSearchResult['nutriScoreDistribution'],
+    novaDistribution: novaDistribution as ProductSearchResult['novaDistribution'],
     novaClassifiedCount,
   }
 }

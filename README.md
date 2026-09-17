@@ -48,6 +48,17 @@ Two thirds of the catalogue has no Nutri-Score, for two different reasons. A bee
 
 ---
 
+## Screens
+
+| Route                | What it is                                                               |
+| -------------------- | ------------------------------------------------------------------------ |
+| `/`                  | Front page: search, three example filters, the products people scan most |
+| `/overview`          | The shape of the whole catalogue, as charts                              |
+| `/products`          | The directory: facets, sort, page size, pagination                       |
+| `/products/:barcode` | One product: nutrition against EU reference intakes, composition, source |
+
+---
+
 ## How it is built
 
 - **A BFF, not a proxy.** Nitro routes talk to two upstream services with different engines and contradictory shapes, and hand the client one contract it can trust. Every response is parsed with Zod at the boundary.
@@ -55,15 +66,15 @@ Two thirds of the catalogue has no Nutri-Score, for two different reasons. A bee
 - **Filter state lives in the URL.** No store, no two-way watcher. Sharing, bookmarking and the back button work with nothing written for them.
 - **Missing data is a value, never a zero.** A nutrient nobody reported shows an em-dash; a product with no photograph gets a tile that says so.
 - **The design system is a Nuxt layer**, and the boundary is enforced rather than agreed: nothing under `layers/ui` imports from the domain or knows that food is being catalogued at all.
-- **One theme, read from tokens.** Components use semantic utilities, charts read the same custom properties at runtime, and no template carries a `dark:` variant.
+- **One theme, read from tokens.** Components use semantic utilities and charts read the same custom properties at runtime, so a colour is never written twice. The handful of `dark:` variants left are for what a colour token cannot say: which of two icons is drawn, and how strong a decorative wash should be.
 
 ---
 
 ## Testing
 
 ```bash
-pnpm run ci    # lint, types, and 327 unit specs with coverage
-pnpm run e2e   # 114 Playwright runs across two viewports, on a production build
+pnpm run ci    # format, lint, types, and 396 unit specs with coverage
+pnpm run e2e   # 150 Playwright runs across two viewports, on a production build
 ```
 
 The suites divide by what they can see. Vitest covers the domain, services, mappers and URL state. Playwright owns what only a browser can answer: whether a Tailwind utility resolves, whether a chart's hover state renders, whether a tree hydrates cleanly. All three have broken here at some point, and a jsdom render sees none of them.

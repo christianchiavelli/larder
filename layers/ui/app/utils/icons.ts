@@ -7,6 +7,7 @@ import {
   faChevronLeft,
   faChevronRight,
   faImage,
+  faMagnifyingGlass,
   faMoon,
   faSun,
 } from '@fortawesome/free-solid-svg-icons'
@@ -25,6 +26,7 @@ export const ICONS = {
   'chevron-left': faChevronLeft,
   'chevron-right': faChevronRight,
   image: faImage,
+  search: faMagnifyingGlass,
 } as const satisfies Record<string, IconDefinition>
 
 export type IconName = keyof typeof ICONS

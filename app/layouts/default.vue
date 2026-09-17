@@ -79,12 +79,12 @@ const { siteName } = useRuntimeConfig().public
       something behind it to round against, and with `pl-rail` the panel would
       be rounding against its own background.
     -->
-    <div class="ml-rail flex min-w-0 flex-1 flex-col rounded-tl-shell bg-surface">
-      <main id="main" class="flex-1 px-5 py-7 sm:px-8 sm:py-9">
-        <div class="mx-auto w-full max-w-[86rem]">
-          <slot />
-          <UiSeeMoreFab />
-        </div>
+    <div class="ml-rail flex min-w-0 flex-1 flex-col overflow-hidden rounded-tl-shell bg-surface">
+      <!-- No measure and no gutters here: a page applies `UiPageContainer`
+           itself, which is what lets the front page put a banner outside it. -->
+      <main id="main" class="flex-1">
+        <slot />
+        <UiSeeMoreFab />
       </main>
 
       <footer class="border-t border-edge-subtle px-5 py-5 sm:px-8">

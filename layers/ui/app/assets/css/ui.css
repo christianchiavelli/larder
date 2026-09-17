@@ -109,11 +109,23 @@
   /* The sticky header and the sidebar have to agree on these. */
   --spacing-rail: 3.75rem;
 
-  /* Two blurred fields drifting across the hero, slowly and out of step, so
-   * the loop never lines up into a pulse. Held on the compositor: only
-   * `transform` animates, never a filter or a colour. */
-  --animate-drift-near: drift-near 32s ease-in-out infinite alternate;
-  --animate-drift-far: drift-far 44s ease-in-out infinite alternate;
+  /* The hero's light arriving, once, on first paint. */
+  --animate-light-in: light-in 600ms ease-out both;
+
+  /* The two lights, each orbiting its own half of the stage.
+   *
+   * `linear infinite` over a closed path, never `alternate` and never an
+   * easing curve. An easing function resets its velocity to zero at every
+   * keyframe, not just at the ends, so a five-step path stutters four times a
+   * lap; `alternate` then stops dead to turn around. The loop closes on itself
+   * instead, so the speed never changes and there is nothing to restart.
+   *
+   * Every offset is a percentage of the stage, which is why the mover is a
+   * separate element sized to it: a percentage in `translate` resolves against
+   * the element's own box, so moving the field directly would tie the travel to
+   * the field's rem size and let it wander off a narrow banner. */
+  --animate-orbit-left: orbit-left 22s linear infinite;
+  --animate-orbit-right: orbit-right 22s linear infinite;
 }
 
 /* A soft field of one colour, faded to nothing well before its edge.
@@ -122,28 +134,113 @@
  * form silently produced `background-image: none`, and a background that fails
  * to generate takes the whole effect with it while every other class on the
  * element still applies. The colour comes in as a custom property. */
-@utility drift-field {
-  background-image: radial-gradient(circle closest-side, var(--drift-color), transparent);
+@utility light-field {
+  /* The falloff is the blur. A `filter: blur()` on top flattens the centre out
+   * and costs a full-size offscreen buffer to paint. */
+  background-image: radial-gradient(
+    circle closest-side,
+    var(--light-color) 0%,
+    color-mix(in oklab, var(--light-color) 45%, transparent) 36%,
+    color-mix(in oklab, var(--light-color) 12%, transparent) 62%,
+    transparent 82%
+  );
   border-radius: var(--radius-pill);
-  filter: blur(3rem);
-  will-change: transform;
 }
 
-@keyframes drift-near {
+@keyframes light-in {
   from {
-    transform: translate3d(-8%, -6%, 0) scale(1);
+    opacity: 0;
   }
   to {
-    transform: translate3d(10%, 8%, 0) scale(1.25);
+    opacity: 1;
   }
 }
 
-@keyframes drift-far {
-  from {
-    transform: translate3d(12%, 10%, 0) scale(1.15);
+/* Twelve steps around an ellipse: enough that the straight line between
+ * two of them is shorter than the blur, so the path reads as a curve. */
+/* Twelve steps around an ellipse, starting and ending at the centre of the
+ * stage. Twelve because the straight line the browser draws between two of
+ * them is then shorter than the blur, so the path reads as a curve and the
+ * direction never visibly snaps. */
+@keyframes orbit-left {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
   }
-  to {
-    transform: translate3d(-10%, -4%, 0) scale(0.95);
+  8.333% {
+    transform: translate3d(-1.9%, -8%, 0);
+  }
+  16.667% {
+    transform: translate3d(-7%, -13.9%, 0);
+  }
+  25% {
+    transform: translate3d(-14%, -16%, 0);
+  }
+  33.333% {
+    transform: translate3d(-21%, -13.9%, 0);
+  }
+  41.667% {
+    transform: translate3d(-26.1%, -8%, 0);
+  }
+  50% {
+    transform: translate3d(-28%, 0, 0);
+  }
+  58.333% {
+    transform: translate3d(-26.1%, 8%, 0);
+  }
+  66.667% {
+    transform: translate3d(-21%, 13.9%, 0);
+  }
+  75% {
+    transform: translate3d(-14%, 16%, 0);
+  }
+  83.333% {
+    transform: translate3d(-7%, 13.9%, 0);
+  }
+  91.667% {
+    transform: translate3d(-1.9%, 8%, 0);
+  }
+}
+
+/* The same ellipse mirrored, so the two are always on opposite sides and
+ * meet in the middle once a lap. */
+@keyframes orbit-right {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  8.333% {
+    transform: translate3d(1.9%, 8%, 0);
+  }
+  16.667% {
+    transform: translate3d(7%, 13.9%, 0);
+  }
+  25% {
+    transform: translate3d(14%, 16%, 0);
+  }
+  33.333% {
+    transform: translate3d(21%, 13.9%, 0);
+  }
+  41.667% {
+    transform: translate3d(26.1%, 8%, 0);
+  }
+  50% {
+    transform: translate3d(28%, 0, 0);
+  }
+  58.333% {
+    transform: translate3d(26.1%, -8%, 0);
+  }
+  66.667% {
+    transform: translate3d(21%, -13.9%, 0);
+  }
+  75% {
+    transform: translate3d(14%, -16%, 0);
+  }
+  83.333% {
+    transform: translate3d(7%, -13.9%, 0);
+  }
+  91.667% {
+    transform: translate3d(1.9%, -8%, 0);
   }
 }
 
@@ -157,6 +254,15 @@
   line-height: 1.2;
   letter-spacing: -0.01em;
   font-weight: 600;
+}
+
+/* The line under a page title. Sans against the serif above it, which is the
+ * pairing that carries the identity: one family at two sizes reads as a
+ * document, two families at two sizes reads as a product. */
+@utility text-lead {
+  font-family: var(--font-sans);
+  font-size: 1.125rem;
+  line-height: 1.55;
 }
 
 @utility text-heading {

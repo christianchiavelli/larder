@@ -291,7 +291,7 @@ test('every badge the app colours itself is readable on its own fill', async ({
 })
 
 /**
- * The hero's colour fields, which fail in a way nothing else reports.
+ * The hero's light, which fails in a way nothing else reports.
  *
  * A gradient whose colour does not resolve is not a wrong colour, it is an
  * invalid declaration: the browser drops `background-image` entirely and the
@@ -303,14 +303,14 @@ test('every badge the app colours itself is readable on its own fill', async ({
  * by reading `--color-accent-solid`, which `@theme inline` writes into the
  * generated utilities rather than onto `:root`.
  */
-test('the hero draws its colour fields', async ({ page }) => {
+test('the hero draws its light', async ({ page }) => {
   await page.goto('/')
 
   const fields = await page
-    .locator('.drift-field')
+    .locator('.light-field')
     .evaluateAll((nodes) => nodes.map((node) => getComputedStyle(node).backgroundImage))
 
-  expect(fields.length, 'the hero rendered no fields').toBeGreaterThan(0)
+  expect(fields.length, 'the hero rendered no light').toBeGreaterThan(0)
 
   for (const backgroundImage of fields) {
     expect(backgroundImage).toContain('gradient')

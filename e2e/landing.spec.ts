@@ -13,8 +13,10 @@ test.describe('the landing page', () => {
 
     await page.goto('/')
 
-    await expect(page.getByRole('heading', { name: 'Larder', level: 1 })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Most scanned' })).toBeVisible()
+    // The examples are links, so they work before hydration like anything else.
+    await expect(page.getByRole('link', { name: /Graded A/ })).toBeVisible()
 
     await context.close()
   })
@@ -61,19 +63,35 @@ test.describe('the landing page', () => {
    * matches nothing, which is the failure this catalogue keeps producing.
    */
   for (const [label, expected] of [
-    ['Nutri-Score A', /nutriScore=a/],
+    ['Graded A', /nutriScore=a/],
     ['Ultra-processed', /nova=4/],
     ['No grade on record', /nutriScore=unknown/],
   ] as const) {
     test(`the ${label} example returns products`, async ({ page }) => {
       await page.goto('/')
 
-      await page.getByRole('link', { name: label, exact: true }).click()
+      await page.getByRole('link', { name: new RegExp(label) }).click()
 
       await expect(page).toHaveURL(expected)
       await expect(page.getByTestId('product-row').first()).toBeVisible()
     })
   }
+
+  /**
+   * Each card states how many products its filter returns, which is the whole
+   * reason it is a card rather than a pill. A count that never arrives leaves
+   * three cards promising something instead of describing it.
+   */
+  test('each example states its own size', async ({ page }) => {
+    await page.goto('/')
+
+    const counts = page.locator('li a [data-numeric]')
+
+    await expect(counts).toHaveCount(3)
+    for (const text of await counts.allInnerTexts()) {
+      expect(text).toMatch(/\d/)
+    }
+  })
 
   test('opens a product from the grid', async ({ page }) => {
     await page.goto('/')
@@ -85,12 +103,15 @@ test.describe('the landing page', () => {
     await expect(page).toHaveURL(new RegExp(`${href}$`))
   })
 
-  /** The figures are the only reason to render the line at all. */
-  test('states the size of the catalogue', async ({ page }) => {
+  /** The headline claim is a measured figure, not a rounded one in the copy. */
+  test('states the size of the catalogue from the data', async ({ page }) => {
     await page.goto('/')
 
-    const figures = page.locator('[data-numeric]')
-    await expect(figures.first()).toBeVisible()
-    expect(await figures.count()).toBe(3)
+    const size = page.locator('h1 + p [data-numeric]')
+
+    await expect(size).toBeVisible()
+    // Six digits at least: the placeholder the copy falls back to is "3.5
+    // million", which would pass a looser check while stating nothing measured.
+    expect(await size.innerText()).toMatch(/^[\d,]{7,}$/)
   })
 })

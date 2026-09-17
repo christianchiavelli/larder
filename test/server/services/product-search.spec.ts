@@ -213,6 +213,58 @@ describe('NOVA coverage', () => {
     expect(result.novaClassifiedCount).toBe(42)
   })
 
+  /**
+   * Per group as well as summed. The front page names one group and says how
+   * large it is, which the total cannot answer, and the facet was being reduced
+   * to that total before anything asked.
+   */
+  it('keeps the groups apart rather than only their sum', async () => {
+    const client = stubClient(
+      upstreamResponse({
+        facets: {
+          nova_groups: {
+            name: 'nova_groups',
+            items: [
+              { key: '1', name: '1', count: 11 },
+              { key: '4', name: '4', count: 31 },
+            ],
+          },
+        },
+      }),
+    )
+
+    const result = await searchProducts(client, query())
+
+    expect(result.novaDistribution).toEqual({ 1: 11, 4: 31 })
+  })
+
+  /**
+   * Upstream is community-edited and the facet returns whatever is on the
+   * documents. A group outside 1 to 4 is not a fifth kind of processing, it is
+   * a bad record, and letting it through would put it in a chart axis.
+   */
+  it('drops a group the scale does not define', async () => {
+    const client = stubClient(
+      upstreamResponse({
+        facets: {
+          nova_groups: {
+            name: 'nova_groups',
+            items: [
+              { key: '4', name: '4', count: 31 },
+              { key: '9', name: '9', count: 7 },
+              { key: 'unknown', name: 'unknown', count: 5 },
+            ],
+          },
+        },
+      }),
+    )
+
+    const result = await searchProducts(client, query())
+
+    expect(result.novaDistribution).toEqual({ 4: 31 })
+    expect(result.novaClassifiedCount).toBe(31)
+  })
+
   it('reports none rather than throwing when upstream omits the facet', async () => {
     const result = await searchProducts(stubClient(upstreamResponse({ facets: {} })), query())
 

@@ -26,104 +26,106 @@ const totalLabel = computed(() => {
 </script>
 
 <template>
-  <div>
-    <UiPageHeader
-      title="Products"
-      description="Search a public catalogue of packaged food by category, brand, nutrition grade and processing level."
-    />
+  <UiPageContainer>
+    <div>
+      <UiPageHeader
+        title="Products"
+        description="Search a public catalogue of packaged food by category, brand, nutrition grade and processing level."
+      />
 
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
-      <ProductFilterPanel :facets="result?.facets ?? null" :loading="isLoading && !result" />
-
-      <!--
-        The results live on a raised panel, and the rows sit on the recessed
-        surface inside it. Three levels rather than two: without the middle one
-        a white row on a white panel has only its border to separate it, and the
-        list reads as a single block of text.
-      -->
-      <div
-        class="flex min-w-0 flex-1 flex-col overflow-hidden rounded-card border border-edge-subtle bg-surface-raised shadow-card"
-      >
-        <ProductSearchControls />
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
+        <ProductFilterPanel :facets="result?.facets ?? null" :loading="isLoading && !result" />
 
         <!--
-          Politely announced, so a screen reader hears the new count after a
-          filter change instead of the results silently replacing themselves.
+          The results live on a raised panel, and the rows sit on the recessed
+          surface inside it. Three levels rather than two: without the middle one
+          a white row on a white panel has only its border to separate it, and the
+          list reads as a single block of text.
         -->
-        <p
-          class="border-b border-edge-subtle bg-surface px-3 py-2 text-caption text-ink-muted"
-          aria-live="polite"
-          data-testid="result-summary"
-        >
-          <template v-if="totalLabel">
-            <span data-numeric>{{ totalLabel }}</span>
-            {{ result!.totalCount === 1 ? 'product' : 'products' }}
-            <span v-if="!result!.isTotalExact" class="text-ink-subtle">
-              (upstream stops counting at 10,000)
-            </span>
-          </template>
-          <UiSkeleton v-else class="h-4 w-32" />
-        </p>
-
-        <div class="flex flex-1 flex-col gap-2 bg-surface p-2">
-          <UiEmptyState
-            v-if="error"
-            tone="error"
-            title="Could not load products"
-            :description="error.message"
-            @retry="refresh()"
-          />
-
-          <UiEmptyState
-            v-else-if="result && result.items.length === 0"
-            title="No products match these filters"
-            description="Try removing a filter or searching for a broader term."
-          >
-            <button
-              v-if="showingFilters"
-              type="button"
-              class="mt-2 rounded-control border border-edge-strong px-3 py-1.5 text-label text-ink hover:bg-surface-hover"
-              @click="clearFilters()"
-            >
-              Clear all filters
-            </button>
-          </UiEmptyState>
-
-          <template v-else>
-            <!--
-              Dimmed rather than replaced while refetching. `placeholderData`
-              holds the previous page, so the list keeps its height and the
-              reader keeps their place instead of the layout collapsing.
-            -->
-            <ul
-              class="flex flex-col gap-1.5 transition-opacity motion-reduce:transition-none"
-              :class="isLoading && 'opacity-60'"
-            >
-              <li v-for="product in result?.items ?? []" :key="product.code">
-                <ProductRow :product="product" />
-              </li>
-
-              <li v-for="index in result ? 0 : 8" :key="`skeleton-${index}`">
-                <UiSkeleton rounded="card" class="h-[4.5rem] w-full" />
-              </li>
-            </ul>
-          </template>
-        </div>
-
         <div
-          v-if="result"
-          class="flex flex-col items-center gap-3 border-t border-edge-subtle bg-surface-raised p-3 sm:flex-row sm:justify-between"
+          class="flex min-w-0 flex-1 flex-col overflow-hidden rounded-card border border-edge-subtle bg-surface-raised shadow-card"
         >
-          <ProductPageSizeField />
+          <ProductSearchControls />
 
-          <UiPagination
-            :page="result.page"
-            :page-count="result.pageCount"
-            :disabled="isLoading"
-            @change="setPage"
-          />
+          <!--
+            Politely announced, so a screen reader hears the new count after a
+            filter change instead of the results silently replacing themselves.
+          -->
+          <p
+            class="border-b border-edge-subtle bg-surface px-3 py-2 text-caption text-ink-muted"
+            aria-live="polite"
+            data-testid="result-summary"
+          >
+            <template v-if="totalLabel">
+              <span data-numeric>{{ totalLabel }}</span>
+              {{ result!.totalCount === 1 ? 'product' : 'products' }}
+              <span v-if="!result!.isTotalExact" class="text-ink-subtle">
+                (upstream stops counting at 10,000)
+              </span>
+            </template>
+            <UiSkeleton v-else class="h-4 w-32" />
+          </p>
+
+          <div class="flex flex-1 flex-col gap-2 bg-surface p-2">
+            <UiEmptyState
+              v-if="error"
+              tone="error"
+              title="Could not load products"
+              :description="error.message"
+              @retry="refresh()"
+            />
+
+            <UiEmptyState
+              v-else-if="result && result.items.length === 0"
+              title="No products match these filters"
+              description="Try removing a filter or searching for a broader term."
+            >
+              <button
+                v-if="showingFilters"
+                type="button"
+                class="mt-2 rounded-control border border-edge-strong px-3 py-1.5 text-label text-ink hover:bg-surface-hover"
+                @click="clearFilters()"
+              >
+                Clear all filters
+              </button>
+            </UiEmptyState>
+
+            <template v-else>
+              <!--
+                Dimmed rather than replaced while refetching. `placeholderData`
+                holds the previous page, so the list keeps its height and the
+                reader keeps their place instead of the layout collapsing.
+              -->
+              <ul
+                class="flex flex-col gap-1.5 transition-opacity motion-reduce:transition-none"
+                :class="isLoading && 'opacity-60'"
+              >
+                <li v-for="product in result?.items ?? []" :key="product.code">
+                  <ProductRow :product="product" />
+                </li>
+
+                <li v-for="index in result ? 0 : 8" :key="`skeleton-${index}`">
+                  <UiSkeleton rounded="card" class="h-[4.5rem] w-full" />
+                </li>
+              </ul>
+            </template>
+          </div>
+
+          <div
+            v-if="result"
+            class="flex flex-col items-center gap-3 border-t border-edge-subtle bg-surface-raised p-3 sm:flex-row sm:justify-between"
+          >
+            <ProductPageSizeField />
+
+            <UiPagination
+              :page="result.page"
+              :page-count="result.pageCount"
+              :disabled="isLoading"
+              @change="setPage"
+            />
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  </UiPageContainer>
 </template>
