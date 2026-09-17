@@ -13,6 +13,10 @@ import { useScrollSections } from '../composables/use-scroll-sections'
  * Rendered after the page content, because the sentinel it uses to know it has
  * reached the end has to sit there. The button itself is fixed, so where it
  * appears in the markup is not where it is drawn.
+ *
+ * Solid accent, like every other control that acts on its own here. A neutral
+ * disc measured 1.12:1 against the card it floats over in the dark theme, so
+ * the shape disappeared and only the arrow was left.
  */
 const sentinel = ref<HTMLElement | null>(null)
 const { hasNext, goToNext } = useScrollSections(sentinel)
@@ -30,7 +34,7 @@ const { hasNext, goToNext } = useScrollSections(sentinel)
     <button
       v-if="hasNext"
       type="button"
-      class="fixed right-5 bottom-5 z-40 flex size-11 items-center justify-center rounded-full border border-edge-subtle bg-surface-raised text-ink-muted shadow-card transition-colors hover:border-edge hover:text-ink motion-reduce:transition-none sm:right-8 sm:bottom-8"
+      class="fixed right-5 bottom-5 z-40 flex size-11 items-center justify-center rounded-full bg-accent text-ink-on-accent shadow-card transition-colors hover:bg-accent-hover motion-reduce:transition-none sm:right-8 sm:bottom-8"
       @click="goToNext"
     >
       <UiIcon name="arrow-down" class="size-4" />
