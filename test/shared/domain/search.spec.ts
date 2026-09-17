@@ -4,12 +4,16 @@ import {
   FILTER_KEYS,
   MAX_TRACKED_HITS,
   activeFilterCount,
+  catalogueSize,
+  classifiedShare,
   clearedFilters,
   hasActiveFilters,
+  gradedShare,
   maxPageFor,
   productQuerySchema,
   toQueryParams,
   type FilterKey,
+  type NutriScoreDistribution,
 } from '#shared/domain/search'
 
 /**
@@ -291,5 +295,66 @@ describe('the NOVA filter', () => {
   it('survives a round trip through the URL', () => {
     const query = productQuerySchema.parse({ nova: ['2', 'none'] })
     expect(productQuerySchema.parse(toQueryParams(query)).nova).toEqual([2, 'none'])
+  })
+})
+
+/**
+ * The headline figures, which are read off the facet buckets rather than the
+ * hit count: Elasticsearch pins the count at its tracking ceiling but still
+ * aggregates over every matching document.
+ *
+ * Shared by the front page and the overview. They were written out twice once,
+ * and the copy that named its buckets went short by 71,025 products the day a
+ * seventh value appeared.
+ */
+describe('the catalogue figures', () => {
+  const catalogue: NutriScoreDistribution = {
+    a: 100,
+    b: 100,
+    c: 100,
+    d: 100,
+    e: 100,
+    unknown: 400,
+    'not-applicable': 100,
+  }
+
+  it('counts every bucket, including ones added after it was written', () => {
+    expect(catalogueSize(catalogue)).toBe(1000)
+  })
+
+  /**
+   * The regression that matters. Summing the five grades plus `unknown` is what
+   * the overview used to do, and it reported a smaller catalogue than the chart
+   * beside it without failing anywhere.
+   */
+  it('does not lose a bucket it was not told about', () => {
+    const { 'not-applicable': excluded, ...withoutTheNewest } = catalogue
+    expect(excluded).toBeGreaterThan(0)
+    expect(catalogueSize(catalogue)).toBeGreaterThan(catalogueSize(withoutTheNewest)!)
+  })
+
+  it('reads an empty distribution as no answer rather than as an empty catalogue', () => {
+    // A page that has not loaded yet renders an em-dash, never a zero.
+    expect(catalogueSize({})).toBeNull()
+    expect(gradedShare({})).toBeNull()
+    expect(classifiedShare({}, 0)).toBeNull()
+  })
+
+  it('takes the graded share over the whole population, not over the graded part', () => {
+    expect(gradedShare(catalogue)).toBe(50)
+  })
+
+  /**
+   * The ungraded buckets are two thirds of the real catalogue, so excluding
+   * them from the denominator would report a third of the products as most of
+   * them.
+   */
+  it('counts the ungraded in the denominator', () => {
+    expect(gradedShare({ a: 1, unknown: 3 })).toBe(25)
+  })
+
+  /** A count rather than a distribution: the facet has no bucket for it. */
+  it('takes the classified share from the count the facet cannot report', () => {
+    expect(classifiedShare(catalogue, 263)).toBeCloseTo(26.3, 5)
   })
 })

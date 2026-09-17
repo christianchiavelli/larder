@@ -108,6 +108,43 @@
 
   /* The sticky header and the sidebar have to agree on these. */
   --spacing-rail: 3.75rem;
+
+  /* Two blurred fields drifting across the hero, slowly and out of step, so
+   * the loop never lines up into a pulse. Held on the compositor: only
+   * `transform` animates, never a filter or a colour. */
+  --animate-drift-near: drift-near 32s ease-in-out infinite alternate;
+  --animate-drift-far: drift-far 44s ease-in-out infinite alternate;
+}
+
+/* A soft field of one colour, faded to nothing well before its edge.
+ *
+ * A utility rather than an arbitrary `bg-[radial-gradient(...)]`: the arbitrary
+ * form silently produced `background-image: none`, and a background that fails
+ * to generate takes the whole effect with it while every other class on the
+ * element still applies. The colour comes in as a custom property. */
+@utility drift-field {
+  background-image: radial-gradient(circle closest-side, var(--drift-color), transparent);
+  border-radius: var(--radius-pill);
+  filter: blur(3rem);
+  will-change: transform;
+}
+
+@keyframes drift-near {
+  from {
+    transform: translate3d(-8%, -6%, 0) scale(1);
+  }
+  to {
+    transform: translate3d(10%, 8%, 0) scale(1.25);
+  }
+}
+
+@keyframes drift-far {
+  from {
+    transform: translate3d(12%, 10%, 0) scale(1.15);
+  }
+  to {
+    transform: translate3d(-10%, -4%, 0) scale(0.95);
+  }
 }
 
 /* Utilities rather than `--text-*` entries: a step has to carry its family as

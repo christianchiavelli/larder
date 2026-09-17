@@ -1,9 +1,11 @@
 import { z } from 'zod'
 import {
   NOVA_UNGROUPED,
+  NUTRI_SCORE_GRADES,
   NUTRI_SCORE_VALUES,
   novaFilterValueSchema,
   nutriScoreSchema,
+  type NutriScore,
 } from './nutrition'
 import { productSummarySchema } from './product'
 import { toFilterValue } from './taxonomy'
@@ -218,6 +220,46 @@ export const productSearchResultSchema = z.object({
 })
 
 export type ProductSearchResult = z.infer<typeof productSearchResultSchema>
+
+/**
+ * Partial on purpose. Upstream omits a bucket it has no products for, and Zod's
+ * record over an enum types every key as present, which is stricter than what
+ * the data ever is.
+ */
+export type NutriScoreDistribution = Partial<Record<NutriScore, number>>
+
+/**
+ * How many products the distribution describes.
+ *
+ * Every bucket, rather than a list of the ones that existed when this was
+ * written. Naming them cost 71,025 products the day the ungraded bucket was
+ * split in two: nothing failed, the headline simply described a smaller
+ * catalogue than the chart beside it.
+ *
+ * Null for an empty distribution, which is a loading state rather than a
+ * catalogue of no products.
+ */
+export function catalogueSize(distribution: NutriScoreDistribution): number | null {
+  const total = Object.values(distribution).reduce((sum, count) => sum + count, 0)
+  return total === 0 ? null : total
+}
+
+/** Share of the catalogue carrying a Nutri-Score, as a percentage. */
+export function gradedShare(distribution: NutriScoreDistribution): number | null {
+  const total = catalogueSize(distribution)
+  if (total === null) return null
+  const graded = NUTRI_SCORE_GRADES.reduce((sum, grade) => sum + (distribution[grade] ?? 0), 0)
+  return (graded / total) * 100
+}
+
+/** Share carrying a NOVA group, which the facet can only report as a count. */
+export function classifiedShare(
+  distribution: NutriScoreDistribution,
+  novaClassifiedCount: number,
+): number | null {
+  const total = catalogueSize(distribution)
+  return total === null ? null : (novaClassifiedCount / total) * 100
+}
 
 export const suggestionSchema = z.object({
   id: z.string(),

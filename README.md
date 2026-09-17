@@ -11,6 +11,10 @@ Nuxt 4, Vue 3.5, Tailwind 4, and a Nitro backend-for-frontend.
 <details>
 <summary>More screens</summary>
 
+**Front page, dark theme**
+
+![Search, three example filters and the most scanned products](docs/screenshots/landing-dark.png)
+
 **Catalogue overview**
 
 ![Overview dashboard showing Nutri-Score distribution and the largest categories](docs/screenshots/overview-light.png)

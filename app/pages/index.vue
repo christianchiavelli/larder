@@ -1,164 +1,142 @@
 <script setup lang="ts">
-import { EMPTY_PRODUCT_QUERY } from '#shared/domain/search'
-import { NUTRI_SCORE_GRADES, type NutriScore } from '#shared/domain/nutrition'
-
-useHead({ title: 'Overview' })
+import {
+  EMPTY_PRODUCT_QUERY,
+  catalogueSize,
+  classifiedShare,
+  gradedShare,
+  type NutriScoreDistribution,
+} from '#shared/domain/search'
+import type { NovaGroup, NutriScore } from '#shared/domain/nutrition'
 
 /**
- * Reads the unfiltered search, which already returns facet counts over the whole
- * match set.
+ * The front page: what the catalogue is, and three ways into it.
+ *
+ * No title of its own, so the head falls back to the site name and its
+ * description rather than reading "Home | Larder".
  */
-const query = computed(() => EMPTY_PRODUCT_QUERY)
-const { state, asyncStatus, refresh } = useProductSearch(query)
+
+const query = computed(() => ({ ...EMPTY_PRODUCT_QUERY, sort: 'popularity' as const }))
+const { state, asyncStatus } = useProductSearch(query)
 
 const result = computed(() => state.value.data)
-const error = computed(() => state.value.error)
 const isLoading = computed(() => asyncStatus.value === 'loading' && !result.value)
 
-// Annotated because the empty-object fallback would otherwise narrow the
-// whole type to `{}` and make every grade lookup an implicit any.
-const distribution = computed<Partial<Record<NutriScore, number>>>(
+const distribution = computed<NutriScoreDistribution>(
   () => result.value?.nutriScoreDistribution ?? {},
 )
 
-const graded = computed(() =>
-  NUTRI_SCORE_GRADES.reduce((sum, grade) => sum + (distribution.value[grade] ?? 0), 0),
-)
-
-/**
- * From the facet buckets, not the hit count: Elasticsearch pins `totalCount` at
- * 10,000 but still aggregates over every matching document.
- */
-const catalogueSize = computed(() => {
-  // Every bucket, rather than a list of the ones that existed when this was
-  // written. Naming them cost 71,025 products the day the ungraded bucket was
-  // split in two: nothing failed, the headline simply described a smaller
-  // catalogue than the chart beside it, and every percentage on the page was
-  // over a population that had quietly shrunk.
-  const total = Object.values(distribution.value).reduce((sum, count) => sum + count, 0)
-  return total === 0 ? null : total
-})
-
-const scored = computed(() => {
-  const total = catalogueSize.value
-  return total === null ? null : (graded.value / total) * 100
-})
-
-/**
- * This tile used to read "Categories represented: 10", which was the number of
- * buckets a facet page returns, not a fact about the catalogue.
- */
-const classified = computed(() => {
-  const total = catalogueSize.value
+const figures = computed(() => {
+  const total = catalogueSize(distribution.value)
   if (total === null || !result.value) return null
-  return (result.value.novaClassifiedCount / total) * 100
+
+  return {
+    total,
+    graded: gradedShare(distribution.value),
+    classified: classifiedShare(distribution.value, result.value.novaClassifiedCount),
+  }
 })
+
+/** Eight of the page of twenty-four the search already returns. */
+const featured = computed(() => result.value?.items.slice(0, 8) ?? [])
+
+const term = ref('')
+
+function search() {
+  const q = term.value.trim()
+  return navigateTo({ path: '/products', query: q ? { q } : {} })
+}
+
+/**
+ * Filters rather than search terms, because a filter is the thing this catalogue
+ * can do that a search box cannot: each of these is a facet of the whole
+ * population, and the third is the largest group in it.
+ *
+ * Typed against the domain, so renaming a grade breaks the build rather than
+ * producing a link that applies nothing.
+ */
+const EXAMPLES = [
+  { label: 'Nutri-Score A', query: { nutriScore: 'a' satisfies NutriScore } },
+  { label: 'Ultra-processed', query: { nova: String(4 satisfies NovaGroup) } },
+  { label: 'No grade on record', query: { nutriScore: 'unknown' satisfies NutriScore } },
+]
 </script>
 
 <template>
   <div class="flex flex-col gap-6">
-    <UiPageHeader
-      title="Catalogue overview"
-      description="Nutrition, processing and labelling across a public catalogue of packaged food."
-    />
+    <UiGradientHero>
+      <h1 class="font-serif text-[2.5rem] leading-tight font-semibold text-chrome-ink-strong">
+        Larder
+      </h1>
 
-    <UiEmptyState
-      v-if="error"
-      tone="error"
-      title="Could not load the overview"
-      :description="error.message"
-      @retry="refresh()"
-    />
+      <p class="mt-2 max-w-xl text-body text-chrome-ink">
+        Nutrition, processing and labelling across a public catalogue of packaged food.
+      </p>
 
-    <template v-else>
-      <UiSurfaceCard data-scroll-section class="scroll-mt-6">
-        <!-- Divided rather than merely spaced: three figures in a row read as one
-             sentence without a rule between them, and these measure different
-             things. -->
-        <div class="grid gap-6 sm:grid-cols-3 sm:gap-0 sm:divide-x sm:divide-edge-subtle">
-          <UiStatTile
-            class="sm:pr-6"
-            label="Products in catalogue"
-            :value="catalogueSize"
-            size="lg"
-            :loading="isLoading"
-            caption="Across the whole catalogue"
-          />
-          <UiStatTile
-            class="sm:px-6"
-            label="Carry a Nutri-Score"
-            :value="scored"
-            unit="%"
-            :precision="1"
-            size="lg"
-            :loading="isLoading"
-            caption="The rest have no grade on record"
-          />
-          <UiStatTile
-            class="sm:pl-6"
-            label="Carry a NOVA group"
-            :value="classified"
-            unit="%"
-            :precision="1"
-            size="lg"
-            :loading="isLoading"
-            caption="The rest are not classified for processing"
-          />
-        </div>
-      </UiSurfaceCard>
+      <!-- The figures land late and the line is kept at its full height either
+           way, so the search below it does not jump under the pointer. -->
+      <p class="mt-4 flex min-h-5 items-center gap-2 text-caption text-chrome-ink">
+        <template v-if="figures">
+          <span data-numeric>{{ formatCount(figures.total) }}</span>
+          <span>products</span>
+          <span aria-hidden="true">·</span>
+          <span data-numeric>{{ figures.graded?.toFixed(1) }}%</span>
+          <span>carry a Nutri-Score</span>
+          <span aria-hidden="true">·</span>
+          <span data-numeric>{{ figures.classified?.toFixed(1) }}%</span>
+          <span>a NOVA group</span>
+        </template>
+      </p>
 
-      <div data-scroll-section class="grid scroll-mt-6 gap-4 lg:grid-cols-2">
-        <UiSurfaceCard>
-          <h2 class="mb-1 text-heading text-ink">Nutri-Score distribution</h2>
-          <p class="mb-3 text-caption text-ink-subtle">
-            Products with no grade are shown, not excluded.
-          </p>
-          <ProductNutriScoreChart :distribution="distribution" :loading="isLoading" />
-        </UiSurfaceCard>
+      <form class="mt-6 flex w-full max-w-xl gap-2" role="search" @submit.prevent="search">
+        <label for="hero-search" class="sr-only">Search the catalogue</label>
+        <input
+          id="hero-search"
+          v-model="term"
+          type="search"
+          placeholder="Search a product, brand or category"
+          class="min-w-0 flex-1 rounded-control border border-chrome-raised bg-chrome-raised px-4 py-3 text-body text-chrome-ink-strong placeholder:text-chrome-ink focus-visible:border-edge-accent focus-visible:outline-none"
+        />
+        <button
+          type="submit"
+          class="shrink-0 rounded-control bg-accent px-5 text-label text-ink-on-accent transition-colors hover:bg-accent-hover motion-reduce:transition-none"
+        >
+          Search
+        </button>
+      </form>
 
-        <UiSurfaceCard>
-          <h2 class="mb-1 text-heading text-ink">Largest categories</h2>
-          <p class="mb-3 text-caption text-ink-subtle">
-            By number of products across the catalogue.
-          </p>
-          <ProductFacetChart
-            title="Categories"
-            :items="result?.facets.categories_tags ?? []"
-            :loading="isLoading"
-          />
-        </UiSurfaceCard>
+      <ul class="mt-4 flex flex-wrap justify-center gap-2">
+        <li v-for="example in EXAMPLES" :key="example.label">
+          <NuxtLink
+            :to="{ path: '/products', query: example.query }"
+            class="inline-flex rounded-pill border border-chrome-raised px-3 py-1.5 text-caption text-chrome-ink transition-colors hover:border-edge-accent hover:text-chrome-ink-strong motion-reduce:transition-none"
+          >
+            {{ example.label }}
+          </NuxtLink>
+        </li>
+      </ul>
+    </UiGradientHero>
 
-        <UiSurfaceCard class="lg:col-span-2">
-          <h2 class="mb-1 text-heading text-ink">Most represented brands</h2>
-          <p class="mb-3 text-caption text-ink-subtle">
-            Brand names are contributed as free text, so spellings of the same brand can appear
-            separately.
-          </p>
-          <ProductFacetChart
-            title="Brands"
-            :items="result?.facets.brands_tags ?? []"
-            :limit="12"
-            :loading="isLoading"
-          />
-        </UiSurfaceCard>
+    <section data-scroll-section class="flex scroll-mt-6 flex-col gap-3">
+      <div class="flex items-baseline justify-between gap-4">
+        <h2 class="text-heading text-ink">Most scanned</h2>
+        <NuxtLink
+          to="/products?sort=popularity"
+          class="inline-flex items-center gap-1.5 text-label text-ink-muted hover:text-ink-accent"
+        >
+          See all
+          <UiIcon name="chevron-right" class="size-2.5" />
+        </NuxtLink>
       </div>
 
-      <UiSurfaceCard data-scroll-section class="scroll-mt-6">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 class="text-heading text-ink">Browse the catalogue</h2>
-            <p class="text-body text-ink-muted">
-              Filter by category, brand, nutrition grade and processing level.
-            </p>
-          </div>
-          <NuxtLink
-            to="/products"
-            class="rounded-control bg-accent px-4 py-2 text-label text-ink-on-accent transition-colors hover:bg-accent-hover motion-reduce:transition-none"
-          >
-            Open the directory
-          </NuxtLink>
-        </div>
-      </UiSurfaceCard>
-    </template>
+      <ul class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+        <template v-if="isLoading">
+          <li v-for="placeholder in 8" :key="placeholder">
+            <UiSkeleton class="aspect-[4/3] w-full rounded-card" />
+          </li>
+        </template>
+
+        <ProductCard v-for="product in featured" v-else :key="product.code" :product="product" />
+      </ul>
+    </section>
   </div>
 </template>

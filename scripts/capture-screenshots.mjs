@@ -15,8 +15,9 @@ const OUT_DIR = 'docs/screenshots'
 const VIEWPORT = { width: 1440, height: 900 }
 
 const SHOTS = [
-  { name: 'overview-light', path: '/', scheme: 'light', fullPage: true },
-  { name: 'overview-dark', path: '/', scheme: 'dark', fullPage: true },
+  { name: 'landing-dark', path: '/', scheme: 'dark', fullPage: false },
+  { name: 'overview-light', path: '/overview', scheme: 'light', fullPage: true },
+  { name: 'overview-dark', path: '/overview', scheme: 'dark', fullPage: true },
   { name: 'directory-light', path: '/products', scheme: 'light', fullPage: false },
   { name: 'product-dark', path: '/products/3017620425035', scheme: 'dark', fullPage: false },
 ]

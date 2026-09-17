@@ -68,7 +68,7 @@ async function findBarInterior(page: Page, canvasIndex: number): Promise<Point |
 
 test.describe('charts', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
+    await page.goto('/overview')
     await page.locator('figure canvas').first().waitFor()
     // Bars animate in from zero width.
     await page.waitForTimeout(1500)

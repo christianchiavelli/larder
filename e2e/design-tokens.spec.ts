@@ -289,3 +289,33 @@ test('every badge the app colours itself is readable on its own fill', async ({
     }
   }
 })
+
+/**
+ * The hero's colour fields, which fail in a way nothing else reports.
+ *
+ * A gradient whose colour does not resolve is not a wrong colour, it is an
+ * invalid declaration: the browser drops `background-image` entirely and the
+ * element keeps every other class, so the banner renders as a plain dark box
+ * and the build, the types and the unit suite all stay green.
+ *
+ * It happened twice while this was written. First as an arbitrary
+ * `bg-[radial-gradient(...)]`, which Tailwind did not generate at all, and then
+ * by reading `--color-accent-solid`, which `@theme inline` writes into the
+ * generated utilities rather than onto `:root`.
+ */
+test('the hero draws its colour fields', async ({ page }) => {
+  await page.goto('/')
+
+  const fields = await page
+    .locator('.drift-field')
+    .evaluateAll((nodes) => nodes.map((node) => getComputedStyle(node).backgroundImage))
+
+  expect(fields.length, 'the hero rendered no fields').toBeGreaterThan(0)
+
+  for (const backgroundImage of fields) {
+    expect(backgroundImage).toContain('gradient')
+    // An unresolved custom property leaves the colour stop empty, which is how
+    // this failed the second time.
+    expect(backgroundImage).toMatch(/rgba?\(/)
+  }
+})

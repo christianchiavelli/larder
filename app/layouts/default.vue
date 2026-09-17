@@ -35,7 +35,7 @@ const { siteName } = useRuntimeConfig().public
       </NuxtLink>
 
       <nav aria-label="Primary" class="mt-4 flex flex-col items-center gap-1">
-        <ChromeRailLink to="/" label="Overview">
+        <ChromeRailLink to="/overview" label="Overview">
           <UiIcon name="chart-simple" class="size-5" />
         </ChromeRailLink>
 

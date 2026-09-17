@@ -183,7 +183,7 @@ test.describe('the see more button', () => {
 
   test('parks each section in turn at its own scroll margin', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 })
-    await page.goto('/')
+    await page.goto('/overview')
     await expect(fab(page)).toBeVisible()
 
     const visited: number[] = []
@@ -210,7 +210,7 @@ test.describe('the see more button', () => {
 
   test('stops offering itself once the end is reached', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 })
-    await page.goto('/')
+    await page.goto('/overview')
 
     for (let step = 0; step < 8 && (await fab(page).isVisible()); step++) {
       await fab(page).click()
@@ -234,7 +234,7 @@ test.describe('the see more button', () => {
 
   test('is absent when the whole page already fits', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 2400 })
-    await page.goto('/')
+    await page.goto('/overview')
     await expect(page.getByRole('heading', { name: 'Nutri-Score distribution' })).toBeVisible()
 
     await expect(fab(page)).toBeHidden()
