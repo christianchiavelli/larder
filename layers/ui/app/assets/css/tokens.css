@@ -140,6 +140,18 @@
   --viz-7: #b05223;
   --viz-8: #968f88;
 
+  /* The hero's two lights.
+   *
+   * Not `--accent-solid`. Any colour laid over a near-white surface can only
+   * darken it, and the darker the ink the more of its chroma the mix spends on
+   * getting there: blue-300 at 40% keeps 0.081 of its 0.194, which is a grey
+   * smudge rather than a light. Blue-100 is light enough that the mix keeps
+   * 0.114, matching what the dark theme reads at, so the wash carries colour in
+   * both. The support colour is the same in both themes and only its strength
+   * changes. */
+  --hero-light-primary: var(--primitive-blue-100);
+  --hero-light-support: var(--viz-3);
+
   --viz-grid: var(--primitive-cool-50);
   --viz-axis: var(--primitive-grey-150);
   --viz-track: var(--primitive-cool-50);
@@ -202,6 +214,10 @@
   --viz-6: #78bef6;
   --viz-7: #cf8d71;
   --viz-8: #b9b4af;
+
+  /* Lighter than the surface here, so this one reads as emitted light. */
+  --hero-light-primary: var(--primitive-blue-200);
+  --hero-light-support: var(--viz-3);
 
   --viz-grid: var(--primitive-cool-450);
   --viz-axis: var(--primitive-cool-300);

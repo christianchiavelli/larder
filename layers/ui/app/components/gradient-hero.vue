@@ -33,9 +33,13 @@
           size a small fraction of its own width is already a long way, and the
           pair has to leave the centre as one mass of light rather than as two
           circles that happen to touch.
+
+          One strength for both themes, because the colour token already differs
+          by theme. The cap is legibility, not taste: the lead sits over the core
+          of this field, and past 65% it drops under 4.5:1 against it.
         -->
         <div
-          class="light-field absolute top-[40%] left-1/2 size-[clamp(30rem,84vw,62rem)] -translate-x-[68%] -translate-y-1/2 opacity-40 [--light-color:var(--accent-solid)] dark:opacity-55"
+          class="light-field absolute top-[40%] left-1/2 size-[clamp(30rem,84vw,62rem)] -translate-x-[68%] -translate-y-1/2 opacity-60 [--light-color:var(--hero-light-primary)]"
         />
       </div>
 
@@ -46,7 +50,7 @@
       -->
       <div class="absolute inset-0 will-change-transform motion-safe:animate-orbit-right">
         <div
-          class="light-field absolute top-[40%] left-1/2 size-[clamp(14rem,34vw,26rem)] translate-x-[10%] -translate-y-1/2 opacity-35 [--light-color:var(--viz-3)] dark:opacity-50"
+          class="light-field absolute top-[40%] left-1/2 size-[clamp(14rem,34vw,26rem)] translate-x-[10%] -translate-y-1/2 opacity-45 [--light-color:var(--hero-light-support)] dark:opacity-30"
         />
       </div>
     </div>
