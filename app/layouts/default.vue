@@ -83,6 +83,7 @@ const { siteName } = useRuntimeConfig().public
       <main id="main" class="flex-1 px-5 py-7 sm:px-8 sm:py-9">
         <div class="mx-auto w-full max-w-[86rem]">
           <slot />
+          <UiSeeMoreFab />
         </div>
       </main>
 

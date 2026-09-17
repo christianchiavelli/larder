@@ -1,5 +1,6 @@
 import { config, type IconDefinition } from '@fortawesome/fontawesome-svg-core'
 import {
+  faArrowDown,
   faBox,
   faChartSimple,
   faChevronDown,
@@ -15,6 +16,7 @@ import {
  * library, so a name the map does not carry is a type error.
  */
 export const ICONS = {
+  'arrow-down': faArrowDown,
   'chart-simple': faChartSimple,
   box: faBox,
   moon: faMoon,

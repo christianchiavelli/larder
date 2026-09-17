@@ -136,7 +136,7 @@ const isNotFound = computed(
         No height is declared anywhere, so the row still grows with the content
         of either side and collapses to a single column below `lg`.
       -->
-      <div class="grid gap-4 lg:grid-cols-3">
+      <div data-scroll-section class="grid scroll-mt-6 gap-4 lg:grid-cols-3">
         <UiSurfaceCard class="lg:col-span-2">
           <h2 class="mb-3 text-heading text-ink">Nutrition</h2>
 
@@ -210,7 +210,7 @@ const isNotFound = computed(
         </div>
       </div>
 
-      <UiSurfaceCard v-if="product?.ingredientsText">
+      <UiSurfaceCard v-if="product?.ingredientsText" data-scroll-section class="scroll-mt-6">
         <h2 class="mb-2 text-heading text-ink">Ingredients list</h2>
         <p class="text-body text-ink-muted">{{ product.ingredientsText }}</p>
       </UiSurfaceCard>

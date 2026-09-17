@@ -71,7 +71,7 @@ const classified = computed(() => {
     />
 
     <template v-else>
-      <UiSurfaceCard>
+      <UiSurfaceCard data-scroll-section class="scroll-mt-6">
         <!-- Divided rather than merely spaced: three figures in a row read as one
              sentence without a rule between them, and these measure different
              things. -->
@@ -107,7 +107,7 @@ const classified = computed(() => {
         </div>
       </UiSurfaceCard>
 
-      <div class="grid gap-4 lg:grid-cols-2">
+      <div data-scroll-section class="grid scroll-mt-6 gap-4 lg:grid-cols-2">
         <UiSurfaceCard>
           <h2 class="mb-1 text-heading text-ink">Nutri-Score distribution</h2>
           <p class="mb-3 text-caption text-ink-subtle">
@@ -143,7 +143,7 @@ const classified = computed(() => {
         </UiSurfaceCard>
       </div>
 
-      <UiSurfaceCard>
+      <UiSurfaceCard data-scroll-section class="scroll-mt-6">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 class="text-heading text-ink">Browse the catalogue</h2>

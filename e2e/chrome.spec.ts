@@ -161,3 +161,82 @@ test.describe('select', () => {
     expect(hasButton).toBe(true)
   })
 })
+
+/**
+ * Stepping down a page section by section.
+ *
+ * All of this is a function of how much happens to fit on screen, so it is
+ * only observable at a real viewport size against real content.
+ */
+test.describe('the see more button', () => {
+  const fab = (page: Page) => page.getByRole('button', { name: 'Skip to the next section' })
+
+  /** Where each marked section sits, and the offset each one asks to keep. */
+  function sections(page: Page) {
+    return page.evaluate(() =>
+      [...document.querySelectorAll('[data-scroll-section]')].map((element) => ({
+        top: element.getBoundingClientRect().top,
+        scrollMarginTop: parseFloat(getComputedStyle(element).scrollMarginTop) || 0,
+      })),
+    )
+  }
+
+  test('parks each section in turn at its own scroll margin', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 })
+    await page.goto('/')
+    await expect(fab(page)).toBeVisible()
+
+    const visited: number[] = []
+    for (let step = 0; step < 4 && (await fab(page).isVisible()); step++) {
+      await fab(page).click()
+      await page.waitForTimeout(600)
+
+      const measured = await sections(page)
+      // The section closest to the top is the one just scrolled to, and it
+      // should be resting on its margin rather than under the viewport edge or
+      // somewhere below the fold.
+      const parked = measured.findIndex(
+        ({ top, scrollMarginTop }) => Math.abs(top - scrollMarginTop) <= 1,
+      )
+      if (parked !== -1) visited.push(parked)
+    }
+
+    // Each click moves on rather than landing on the same section twice, which
+    // is what a fixed tolerance against a scroll margin does.
+    expect(visited).toEqual([...visited].sort((a, b) => a - b))
+    expect(new Set(visited).size).toBe(visited.length)
+    expect(visited.length).toBeGreaterThan(1)
+  })
+
+  test('stops offering itself once the end is reached', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 })
+    await page.goto('/')
+
+    for (let step = 0; step < 8 && (await fab(page).isVisible()); step++) {
+      await fab(page).click()
+      await page.waitForTimeout(600)
+    }
+
+    await expect(fab(page)).toBeHidden()
+  })
+
+  /**
+   * The layout renders it on every page, so a page that marks no sections has
+   * to be the thing that keeps it away rather than a per-page opt-in.
+   */
+  test('is absent on a page with no sections', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 })
+    await page.goto('/products')
+    await expect(page.getByTestId('product-row').first()).toBeVisible()
+
+    await expect(fab(page)).toBeHidden()
+  })
+
+  test('is absent when the whole page already fits', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 2400 })
+    await page.goto('/')
+    await expect(page.getByRole('heading', { name: 'Nutri-Score distribution' })).toBeVisible()
+
+    await expect(fab(page)).toBeHidden()
+  })
+})
