@@ -30,7 +30,7 @@ const formatted = computed(() =>
 
     <p
       v-else
-      class="flex items-baseline gap-1 text-ink"
+      class="reveal flex items-baseline gap-1 text-ink"
       :class="size === 'lg' ? 'text-metric' : 'text-metric-sm'"
     >
       <template v-if="formatted !== null">

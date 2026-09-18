@@ -109,6 +109,29 @@
   /* The sticky header and the sidebar have to agree on these. */
   --spacing-rail: 3.75rem;
 
+  /* Motion. Two lengths for interaction, named for what the movement is doing
+   * rather than for how long it takes: `feedback` for a state changing in
+   * place under a pointer or a key, `enter` for something arriving on or
+   * leaving the screen. The hero's numbers below stay where they are — each is
+   * used once, by an animation that already has a name.
+   *
+   * Tailwind has no `--duration-*` namespace, so these generate no utilities;
+   * `duration-(--duration-enter)` reads one in a class. The two
+   * `--default-transition-*` overrides point the bare `transition-*` utilities
+   * at the same pair, so `transition-colors` with no duration attached already
+   * lands on the feedback value instead of Tailwind's 150ms — which is what
+   * had every hand-written rule here at 120ms and every utility at 150. */
+  --duration-feedback: 120ms;
+  --duration-enter: 150ms;
+
+  /* One curve. `ease-out` because a state change should leave at once and
+   * settle at the end; CSS `ease` front-loads a slow start, which reads as lag
+   * over 120ms. */
+  --ease-standard: var(--ease-out);
+
+  --default-transition-duration: var(--duration-feedback);
+  --default-transition-timing-function: var(--ease-standard);
+
   /* The hero's light arriving, once, on first paint. */
   --animate-light-in: light-in 600ms ease-out both;
 
@@ -329,6 +352,28 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Content fading in where a skeleton just was: one class on the resolved
+ * element, and nothing to wrap it in.
+ *
+ * `@starting-style` rather than a `<Transition>`, and the reason is the case
+ * that would otherwise need arguing about: it does not run on the document's
+ * first paint. Measured with the duration held at 3s — a direct load of a
+ * server-rendered page reports zero opacity transitions and a computed opacity
+ * of 1, while the same element reached by client-side navigation transitions
+ * as intended. So server-rendered figures are simply there, and only a figure
+ * that actually replaced a skeleton animates.
+ *
+ * Being a transition rather than an animation, it also comes under the
+ * reduced-motion rule at the end of this file without stating anything, and a
+ * browser without `@starting-style` shows the content at once. */
+@utility reveal {
+  transition: opacity var(--duration-enter) var(--ease-standard);
+
+  @starting-style {
+    opacity: 0;
+  }
+}
+
 @layer base {
   html {
     color-scheme: light;
@@ -337,12 +382,6 @@
 
   html.dark {
     color-scheme: dark;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    html {
-      scroll-behavior: auto;
-    }
   }
 
   body {
@@ -393,7 +432,7 @@
   top: 0.5rem;
   z-index: 100;
   transform: translateY(-200%);
-  transition: transform 150ms ease;
+  transition: transform var(--duration-enter) var(--ease-standard);
 
   &:focus-visible {
     transform: translateY(0);
@@ -417,8 +456,8 @@
     font-weight: 500;
     cursor: pointer;
     transition:
-      border-color 120ms ease,
-      background-color 120ms ease;
+      border-color var(--duration-feedback) var(--ease-standard),
+      background-color var(--duration-feedback) var(--ease-standard);
   }
 
   .ui-select:hover:not(:disabled) {
@@ -429,12 +468,6 @@
   .ui-select:disabled {
     cursor: not-allowed;
     opacity: 0.55;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .ui-select {
-      transition: none;
-    }
   }
 
   /* Progressive enhancement from here down. */
@@ -469,10 +502,10 @@
       opacity: 0;
       translate: 0 -0.25rem;
       transition:
-        opacity 120ms ease,
-        translate 120ms ease,
-        overlay 120ms allow-discrete,
-        display 120ms allow-discrete;
+        opacity var(--duration-enter) var(--ease-standard),
+        translate var(--duration-enter) var(--ease-standard),
+        overlay var(--duration-enter) allow-discrete,
+        display var(--duration-enter) allow-discrete;
     }
 
     .ui-select:open::picker(select) {
@@ -485,12 +518,6 @@
       .ui-select:open::picker(select) {
         opacity: 0;
         translate: 0 -0.25rem;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .ui-select::picker(select) {
-        transition: none;
       }
     }
 
@@ -526,6 +553,84 @@
       margin-inline-start: auto;
       color: var(--color-accent);
       font-size: 0.75rem;
+    }
+  }
+}
+
+/* One page replacing another under a chrome that does not move.
+ *
+ * Opacity only. A slide would carry a table the reader is part way down off to
+ * one side, and under `out-in` it would be sliding an empty box in any case,
+ * because the outgoing page has already gone by the time the incoming one is
+ * mounted.
+ *
+ * Only the entering half gets a transition. Animating both doubles the wait
+ * before anything can be read, and a page on its way out has nothing left to
+ * say: the old one goes at once, the new one fades up over `--duration-enter`.
+ * Nuxt waits for the incoming page's data before any of this starts, so the
+ * fade covers the swap rather than a blank column. */
+.page-enter-active {
+  transition: opacity var(--duration-enter) var(--ease-standard);
+}
+
+.page-enter-from {
+  opacity: 0;
+}
+
+/* The browser-side transition, on the two routes that opt into it.
+ *
+ * 250ms rather than `--duration-enter`, and not for want of a token: 150ms is
+ * the right length for a box that only changes opacity in place, and the wrong
+ * one for a tile that crosses the page and changes shape on the way. The eye
+ * has to follow this one to read it as the same object, and that takes longer
+ * than noticing something appear.
+ *
+ * Nothing here has to answer for `prefers-reduced-motion`. Nuxt is configured
+ * with `viewTransition: true` rather than `'always'`, and at that setting it
+ * does not start a transition at all when the preference is set — measured,
+ * not assumed: under `reduce` no `::view-transition-*` pseudo-element is
+ * created, so there is nothing left to switch off. */
+::view-transition-group(*),
+::view-transition-old(*),
+::view-transition-new(*) {
+  animation-duration: 250ms;
+}
+
+/* Movement, when the reader has asked for less of it.
+ *
+ * One block for the whole project rather than an opt-in each component has to
+ * remember. What this replaced was three separate `prefers-reduced-motion`
+ * queries here plus twenty-one `motion-reduce:` utilities across thirteen
+ * components, all of them saying the same thing — and every one of them a
+ * chance for the next component to forget.
+ *
+ * Unlayered and last on purpose, and that is what gives it the final word: the
+ * cascade sorts by layer before it sorts by specificity, so an unlayered `*`
+ * outranks `.transition-colors` sitting in Tailwind's `utilities` layer without
+ * needing `!important` to win.
+ *
+ * Near-zero rather than `none`, because `transitionend` and `animationend` do
+ * not fire on a transition that was never allowed to run, and anything waiting
+ * on one of those to clean up would hang instead.
+ *
+ * An element marked `data-motion="essential"`, and its subtree, opts out.
+ * Reserved for movement that carries information rather than polish — a
+ * determinate progress indicator being the usual case, where holding it still
+ * withholds a fact rather than a flourish. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *:not([data-motion='essential'], [data-motion='essential'] *) {
+    &,
+    &::before,
+    &::after {
+      animation-duration: 1ms;
+      animation-iteration-count: 1;
+      animation-delay: 0ms;
+      transition-duration: 1ms;
+      transition-delay: 0ms;
     }
   }
 }

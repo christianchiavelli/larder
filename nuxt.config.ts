@@ -80,5 +80,24 @@ export default defineNuxtConfig({
     '/': { swr: 3600 },
   },
 
+  experimental: {
+    // Still flagged in Nuxt, so it is opted into per page below rather than
+    // switched on for every navigation in the app.
+    viewTransition: true,
+  },
+
+  app: {
+    // Classes in ui.css. `out-in` because the two pages share the column they
+    // are drawn in: overlapped, the outgoing one sets the height while the
+    // incoming one is still empty, and the footer jumps.
+    pageTransition: { name: 'page', mode: 'out-in' },
+
+    // Off by default, on for the two pages that have something to hand each
+    // other: a product's photograph, from the grid to its own page. Everywhere
+    // else the plain fade above is the honest answer, because two unrelated
+    // screens have no shared element to morph.
+    viewTransition: false,
+  },
+
   devtools: { enabled: true },
 })

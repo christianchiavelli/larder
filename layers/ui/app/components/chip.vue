@@ -26,10 +26,7 @@ const TONE_CLASSES = {
     :to="to"
     :title="title"
     class="inline-flex max-w-full items-center rounded-pill px-2.5 py-1 text-caption font-medium"
-    :class="[
-      TONE_CLASSES[tone],
-      to && 'transition-colors hover:brightness-95 motion-reduce:transition-none',
-    ]"
+    :class="[TONE_CLASSES[tone], to && 'transition-colors hover:brightness-95']"
   >
     <span class="truncate"><slot /></span>
   </component>

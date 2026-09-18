@@ -37,7 +37,7 @@ defineEmits<{ retry: [] }>()
     <button
       v-if="tone === 'error'"
       type="button"
-      class="mt-2 rounded-control border border-edge-strong px-3 py-1.5 text-label text-ink transition-colors hover:bg-surface-hover motion-reduce:transition-none"
+      class="mt-2 rounded-control border border-edge-strong px-3 py-1.5 text-label text-ink transition-colors hover:bg-surface-hover"
       @click="$emit('retry')"
     >
       Try again

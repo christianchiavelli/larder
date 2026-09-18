@@ -26,15 +26,15 @@ const { hasNext, goToNext } = useScrollSections(sentinel)
   <div ref="sentinel" aria-hidden="true" />
 
   <Transition
-    enter-active-class="transition-opacity motion-reduce:transition-none"
-    leave-active-class="transition-opacity motion-reduce:transition-none"
+    enter-active-class="transition-opacity"
+    leave-active-class="transition-opacity"
     enter-from-class="opacity-0"
     leave-to-class="opacity-0"
   >
     <button
       v-if="hasNext"
       type="button"
-      class="fixed right-5 bottom-5 z-40 flex size-11 items-center justify-center rounded-full bg-accent text-ink-on-accent shadow-card transition-colors hover:bg-accent-hover motion-reduce:transition-none sm:right-8 sm:bottom-8"
+      class="fixed right-5 bottom-5 z-40 flex size-11 items-center justify-center rounded-full bg-accent text-ink-on-accent shadow-card transition-colors hover:bg-accent-hover sm:right-8 sm:bottom-8"
       @click="goToNext"
     >
       <UiIcon name="arrow-down" class="size-4" />

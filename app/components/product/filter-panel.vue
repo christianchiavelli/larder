@@ -49,7 +49,7 @@ const showingFilters = computed(() => hasActiveFilters(query.value))
           v-for="grade in NUTRI_SCORE_VALUES"
           :key="grade"
           type="button"
-          class="inline-flex rounded-control-frame border p-1 transition-colors motion-reduce:transition-none"
+          class="inline-flex rounded-control-frame border p-1 transition-colors"
           :class="
             query.nutriScore.includes(grade)
               ? 'border-edge-selected bg-surface-selected'

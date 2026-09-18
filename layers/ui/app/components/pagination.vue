@@ -62,7 +62,7 @@ function go(page: number) {
   >
     <button
       type="button"
-      class="rounded-control border border-edge-subtle px-2.5 py-1.5 text-label text-ink-muted transition-colors hover:bg-surface-hover hover:text-ink disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent motion-reduce:transition-none"
+      class="rounded-control border border-edge-subtle px-2.5 py-1.5 text-label text-ink-muted transition-colors hover:bg-surface-hover hover:text-ink disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
       :disabled="disabled || page <= 1"
       aria-label="Previous page"
       @click="go(page - 1)"
@@ -78,7 +78,7 @@ function go(page: number) {
       <button
         v-else
         type="button"
-        class="min-w-9 rounded-control border px-2.5 py-1.5 text-label transition-colors disabled:cursor-not-allowed motion-reduce:transition-none"
+        class="min-w-9 rounded-control border px-2.5 py-1.5 text-label transition-colors disabled:cursor-not-allowed"
         :class="
           entry.value === page
             ? 'border-edge-accent bg-surface-accent text-ink-accent'
@@ -95,7 +95,7 @@ function go(page: number) {
 
     <button
       type="button"
-      class="rounded-control border border-edge-subtle px-2.5 py-1.5 text-label text-ink-muted transition-colors hover:bg-surface-hover hover:text-ink disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent motion-reduce:transition-none"
+      class="rounded-control border border-edge-subtle px-2.5 py-1.5 text-label text-ink-muted transition-colors hover:bg-surface-hover hover:text-ink disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
       :disabled="disabled || page >= pageCount"
       aria-label="Next page"
       @click="go(page + 1)"

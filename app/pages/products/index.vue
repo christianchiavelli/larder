@@ -3,6 +3,11 @@ import { hasActiveFilters } from '#shared/domain/search'
 
 useHead({ title: 'Products' })
 
+definePageMeta({
+  viewTransition: true,
+  pageTransition: false,
+})
+
 /**
  * The filter panel and the search controls read the query from the URL
  * themselves, so neither is handed it here.
@@ -97,10 +102,10 @@ const totalLabel = computed(() => {
                 reader keeps their place instead of the layout collapsing.
               -->
               <ul
-                class="flex flex-col gap-1.5 transition-opacity motion-reduce:transition-none"
+                class="flex flex-col gap-1.5 transition-opacity"
                 :class="isLoading && 'opacity-60'"
               >
-                <li v-for="product in result?.items ?? []" :key="product.code">
+                <li v-for="product in result?.items ?? []" :key="product.code" class="reveal">
                   <ProductRow :product="product" />
                 </li>
 

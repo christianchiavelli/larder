@@ -50,7 +50,7 @@ const hiddenCount = computed(() => Math.max(0, props.items.length - props.limit)
       No options for the current results
     </p>
 
-    <ul v-else class="flex flex-col gap-1">
+    <ul v-else class="reveal flex flex-col gap-1">
       <li v-for="item in visible" :key="item.key">
         <UiCheckboxRow :checked="selected.includes(item.key)" @toggle="$emit('toggle', item.key)">
           <span class="min-w-0 flex-1 truncate text-label text-ink" :title="item.label">

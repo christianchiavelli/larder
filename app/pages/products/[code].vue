@@ -2,6 +2,11 @@
 import { useQuery } from '@pinia/colada'
 import { productDisplayName } from '#shared/domain/product'
 
+definePageMeta({
+  viewTransition: true,
+  pageTransition: false,
+})
+
 const route = useRoute('products-code')
 const code = computed(() => String(route.params.code))
 
@@ -67,8 +72,14 @@ const isNotFound = computed(
 
       <template v-else>
         <header class="flex flex-col gap-4 sm:flex-row sm:items-start">
+          <!--
+            Same name the grid gave this product's tile, so the browser pairs
+            the two boxes and carries the photograph between the pages instead
+            of cross-fading the whole screen over it.
+          -->
           <div
             class="flex size-28 shrink-0 items-center justify-center overflow-hidden rounded-card border border-edge-subtle bg-surface-media"
+            :style="{ viewTransitionName: `product-image-${code}` }"
           >
             <UiSkeleton v-if="isLoading" class="size-full" />
             <!--
@@ -98,7 +109,7 @@ const isNotFound = computed(
 
           <div class="flex min-w-0 flex-1 flex-col gap-1">
             <UiSkeleton v-if="isLoading" class="h-8 w-2/3" />
-            <h1 v-else class="text-title text-ink">{{ title }}</h1>
+            <h1 v-else class="reveal text-title text-ink">{{ title }}</h1>
 
             <p v-if="product?.brands.length" class="text-body text-ink-muted">
               {{ product.brands.join(', ') }}

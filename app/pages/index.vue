@@ -11,9 +11,18 @@ import type { NovaGroup, NutriScore } from '#shared/domain/nutrition'
 /**
  * The front page: what the catalogue is, and three ways into it.
  *
- * No title of its own, so the head falls back to the site name and its
- * description rather than reading "Home | Larder".
+ * No title of its own, so the head falls back to the bare site name rather
+ * than reading "Home | Larder".
  */
+
+definePageMeta({
+  // `true` rather than `'always'`: at this setting Nuxt skips the transition
+  // itself under `prefers-reduced-motion: reduce`.
+  viewTransition: true,
+  // Otherwise both run: the Vue fade dips the whole page while the browser is
+  // mid-morph, and the tile travels through a screen that is going grey.
+  pageTransition: false,
+})
 
 const query = computed(() => ({ ...EMPTY_PRODUCT_QUERY, sort: 'popularity' as const }))
 const { state, asyncStatus } = useProductSearch(query)
@@ -120,7 +129,7 @@ const EXAMPLES = [
         </div>
         <button
           type="submit"
-          class="shrink-0 rounded-control bg-accent px-6 py-3 text-label text-ink-on-accent shadow-raised transition-colors hover:bg-accent-hover motion-reduce:transition-none sm:py-0"
+          class="shrink-0 rounded-control bg-accent px-6 py-3 text-label text-ink-on-accent shadow-raised transition-colors hover:bg-accent-hover sm:py-0"
         >
           Search
         </button>
@@ -135,7 +144,7 @@ const EXAMPLES = [
         <li v-for="example in EXAMPLES" :key="example.label">
           <NuxtLink
             :to="{ path: '/products', query: example.query }"
-            class="group flex h-full flex-col gap-1 rounded-card border border-edge-subtle bg-surface-raised/80 p-4 text-left backdrop-blur-sm transition-colors hover:border-edge-accent motion-reduce:transition-none"
+            class="group flex h-full flex-col gap-1 rounded-card border border-edge-subtle bg-surface-raised/80 p-4 text-left backdrop-blur-sm transition-colors hover:border-edge-accent"
           >
             <span class="text-overline text-ink-subtle">{{ example.dimension }}</span>
             <span class="text-subheading text-ink group-hover:text-ink-accent">
@@ -175,7 +184,13 @@ const EXAMPLES = [
             </li>
           </template>
 
-          <ProductCard v-for="product in featured" v-else :key="product.code" :product="product" />
+          <ProductCard
+            v-for="product in featured"
+            v-else
+            :key="product.code"
+            :product="product"
+            class="reveal"
+          />
         </ul>
       </section>
     </UiPageContainer>

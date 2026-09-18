@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useQueryCache } from '@pinia/colada'
 import { productDisplayName, type ProductSummary } from '#shared/domain/product'
 import { mostSpecificTag } from '#shared/domain/taxonomy'
 import { NUTRIENTS } from '#shared/domain/nutrition'
@@ -13,6 +14,13 @@ const props = defineProps<{ product: ProductSummary }>()
 const name = computed(() => productDisplayName(props.product))
 const category = computed(() => mostSpecificTag(props.product.categories))
 const brand = computed(() => props.product.brands[0] ?? null)
+
+/** Same pair as the grid: see product-card.vue for why it is done this way. */
+const queryCache = useQueryCache()
+
+function prefetch() {
+  queryCache.refresh(queryCache.ensure(productDetailQuery(props.product.code))).catch(() => {})
+}
 
 const COLUMNS = ['energyKcal', 'sugars', 'salt'] as const
 
@@ -30,7 +38,9 @@ const nutrients = computed(() =>
 <template>
   <div
     data-testid="product-row"
-    class="group relative flex items-center gap-4 rounded-card border border-edge-subtle bg-surface-raised px-3 py-2.5 transition-colors hover:border-edge hover:bg-surface-hover motion-reduce:transition-none"
+    class="group relative flex items-center gap-4 rounded-card border border-edge-subtle bg-surface-raised px-3 py-2.5 transition-colors hover:border-edge hover:bg-surface-hover"
+    @mouseenter="prefetch"
+    @focusin="prefetch"
   >
     <!--
       The image slot is always reserved, at a fixed size. A good share of the
@@ -39,6 +49,7 @@ const nutrients = computed(() =>
     -->
     <div
       class="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-control border border-edge-subtle bg-surface-media"
+      :style="{ viewTransitionName: `product-image-${product.code}` }"
     >
       <!--
         Drawn at 48px, so the 100px variant covers a standard display and the
@@ -122,7 +133,7 @@ const nutrients = computed(() =>
          clickable, so this must not be announced as a second control. -->
     <span
       aria-hidden="true"
-      class="hidden size-7 shrink-0 items-center justify-center rounded-full bg-surface-sunken text-ink-subtle transition-colors group-hover:bg-accent group-hover:text-ink-on-accent sm:flex motion-reduce:transition-none"
+      class="hidden size-7 shrink-0 items-center justify-center rounded-full bg-surface-sunken text-ink-subtle transition-colors group-hover:bg-accent group-hover:text-ink-on-accent sm:flex"
     >
       <UiIcon name="chevron-right" class="size-3.5" />
     </span>

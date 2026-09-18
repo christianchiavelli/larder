@@ -21,7 +21,7 @@ const { siteName } = useRuntimeConfig().public
     <div class="fixed inset-y-0 left-0 z-40 flex w-rail flex-col items-center bg-chrome py-3">
       <NuxtLink
         to="/"
-        class="flex size-10 items-center justify-center rounded-control text-chrome-ink-strong transition-colors hover:bg-chrome-raised motion-reduce:transition-none"
+        class="flex size-10 items-center justify-center rounded-control text-chrome-ink-strong transition-colors hover:bg-chrome-raised"
         :aria-label="`${siteName}, home`"
       >
         <!--
@@ -61,7 +61,7 @@ const { siteName } = useRuntimeConfig().public
       -->
       <button
         type="button"
-        class="mt-auto flex size-10 items-center justify-center rounded-control text-chrome-ink transition-colors hover:bg-chrome-raised hover:text-chrome-ink-strong motion-reduce:transition-none"
+        class="mt-auto flex size-10 items-center justify-center rounded-control text-chrome-ink transition-colors hover:bg-chrome-raised hover:text-chrome-ink-strong"
         @click="toggle()"
       >
         <UiIcon name="moon" class="size-[1.15rem] dark:hidden" />

@@ -25,7 +25,7 @@ withDefaults(
         'p-6': padding === 'lg',
       },
       interactive &&
-        'transition-colors hover:border-edge hover:bg-surface-hover focus-within:border-edge-accent motion-reduce:transition-none',
+        'transition-colors hover:border-edge hover:bg-surface-hover focus-within:border-edge-accent',
     ]"
   >
     <slot />

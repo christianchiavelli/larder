@@ -4,8 +4,7 @@ import { THEME_BOOTSTRAP_SCRIPT } from '~/composables/use-theme'
 const { siteName } = useRuntimeConfig().public
 
 useHead({
-  titleTemplate: (title) =>
-    title ? `${title} | ${siteName}` : `${siteName} | food product analytics`,
+  titleTemplate: (title) => (title ? `${title} | ${siteName}` : siteName),
   htmlAttrs: { lang: 'en' },
   script: [
     // Blocking, in head, before any paint. See use-theme.ts for why.
