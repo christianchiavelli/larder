@@ -10,6 +10,17 @@ import {
 useHead({ title: 'Overview' })
 
 /**
+ * The last route still on the Vue fade, which left it with nothing: every route
+ * that links here opts into the browser transition and turns the fade off, and
+ * the fade is resolved once per navigation rather than per side, so arriving at
+ * this page was the one move in the app that had no transition at all.
+ */
+definePageMeta({
+  viewTransition: true,
+  pageTransition: false,
+})
+
+/**
  * Reads the unfiltered search, which already returns facet counts over the whole
  * match set.
  */
