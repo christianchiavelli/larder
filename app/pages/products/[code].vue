@@ -4,7 +4,6 @@ import { productDisplayName } from '#shared/domain/product'
 
 definePageMeta({
   viewTransition: true,
-  pageTransition: false,
 })
 
 const route = useRoute('products-code')

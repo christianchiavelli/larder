@@ -5,7 +5,6 @@ useHead({ title: 'Products' })
 
 definePageMeta({
   viewTransition: true,
-  pageTransition: false,
 })
 
 /**

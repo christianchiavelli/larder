@@ -92,10 +92,8 @@ export default defineNuxtConfig({
     // incoming one is still empty, and the footer jumps.
     pageTransition: { name: 'page', mode: 'out-in' },
 
-    // Off by default, on for the two pages that have something to hand each
-    // other: a product's photograph, from the grid to its own page. Everywhere
-    // else the plain fade above is the honest answer, because two unrelated
-    // screens have no shared element to morph.
+    // Off by default and opted into per page, because the flag is still
+    // experimental and a page should have to say it wants this.
     viewTransition: false,
   },
 

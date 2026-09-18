@@ -19,9 +19,6 @@ definePageMeta({
   // `true` rather than `'always'`: at this setting Nuxt skips the transition
   // itself under `prefers-reduced-motion: reduce`.
   viewTransition: true,
-  // Otherwise both run: the Vue fade dips the whole page while the browser is
-  // mid-morph, and the tile travels through a screen that is going grey.
-  pageTransition: false,
 })
 
 const query = computed(() => ({ ...EMPTY_PRODUCT_QUERY, sort: 'popularity' as const }))

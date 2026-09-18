@@ -557,7 +557,20 @@
   }
 }
 
-/* One page replacing another under a chrome that does not move.
+/* One page replacing another under a chrome that does not move: the fallback,
+ * for a browser that cannot do the transition below.
+ *
+ * Vue applies `.page-enter-*` on every navigation regardless. Where the browser
+ * has view transitions the classes are left with no rules to match, so they
+ * cost nothing and the browser's own transition is the only one running; where
+ * it does not, this is what the reader gets instead. Which is the same shape as
+ * the `@supports (appearance: base-select)` block further up: the fallback is
+ * stated first and the better answer replaces it, rather than the page being
+ * given one thing and having it taken away.
+ *
+ * It was worth the query rather than switching the fade off per page, which is
+ * what this replaced. Off per page meant off for everyone, and a browser
+ * without view transitions was left with a hard cut between pages.
  *
  * Opacity only. A slide would carry a table the reader is part way down off to
  * one side, and under `out-in` it would be sliding an empty box in any case,
@@ -569,12 +582,14 @@
  * say: the old one goes at once, the new one fades up over `--duration-enter`.
  * Nuxt waits for the incoming page's data before any of this starts, so the
  * fade covers the swap rather than a blank column. */
-.page-enter-active {
-  transition: opacity var(--duration-enter) var(--ease-standard);
-}
+@supports not (view-transition-name: none) {
+  .page-enter-active {
+    transition: opacity var(--duration-enter) var(--ease-standard);
+  }
 
-.page-enter-from {
-  opacity: 0;
+  .page-enter-from {
+    opacity: 0;
+  }
 }
 
 /* The browser-side transition, on the two routes that opt into it.
