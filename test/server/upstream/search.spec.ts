@@ -8,12 +8,6 @@ import {
 } from '~~/server/upstream/search'
 import { EMPTY_NUTRIENT_PROFILE } from '#shared/domain/nutrition'
 
-/**
- * Trimmed copies of real responses. The omitted-key cases are how upstream
- * actually behaves: a field with no value is left out entirely.
- */
-
-/** A real hit for barcode 7797599000049. Note what is absent. */
 const MINIMAL_HIT = {
   code: '7797599000049',
   brands: ['Granola'],
@@ -28,8 +22,6 @@ const MINIMAL_HIT = {
   nutriscore_grade: 'unknown',
   product_name: 'Granola',
   product_name_en: 'Granola',
-  // Absent on the wire: categories_tags, nova_groups, every image field,
-  // salt_100g and sodium_100g.
 }
 
 const RICH_HIT = {
@@ -82,10 +74,6 @@ describe('mapSearchHits', () => {
     expect(product!.nutrients.sugars).toBe(56.3)
   })
 
-  /**
-   * Every width upstream publishes: the directory draws at 48px and the deep dive
-   * at 112, and both used to receive the same file.
-   */
   it('carries the front image at each published width', () => {
     const { items } = mapSearchHits([RICH_HIT])
 
@@ -97,8 +85,6 @@ describe('mapSearchHits', () => {
   })
 
   it('falls back per width rather than per product', () => {
-    // A product can have a front thumbnail and no front original, so the
-    // decision has to be made one width at a time.
     const { items } = mapSearchHits([
       {
         ...RICH_HIT,
@@ -127,7 +113,6 @@ describe('mapNutriments', () => {
   it('reads only the per-100g variant', () => {
     const profile = mapNutriments({
       salt_100g: 1.2,
-      // Declared per serving in whatever unit the pack used. Not comparable.
       salt_value: 99,
       salt: 99,
     })
@@ -175,18 +160,10 @@ describe('mapNutriScore', () => {
     expect(mapNutriScore(null)).toBe('unknown')
   })
 
-  /**
-   * The one absence upstream states rather than implies, and the one that cannot
-   * change. It used to be flattened into `unknown` here.
-   */
   it('keeps not-applicable apart from a grade nobody has entered', () => {
     expect(mapNutriScore('not-applicable')).toBe('not-applicable')
   })
 
-  /**
-   * An absence we cannot explain is a gap: guessing the other way invents a rule
-   * the scheme does not have.
-   */
   it('reads an unrecognised value as ungraded rather than excluded', () => {
     expect(mapNutriScore('not-computed')).toBe('unknown')
   })
@@ -233,10 +210,6 @@ describe('mapFacet', () => {
     expect(facets.map((facet) => facet.key)).toEqual(['lu'])
   })
 
-  /**
-   * Elasticsearch's remainder bucket is not a tag and aggregates the long tail, so
-   * left in it reports "Other" as the largest category of food.
-   */
   it('drops the --other-- remainder bucket', () => {
     const facets = mapFacet([
       { key: '--other--', name: 'Other', count: 6_127_608 },
@@ -251,7 +224,6 @@ describe('mapFacet', () => {
   })
 
   it('keeps a real value whose label happens to read like a sentinel', () => {
-    // The key is what identifies a sentinel, never the display label.
     const facets = mapFacet([{ key: 'en:other-vegetables', name: 'Other vegetables', count: 40 }])
 
     expect(facets).toHaveLength(1)

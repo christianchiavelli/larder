@@ -2,10 +2,6 @@
 import type { EChartsOption } from 'echarts'
 import type { FacetItem } from '#shared/domain/search'
 
-/**
- * Horizontal because these are category names. One hue, since the bars are one
- * series on one axis.
- */
 const props = withDefaults(
   defineProps<{
     title: string
@@ -19,7 +15,6 @@ const props = withDefaults(
 const theme = useChartTheme()
 const top = computed(() => [...props.items].sort((a, b) => b.count - a.count).slice(0, props.limit))
 
-/** Long taxonomy names need a ceiling, or the plot area disappears. */
 function truncate(label: string, max = 28): string {
   return label.length > max ? `${label.slice(0, max - 1)}…` : label
 }
@@ -34,8 +29,6 @@ const option = computed<EChartsOption>(() => ({
   ),
   tooltip: itemTooltip(theme.value, (index) => {
     const item = top.value[index]
-    // The tooltip carries the untruncated label, which is the only place a
-    // pointer user can read the full name.
     return item ? `${item.label}<br>${formatCount(item.count)} products` : ''
   }),
   series: [

@@ -8,16 +8,7 @@ import {
 } from '#shared/domain/search'
 import type { NovaGroup, NutriScore } from '#shared/domain/nutrition'
 
-/**
- * The front page: what the catalogue is, and three ways into it.
- *
- * No title of its own, so the head falls back to the bare site name rather
- * than reading "Home | Larder".
- */
-
 definePageMeta({
-  // `true` rather than `'always'`: at this setting Nuxt skips the transition
-  // itself under `prefers-reduced-motion: reduce`.
   viewTransition: true,
 })
 
@@ -42,7 +33,6 @@ const figures = computed(() => {
   }
 })
 
-/** Eight of the page of twenty-four the search already returns. */
 const featured = computed(() => result.value?.items.slice(0, 8) ?? [])
 
 const term = ref('')
@@ -52,15 +42,6 @@ function search() {
   return navigateTo({ path: '/products', query: q ? { q } : {} })
 }
 
-/**
- * Filters rather than search terms, because a filter is what this catalogue can
- * do that a search box cannot. Each carries its own size, read off the same
- * facets the figures above come from, so a card states what it will return
- * instead of promising something.
- *
- * Typed against the domain, so renaming a grade breaks the build rather than
- * producing a link that applies nothing.
- */
 const EXAMPLES = [
   {
     dimension: 'Nutri-Score',
@@ -103,8 +84,6 @@ const EXAMPLES = [
         products.
       </p>
 
-      <!-- Stacked below `sm`: side by side, the button takes enough width from a
-           375px screen that the placeholder is cut mid-word. -->
       <form
         class="mt-8 flex w-full max-w-2xl flex-col gap-2 sm:flex-row"
         role="search"
@@ -132,11 +111,6 @@ const EXAMPLES = [
         </button>
       </form>
 
-      <!--
-        The examples carry their own size. A card that says how many products
-        it will return is the difference between showing what the catalogue is
-        and advertising that it has filters.
-      -->
       <ul class="mt-8 grid w-full max-w-4xl gap-3 sm:grid-cols-3">
         <li v-for="example in EXAMPLES" :key="example.label">
           <NuxtLink
@@ -148,8 +122,6 @@ const EXAMPLES = [
               {{ example.label }}
             </span>
             <span class="text-caption text-ink-muted">{{ example.detail }}</span>
-            <!-- Reserved either way, so the cards do not resize under the pointer
-                 when the counts land. -->
             <span class="mt-1 min-h-4 text-caption text-ink-subtle">
               <template v-if="example.count() !== undefined">
                 <span data-numeric>{{ formatCountCompact(example.count()!) }}</span>

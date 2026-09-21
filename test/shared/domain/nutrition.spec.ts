@@ -9,11 +9,6 @@ import {
   nutriScoreSchema,
 } from '#shared/domain/nutrition'
 
-/**
- * It used to be smaller than the truth: the boundary flattened two reasons for
- * having no grade into one.
- */
-
 describe('the Nutri-Score vocabulary', () => {
   it('is the grades plus every reason a product has none', () => {
     expect(NUTRI_SCORE_VALUES).toEqual([...NUTRI_SCORE_GRADES, ...UNGRADED_REASONS])
@@ -32,10 +27,6 @@ describe('the Nutri-Score vocabulary', () => {
     expect(UNGRADED_REASONS.every((reason) => isUngraded(reason))).toBe(true)
   })
 
-  /**
-   * A value with no label renders as `undefined` in a badge and on a chart axis:
-   * not a crash, a blank chip nobody notices until a screenshot goes out.
-   */
   it('labels every value, long and short', () => {
     for (const value of NUTRI_SCORE_VALUES) {
       expect(NUTRI_SCORE_LABELS[value], `long label for ${value}`).toBeTruthy()

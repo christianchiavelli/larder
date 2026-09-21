@@ -1,8 +1,4 @@
 <script setup lang="ts">
-/**
- * The pulse stops under `prefers-reduced-motion`, by the project-wide rule at
- * the end of `ui.css` rather than by anything stated here.
- */
 withDefaults(defineProps<{ rounded?: 'control' | 'card' | 'full' }>(), { rounded: 'control' })
 </script>
 

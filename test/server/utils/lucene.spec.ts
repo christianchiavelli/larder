@@ -91,7 +91,6 @@ describe('buildProductQuery', () => {
     expect(built.q).toBe('chocolate AND categories_tags:"en:biscuits" AND nova_groups:"4"')
   })
 
-  /** Upstream answers an unescaped query with `count: 0` and no error. */
   it('neutralises syntax in free text instead of letting it change the query', () => {
     const built = buildProductQuery(query({ q: 'foo: bar"baz' }))
 
@@ -101,8 +100,6 @@ describe('buildProductQuery', () => {
   it('does not let a crafted filter value inject a clause', () => {
     const built = buildProductQuery(query({ brand: 'x" OR nutriscore_grade:a OR brands_tags:"y' }))
 
-    // The injected operators live inside the quoted phrase, so upstream reads
-    // them as characters of a brand name that does not exist.
     expect(built.q).toBe('brands_tags:"x\\" OR nutriscore_grade:a OR brands_tags:\\"y"')
   })
 
@@ -140,10 +137,6 @@ describe('buildProductQuery', () => {
 })
 
 describe('the ungraded filter', () => {
-  /**
-   * These used to be one value expanded into both keys, which selected the right
-   * population for the wrong reason.
-   */
   it.each([
     ['unknown', 'nutriscore_grade:"unknown"'],
     ['not-applicable', 'nutriscore_grade:"not-applicable"'],
@@ -152,10 +145,6 @@ describe('the ungraded filter', () => {
     expect(buildProductQuery(query({ nutriScore: value })).q).toBe(expected)
   })
 
-  /**
-   * Escaped, the hyphen reads as NOT and upstream matches nothing. It stayed
-   * invisible while this was half of an OR whose other half exceeded the ceiling.
-   */
   it('does not escape the hyphen out of existence', () => {
     expect(buildProductQuery(query({ nutriScore: 'not-applicable' })).q).not.toContain(
       String.raw`\-`,
@@ -176,10 +165,6 @@ describe('the ungraded filter', () => {
 })
 
 describe('the unclassified filter', () => {
-  /**
-   * A product with no Nutri-Score carries a key saying so; one with no NOVA group
-   * carries nothing, which is why this clause is a negation.
-   */
   it('asks for the documents without the field', () => {
     expect(buildProductQuery(query({ nova: 'none' })).q).toBe('(NOT nova_groups:*)')
   })
@@ -188,10 +173,6 @@ describe('the unclassified filter', () => {
     expect(buildProductQuery(query({ nova: '2' })).q).toBe('nova_groups:"2"')
   })
 
-  /**
-   * A negated clause inside an OR is where Lucene parsers differ. Upstream agrees
-   * the two are disjoint: 1,483 + 71 = 1,554.
-   */
   it('combines a group with the absence', () => {
     expect(buildProductQuery(query({ nova: ['2', 'none'] })).q).toBe(
       '(nova_groups:"2" OR (NOT nova_groups:*))',

@@ -66,7 +66,6 @@ describe('declaredNutrientCount', () => {
 
 describe('referenceIntakeShare', () => {
   it('expresses the value as a fraction of the adult reference intake', () => {
-    // Salt reference is 6 g, so 3 g is half a day.
     expect(referenceIntakeShare('salt', 3)).toBeCloseTo(0.5)
   })
 

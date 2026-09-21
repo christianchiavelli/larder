@@ -17,12 +17,6 @@ import {
 import { toContractError, toUpstreamError } from '~~/server/utils/upstream-error'
 import type { UpstreamClient } from '~~/server/utils/upstream-client'
 
-/**
- * A function rather than an event handler, so the page clamp, the facet mapping
- * and the partly-malformed page can be driven with a stub client.
- */
-
-/** Only the fields the summary contract needs. The full record is ~250 keys. */
 const REQUESTED_FIELDS = [
   'code',
   'product_name',
@@ -31,9 +25,6 @@ const REQUESTED_FIELDS = [
   'categories_tags',
   'nutriscore_grade',
   'nova_groups',
-  // Every published width, and the non-front fallback for each. The row draws
-  // at 48px and asking for only the 400px original, which is what this list
-  // used to do, downloads sixteen times the pixels that get painted.
   'image_front_thumb_url',
   'image_front_small_url',
   'image_front_url',
@@ -51,9 +42,6 @@ export async function searchProducts(
   client: UpstreamClient,
   query: ProductQuery,
 ): Promise<ProductSearchResult> {
-  // Upstream stops tracking past MAX_TRACKED_HITS and serves empty pages beyond
-  // it. Clamping means a hand-typed `?page=9999` lands on the last real page
-  // rather than on a blank screen with no explanation.
   const page = Math.min(query.page, maxPageFor(query.pageSize))
 
   const { q, sort_by } = buildProductQuery(query)
@@ -93,9 +81,6 @@ export async function searchProducts(
     if (facet) facets[field] = mapFacet(facet.items)
   }
 
-  // Summed rather than assigned: upstream spells a missing grade more than one
-  // way, and the two that mean "nobody has graded this" have to land on the
-  // same key. The two that mean different things no longer do.
   const distribution: Partial<Record<NutriScore, number>> = {}
   for (const item of response.facets?.nutriscore_grade?.items ?? []) {
     const key = mapNutriScore(item.key)
@@ -110,10 +95,6 @@ export async function searchProducts(
     }
   }
 
-  /**
-   * Coverage, not a distribution: the facet has no bucket for a product without
-   * the field, so it is only the sum of the groups that exist.
-   */
   const novaClassifiedCount = Object.values(novaDistribution).reduce(
     (total, count) => total + count,
     0,
@@ -125,9 +106,6 @@ export async function searchProducts(
     pageSize: query.pageSize,
     totalCount: response.count,
     isTotalExact: response.is_count_exact,
-    // Upstream derives page_count from a truncated count, so it over-reports
-    // once the ceiling is hit. Recomputing keeps the pager from offering pages
-    // that are known to come back empty.
     pageCount: Math.min(response.page_count, maxPageFor(query.pageSize)),
     facets,
     nutriScoreDistribution: distribution as ProductSearchResult['nutriScoreDistribution'],

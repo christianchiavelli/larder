@@ -7,10 +7,6 @@ definePageMeta({
   viewTransition: true,
 })
 
-/**
- * The filter panel and the search controls read the query from the URL
- * themselves, so neither is handed it here.
- */
 const { query, setPage, clearFilters } = useProductQuery()
 const { state, asyncStatus, refresh } = useProductSearch(query)
 
@@ -19,9 +15,6 @@ const isLoading = computed(() => asyncStatus.value === 'loading')
 const error = computed(() => state.value.error)
 const showingFilters = computed(() => hasActiveFilters(query.value))
 
-/**
- * Past the tracking ceiling the figure is a floor, not a total.
- */
 const totalLabel = computed(() => {
   if (!result.value) return null
   const formatted = formatCount(result.value.totalCount)
@@ -40,21 +33,11 @@ const totalLabel = computed(() => {
       <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
         <ProductFilterPanel :facets="result?.facets ?? null" :loading="isLoading && !result" />
 
-        <!--
-          The results live on a raised panel, and the rows sit on the recessed
-          surface inside it. Three levels rather than two: without the middle one
-          a white row on a white panel has only its border to separate it, and the
-          list reads as a single block of text.
-        -->
         <div
           class="flex min-w-0 flex-1 flex-col overflow-hidden rounded-card border border-edge-subtle bg-surface-raised shadow-card"
         >
           <ProductSearchControls />
 
-          <!--
-            Politely announced, so a screen reader hears the new count after a
-            filter change instead of the results silently replacing themselves.
-          -->
           <p
             class="border-b border-edge-subtle bg-surface px-3 py-2 text-caption text-ink-muted"
             aria-live="polite"
@@ -95,11 +78,6 @@ const totalLabel = computed(() => {
             </UiEmptyState>
 
             <template v-else>
-              <!--
-                Dimmed rather than replaced while refetching. `placeholderData`
-                holds the previous page, so the list keeps its height and the
-                reader keeps their place instead of the layout collapsing.
-              -->
               <ul
                 class="flex flex-col gap-1.5 transition-opacity"
                 :class="isLoading && 'opacity-60'"

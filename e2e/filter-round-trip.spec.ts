@@ -1,10 +1,5 @@
 import { expect, test, type APIRequestContext } from '@playwright/test'
 
-/**
- * Every filter the UI offers, applied, checked for a result. Presence only,
- * never counts: upstream is community-edited and the numbers move daily.
- */
-
 const DIMENSIONS = [
   { filter: 'category', facet: 'categories_tags' },
   { filter: 'brand', facet: 'brands_tags' },
@@ -12,7 +7,6 @@ const DIMENSIONS = [
   { filter: 'label', facet: 'labels_tags' },
 ] as const
 
-/** Enough of each facet's top values to catch a whole-dimension break. */
 const SAMPLE = 3
 
 async function json(request: APIRequestContext, url: string) {
@@ -27,7 +21,6 @@ test.describe('filters round-trip', () => {
       const directory = await json(request, '/api/products')
       const values = (directory.facets[facet] ?? []).slice(0, SAMPLE)
 
-      // An empty facet is itself the failure: nothing to click in the sidebar.
       expect(values.length, `the ${facet} facet came back empty`).toBeGreaterThan(0)
 
       for (const value of values) {
@@ -53,10 +46,6 @@ test.describe('filters round-trip', () => {
     }
   })
 
-  /**
-   * One known-good value: autocomplete answers from the taxonomy, a superset of
-   * what is indexed, so some suggestions legitimately match nothing.
-   */
   test('a suggested brand reaches the products under it', async ({ request }) => {
     const suggestions = await json(request, '/api/suggest?q=nestle&taxonomy=brand&limit=5')
     expect(suggestions.length).toBeGreaterThan(0)
@@ -87,8 +76,6 @@ test.describe('filters round-trip', () => {
       })
     }
 
-    // `none` is not a value in the index, so it breaks if upstream stops
-    // accepting the negation that selects it.
     for (const group of [1, 2, 3, 4, 'none']) {
       test(`nova=${group}`, async ({ request }) => {
         const result = await json(request, `/api/products?nova=${group}`)
@@ -104,7 +91,6 @@ test.describe('filters round-trip', () => {
   })
 
   test('each sort is a different list once there is something to rank', async ({ request }) => {
-    // With no term, relevance falls back to popularity upstream.
     const codes = async (sort: string) => {
       const result = await json(request, `/api/products?q=chocolate&sort=${sort}`)
       return result.items.map((item: { code: string }) => item.code).join(',')

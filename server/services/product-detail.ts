@@ -9,11 +9,6 @@ import {
 import { toContractError, toUpstreamError } from '~~/server/utils/upstream-error'
 import type { UpstreamClient } from '~~/server/utils/upstream-client'
 
-/**
- * Barcodes are EAN-8 through GTIN-14, plus upstream's internal codes: digits,
- * never longer than 14. This is interpolated into an outbound URL, so a
- * permissive pattern here is a request-forgery primitive.
- */
 const barcodeSchema = z.string().regex(/^\d{1,14}$/, 'A barcode is between 1 and 14 digits.')
 
 export async function getProductDetail(
@@ -49,11 +44,6 @@ export async function getProductDetail(
     throw error
   }
 
-  // Upstream signals "no such product" two different ways, and only one of them
-  // is an HTTP status. A well-formed barcode nobody has catalogued answers 404,
-  // which the error mapper above already converted. A barcode upstream
-  // considers malformed answers 200 with `status: 0` and no product, and
-  // reaches here. Both are a 404 to our caller.
   if (response.status !== 1 || !response.product) {
     throw createError({
       statusCode: 404,

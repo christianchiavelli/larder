@@ -1,19 +1,10 @@
 @import 'tailwindcss';
 @import './tokens.css';
 
-/* Tailwind scans from the Vite root, which Nuxt sets to `app`, so a utility
- * used only under `layers/` is never generated and the element renders
- * unstyled with nothing reporting why. Listing any source replaces
- * auto-detection rather than adding to it, so `app` has to be named too.
- * e2e/design-tokens.spec.ts asserts these resolve in a real browser. */
 @source "../../../../../app";
 @source "../../../../../layers";
 
-/* `inline` emits `var(--surface-base)` into the utility rather than its
- * computed value, so `.dark` swaps one property and every `bg-surface` follows
- * with no `dark:` class in the markup. */
 @theme inline {
-  /* Surfaces */
   --color-surface: var(--surface-base);
   --color-surface-raised: var(--surface-raised);
   --color-surface-sunken: var(--surface-sunken);
@@ -23,37 +14,31 @@
   --color-surface-hover: var(--surface-hover);
   --color-surface-selected: var(--surface-selected);
 
-  /* Chrome: dark in both themes */
   --color-chrome: var(--chrome-base);
   --color-chrome-raised: var(--chrome-raised);
   --color-chrome-ink: var(--chrome-content);
   --color-chrome-ink-strong: var(--chrome-content-strong);
 
-  /* Borders and dividers */
   --color-edge-subtle: var(--border-subtle);
   --color-edge: var(--border-default);
   --color-edge-strong: var(--border-strong);
   --color-edge-accent: var(--border-accent);
   --color-edge-selected: var(--border-selected);
 
-  /* Text and icons */
   --color-ink: var(--content-primary);
   --color-ink-muted: var(--content-secondary);
   --color-ink-subtle: var(--content-tertiary);
   --color-ink-accent: var(--content-accent);
   --color-ink-on-accent: var(--content-on-accent);
 
-  /* Interactive */
   --color-accent: var(--accent-solid);
   --color-accent-hover: var(--accent-solid-hover);
   --color-accent-muted: var(--accent-muted);
   --color-focus: var(--focus-ring);
 
-  /* Status */
   --color-danger-surface: var(--status-danger-surface);
   --color-danger: var(--status-danger-content);
 
-  /* Domain: Nutri-Score */
   --color-nutri-a: var(--nutriscore-a);
   --color-nutri-a-ink: var(--nutriscore-a-content);
   --color-nutri-b: var(--nutriscore-b);
@@ -67,7 +52,6 @@
   --color-nutri-ungraded: var(--nutriscore-ungraded);
   --color-nutri-ungraded-ink: var(--nutriscore-ungraded-content);
 
-  /* Domain: NOVA processing scale */
   --color-nova-1: var(--nova-1);
   --color-nova-1-ink: var(--nova-1-content);
   --color-nova-2: var(--nova-2);
@@ -79,13 +63,10 @@
   --color-nova-unknown: var(--nova-unknown);
   --color-nova-unknown-ink: var(--nova-unknown-content);
 
-  /* Only the first series is a utility. The rest are read as custom properties
-   * and handed to a canvas, which cannot use a class. */
   --color-viz-1: var(--viz-1);
 }
 
 @theme {
-  /* Lora for headings, Open Sans for anything a reader scans or compares. */
   --font-serif: 'Lora', 'Lora Fallback', Georgia, 'Times New Roman', serif;
   --font-sans: 'Open Sans', 'Open Sans Fallback', ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', monospace;
@@ -95,71 +76,29 @@
   --radius-shell: 1rem;
   --radius-pill: 999px;
 
-  /* Concentric with the control inside it: the outer radius has to be the
-   * inner one plus the gap, or the curves do not run parallel. 0.3125rem is
-   * the inset it is built for, `p-1` plus a one-pixel border. */
   --radius-control-frame: calc(var(--radius-control) + 0.3125rem);
 
-  /* Tinted, not black: a neutral shadow over a blue-cast surface reads as
-   * grime. */
   --shadow-card: 0 1px 2px -1px rgb(0 34 68 / 0.08), 0 1px 3px 0 rgb(0 34 68 / 0.06);
   --shadow-raised: 0 4px 6px -2px rgb(0 34 68 / 0.06), 0 10px 20px -6px rgb(0 34 68 / 0.1);
   --shadow-overlay: 0 12px 24px -8px rgb(0 34 68 / 0.18), 0 4px 8px -4px rgb(0 34 68 / 0.1);
 
-  /* The sticky header and the sidebar have to agree on these. */
   --spacing-rail: 3.75rem;
 
-  /* Motion. Two lengths for interaction, named for what the movement is doing
-   * rather than for how long it takes: `feedback` for a state changing in
-   * place under a pointer or a key, `enter` for something arriving on or
-   * leaving the screen. The hero's numbers below stay where they are — each is
-   * used once, by an animation that already has a name.
-   *
-   * Tailwind has no `--duration-*` namespace, so these generate no utilities;
-   * `duration-(--duration-enter)` reads one in a class. The two
-   * `--default-transition-*` overrides point the bare `transition-*` utilities
-   * at the same pair, so `transition-colors` with no duration attached already
-   * lands on the feedback value instead of Tailwind's 150ms — which is what
-   * had every hand-written rule here at 120ms and every utility at 150. */
   --duration-feedback: 120ms;
   --duration-enter: 150ms;
 
-  /* One curve. `ease-out` because a state change should leave at once and
-   * settle at the end; CSS `ease` front-loads a slow start, which reads as lag
-   * over 120ms. */
   --ease-standard: var(--ease-out);
 
   --default-transition-duration: var(--duration-feedback);
   --default-transition-timing-function: var(--ease-standard);
 
-  /* The hero's light arriving, once, on first paint. */
   --animate-light-in: light-in 600ms ease-out both;
 
-  /* The two lights, each orbiting its own half of the stage.
-   *
-   * `linear infinite` over a closed path, never `alternate` and never an
-   * easing curve. An easing function resets its velocity to zero at every
-   * keyframe, not just at the ends, so a five-step path stutters four times a
-   * lap; `alternate` then stops dead to turn around. The loop closes on itself
-   * instead, so the speed never changes and there is nothing to restart.
-   *
-   * Every offset is a percentage of the stage, which is why the mover is a
-   * separate element sized to it: a percentage in `translate` resolves against
-   * the element's own box, so moving the field directly would tie the travel to
-   * the field's rem size and let it wander off a narrow banner. */
   --animate-orbit-left: orbit-left 22s linear infinite;
   --animate-orbit-right: orbit-right 22s linear infinite;
 }
 
-/* A soft field of one colour, faded to nothing well before its edge.
- *
- * A utility rather than an arbitrary `bg-[radial-gradient(...)]`: the arbitrary
- * form silently produced `background-image: none`, and a background that fails
- * to generate takes the whole effect with it while every other class on the
- * element still applies. The colour comes in as a custom property. */
 @utility light-field {
-  /* The falloff is the blur. A `filter: blur()` on top flattens the centre out
-   * and costs a full-size offscreen buffer to paint. */
   background-image: radial-gradient(
     circle closest-side,
     var(--light-color) 0%,
@@ -179,12 +118,6 @@
   }
 }
 
-/* Twelve steps around an ellipse: enough that the straight line between
- * two of them is shorter than the blur, so the path reads as a curve. */
-/* Twelve steps around an ellipse, starting and ending at the centre of the
- * stage. Twelve because the straight line the browser draws between two of
- * them is then shorter than the blur, so the path reads as a curve and the
- * direction never visibly snaps. */
 @keyframes orbit-left {
   0%,
   100% {
@@ -225,8 +158,6 @@
   }
 }
 
-/* The same ellipse mirrored, so the two are always on opposite sides and
- * meet in the middle once a lap. */
 @keyframes orbit-right {
   0%,
   100% {
@@ -267,10 +198,6 @@
   }
 }
 
-/* Utilities rather than `--text-*` entries: a step has to carry its family as
- * well as its size, and `--text-*` has no slot for one. Every step here has a
- * consumer, since Tailwind only generates a utility it finds in source. */
-
 @utility text-title {
   font-family: var(--font-serif);
   font-size: 2rem;
@@ -279,9 +206,6 @@
   font-weight: 600;
 }
 
-/* The line under a page title. Sans against the serif above it, which is the
- * pairing that carries the identity: one family at two sizes reads as a
- * document, two families at two sizes reads as a product. */
 @utility text-lead {
   font-family: var(--font-sans);
   font-size: 1.125rem;
@@ -314,7 +238,7 @@
   font-family: var(--font-sans);
   font-size: 0.8125rem;
   line-height: 1.4;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 @utility text-caption {
@@ -332,8 +256,6 @@
   text-transform: uppercase;
 }
 
-/* Tabular, never serif: Lora's numerals are old-style and cannot be compared
- * down a column. */
 @utility text-metric {
   font-family: var(--font-sans);
   font-size: 2.125rem;
@@ -352,20 +274,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Content fading in where a skeleton just was: one class on the resolved
- * element, and nothing to wrap it in.
- *
- * `@starting-style` rather than a `<Transition>`, and the reason is the case
- * that would otherwise need arguing about: it does not run on the document's
- * first paint. Measured with the duration held at 3s — a direct load of a
- * server-rendered page reports zero opacity transitions and a computed opacity
- * of 1, while the same element reached by client-side navigation transitions
- * as intended. So server-rendered figures are simply there, and only a figure
- * that actually replaced a skeleton animates.
- *
- * Being a transition rather than an animation, it also comes under the
- * reduced-motion rule at the end of this file without stating anything, and a
- * browser without `@starting-style` shows the content at once. */
 @utility reveal {
   transition: opacity var(--duration-enter) var(--ease-standard);
 
@@ -394,13 +302,10 @@
     text-rendering: optimizeLegibility;
   }
 
-  /* Browsers give `<button>` the arrow and Tailwind's reset leaves it. Stated
-   * once, because it is not a decision an individual button makes. */
   :is(button, [role='button'], summary):not(:disabled) {
     cursor: pointer;
   }
 
-  /* Global: almost every number here is one a reader compares. */
   :is(td, th, [data-numeric]) {
     font-variant-numeric: tabular-nums;
   }
@@ -411,7 +316,6 @@
     border-radius: 2px;
   }
 
-  /* Pointer users get no ring; keyboard users always do. */
   :focus:not(:focus-visible) {
     outline: none;
   }
@@ -439,12 +343,9 @@
   }
 }
 
-/* Two layers: the closed state works everywhere, the open picker only where
- * the customizable select API exists. Fallback first, enhancement additive. */
 @layer components {
   .ui-select {
     appearance: none;
-    /* Room on the right for the arrow drawn by the component. */
     padding: 0.4375rem 2rem 0.4375rem 0.75rem;
     border: 1px solid var(--color-edge);
     border-radius: var(--radius-control);
@@ -453,7 +354,7 @@
     font-family: var(--font-sans);
     font-size: 0.8125rem;
     line-height: 1.4;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     transition:
       border-color var(--duration-feedback) var(--ease-standard),
@@ -470,14 +371,12 @@
     opacity: 0.55;
   }
 
-  /* Progressive enhancement from here down. */
   @supports (appearance: base-select) {
     .ui-select,
     .ui-select::picker(select) {
       appearance: base-select;
     }
 
-    /* The component already renders one that follows the theme. */
     .ui-select::picker-icon {
       display: none;
     }
@@ -492,10 +391,8 @@
       background-color: var(--color-surface-overlay);
       box-shadow: var(--shadow-overlay);
       padding: 0.25rem;
-      /* A popover in the top layer, so it inherits nothing. */
       color: var(--color-ink);
       font-family: var(--font-sans);
-      /* Anchored to the control rather than to the viewport. */
       margin-block-start: 0.25rem;
       min-width: anchor-size(width);
 
@@ -513,7 +410,6 @@
       translate: 0 0;
     }
 
-    /* Without this the picker animates out but jumps in. */
     @starting-style {
       .ui-select:open::picker(select) {
         opacity: 0;
@@ -533,8 +429,6 @@
       cursor: pointer;
     }
 
-    /* Selected and focused are different states, and the picker shows both at
-     * once, so they must not share a treatment. */
     .ui-select option:hover,
     .ui-select option:focus {
       background-color: var(--color-surface-hover);
@@ -546,8 +440,6 @@
       font-weight: 600;
     }
 
-    /* Kept rather than hidden: it is the only cue separating the selected row
-     * from the one under the pointer. */
     .ui-select option::checkmark {
       order: 1;
       margin-inline-start: auto;
@@ -557,81 +449,20 @@
   }
 }
 
-/* One page replacing another under a chrome that does not move: the fallback,
- * for a browser that cannot do the transition below.
- *
- * Vue applies `.page-enter-*` on every navigation regardless. Where the browser
- * has view transitions the classes are left with no rules to match, so they
- * cost nothing and the browser's own transition is the only one running; where
- * it does not, this is what the reader gets instead. Which is the same shape as
- * the `@supports (appearance: base-select)` block further up: the fallback is
- * stated first and the better answer replaces it, rather than the page being
- * given one thing and having it taken away.
- *
- * It was worth the query rather than switching the fade off per page, which is
- * what this replaced. Off per page meant off for everyone, and a browser
- * without view transitions was left with a hard cut between pages.
- *
- * Opacity only. A slide would carry a table the reader is part way down off to
- * one side, and under `out-in` it would be sliding an empty box in any case,
- * because the outgoing page has already gone by the time the incoming one is
- * mounted.
- *
- * Only the entering half gets a transition. Animating both doubles the wait
- * before anything can be read, and a page on its way out has nothing left to
- * say: the old one goes at once, the new one fades up over `--duration-enter`.
- * Nuxt waits for the incoming page's data before any of this starts, so the
- * fade covers the swap rather than a blank column. */
-@supports not (view-transition-name: none) {
-  .page-enter-active {
-    transition: opacity var(--duration-enter) var(--ease-standard);
-  }
-
-  .page-enter-from {
-    opacity: 0;
-  }
+.page-enter-active {
+  transition: opacity var(--duration-enter) var(--ease-standard);
 }
 
-/* The browser-side transition, on the two routes that opt into it.
- *
- * 250ms rather than `--duration-enter`, and not for want of a token: 150ms is
- * the right length for a box that only changes opacity in place, and the wrong
- * one for a tile that crosses the page and changes shape on the way. The eye
- * has to follow this one to read it as the same object, and that takes longer
- * than noticing something appear.
- *
- * Nothing here has to answer for `prefers-reduced-motion`. Nuxt is configured
- * with `viewTransition: true` rather than `'always'`, and at that setting it
- * does not start a transition at all when the preference is set — measured,
- * not assumed: under `reduce` no `::view-transition-*` pseudo-element is
- * created, so there is nothing left to switch off. */
+.page-enter-from {
+  opacity: 0;
+}
+
 ::view-transition-group(*),
 ::view-transition-old(*),
 ::view-transition-new(*) {
   animation-duration: 250ms;
 }
 
-/* Movement, when the reader has asked for less of it.
- *
- * One block for the whole project rather than an opt-in each component has to
- * remember. What this replaced was three separate `prefers-reduced-motion`
- * queries here plus twenty-one `motion-reduce:` utilities across thirteen
- * components, all of them saying the same thing — and every one of them a
- * chance for the next component to forget.
- *
- * Unlayered and last on purpose, and that is what gives it the final word: the
- * cascade sorts by layer before it sorts by specificity, so an unlayered `*`
- * outranks `.transition-colors` sitting in Tailwind's `utilities` layer without
- * needing `!important` to win.
- *
- * Near-zero rather than `none`, because `transitionend` and `animationend` do
- * not fire on a transition that was never allowed to run, and anything waiting
- * on one of those to clean up would hang instead.
- *
- * An element marked `data-motion="essential"`, and its subtree, opts out.
- * Reserved for movement that carries information rather than polish — a
- * determinate progress indicator being the usual case, where holding it still
- * withholds a fact rather than a flourish. */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

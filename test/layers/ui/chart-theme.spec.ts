@@ -2,12 +2,6 @@ import { describe, expect, it } from 'vitest'
 import { FALLBACK_CHART_THEME } from '~~/layers/ui/app/composables/use-chart-theme'
 import { LIGHT_TOKENS, resolveToken } from '../../support/css-tokens'
 
-/**
- * The server has no stylesheet, so the composable ships a hard-coded copy of the
- * light theme. Change a token, forget the copy, and every cold load flashes the
- * old palette for a frame.
- */
-
 const GENERIC_TOKENS = [
   '--viz-1',
   '--viz-2',
@@ -29,9 +23,6 @@ const GENERIC_TOKENS = [
 
 describe('the chart palette', () => {
   it('declares every token the composable reads', () => {
-    // A missing token is not a crash, it is a silent fall back to the SSR copy
-    // that never updates with the theme, so it has to be asserted rather than
-    // discovered.
     for (const token of GENERIC_TOKENS) expect(() => resolveToken(token), token).not.toThrow()
   })
 
@@ -57,20 +48,11 @@ describe('the chart palette', () => {
     expect(FALLBACK_CHART_THEME.edge).toBe(resolveToken('--border-default'))
   })
 
-  /**
-   * The chart theme used to resolve `--nutriscore-*` too, which made the design
-   * system the one place that knew a catalogue grades things A to E.
-   */
   it('carries no domain palette', () => {
     expect(Object.keys(FALLBACK_CHART_THEME)).not.toContain('nutriScore')
     expect(Object.keys(FALLBACK_CHART_THEME)).not.toContain('nova')
   })
 
-  /**
-   * zrender understands only hex, rgb and hsl, and a palette in OKLCH renders
-   * perfectly and turns transparent under the pointer. Today's tokens are hex, so
-   * this pins the mechanism rather than the current palette.
-   */
   it('is written in a syntax zrender can parse', () => {
     const literals = [...LIGHT_TOKENS.keys()]
       .filter((token) => /^--(viz|nova|nutriscore|primitive)-/.test(token))

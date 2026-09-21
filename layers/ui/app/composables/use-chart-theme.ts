@@ -1,8 +1,3 @@
-/**
- * A canvas cannot inherit a colour, so ECharts needs literal strings. The tokens
- * stay the source and this reads them back, which makes theme switching free.
- */
-
 const VIZ_SERIES_TOKENS = [
   '--viz-1',
   '--viz-2',
@@ -26,10 +21,6 @@ export interface ChartTheme {
   edge: string
 }
 
-/**
- * Used before the DOM exists, so unavoidably a copy of tokens.css. Light,
- * because a dark first paint under a light theme is the worse mistake.
- */
 const SSR_FALLBACK: ChartTheme = {
   series: ['#003cb2', '#ad7fe5', '#00a69b', '#ff547c', '#106076', '#009bee', '#b05223', '#968f88'],
   grid: '#ebeff6',
@@ -44,12 +35,6 @@ const SSR_FALLBACK: ChartTheme = {
 
 let rasteriser: CanvasRenderingContext2D | null | undefined
 
-/**
- * zrender parses only hex, rgb and hsl, and it parses to derive hover states:
- * anything newer gives a transparent fill and the bar vanishes under the pointer
- * while the chart still renders. Rasterising is the only reliable conversion,
- * since `getComputedStyle` and `ctx.fillStyle` both hand back the authored space.
- */
 function toRgb(value: string): string | null {
   if (rasteriser === undefined) {
     const canvas = document.createElement('canvas')
@@ -60,7 +45,6 @@ function toRgb(value: string): string | null {
 
   if (!rasteriser) return null
 
-  // A rejected colour leaves fillStyle at its previous value, so reset first.
   rasteriser.fillStyle = '#000000'
   rasteriser.fillStyle = value
   rasteriser.clearRect(0, 0, 1, 1)
@@ -69,7 +53,6 @@ function toRgb(value: string): string | null {
   const [r, g, b, a] = rasteriser.getImageData(0, 0, 1, 1).data
   if (r === undefined || g === undefined || b === undefined || a === undefined) return null
 
-  // Alpha comes back 0-255; ECharts wants 0-1.
   return a === 255 ? `rgb(${r}, ${g}, ${b})` : `rgba(${r}, ${g}, ${b}, ${(a / 255).toFixed(3)})`
 }
 
@@ -99,10 +82,6 @@ function readTheme(): ChartTheme {
   }
 }
 
-/**
- * Bumps when a resolved token could have changed. Shared, since resolving forces
- * a style recalculation, and zero until mount so SSR and first paint agree.
- */
 function useThemeRevision() {
   const revision = useState('ui:theme-revision', () => 0)
 
@@ -124,10 +103,6 @@ function useThemeRevision() {
   return revision
 }
 
-/**
- * Generic on purpose: the layer knows how to read a token, not which tokens a
- * product has.
- */
 export function useThemeColors<K extends string>(
   tokens: Readonly<Record<K, string>>,
   fallback: Readonly<Record<K, string>>,
@@ -135,7 +110,6 @@ export function useThemeColors<K extends string>(
   const revision = useThemeRevision()
 
   return computed<Record<K, string>>(() => {
-    // Read so the palette re-resolves on a theme change.
     void revision.value
 
     if (revision.value === 0 || typeof document === 'undefined') return { ...fallback }

@@ -1,9 +1,4 @@
 <script setup lang="ts">
-/**
- * The wrapping `<label>` is what makes the row a hit target rather than the
- * sixteen pixels of the box. The native input keeps the platform focus ring and
- * keyboard behaviour, and `accent-color` is enough to style it.
- */
 defineProps<{ checked: boolean }>()
 defineEmits<{ toggle: [] }>()
 </script>

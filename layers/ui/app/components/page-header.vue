@@ -1,8 +1,4 @@
 <script setup lang="ts">
-/**
- * Serif title over sans supporting text. `actions` drops below the title on
- * narrow screens rather than shrinking it.
- */
 defineProps<{
   title: string
   description?: string

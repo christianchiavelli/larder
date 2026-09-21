@@ -1,15 +1,7 @@
 import { ofetch } from 'ofetch'
 
-/**
- * Every call originates here: upstream identifies callers by User-Agent, which a
- * browser cannot set. Retries distinguish transient from permanent, and the
- * timeout is ours, since a hanging SSR request holds a Nitro worker.
- */
-
 export interface UpstreamRequestOptions {
-  /** Abandon the attempt after this long. Applies per attempt, not per call. */
   timeoutMs?: number
-  /** Extra attempts after the first. Only transient failures consume them. */
   retries?: number
   signal?: AbortSignal
 }
@@ -19,7 +11,6 @@ const DEFAULT_RETRIES = 2
 const BASE_BACKOFF_MS = 250
 const MAX_BACKOFF_MS = 2_000
 
-/** 429 and 5xx can succeed on a second attempt. Nothing else can. */
 const RETRYABLE_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504])
 
 function statusOf(error: unknown): number | undefined {
@@ -30,16 +21,10 @@ function statusOf(error: unknown): number | undefined {
 
 function isRetryable(error: unknown): boolean {
   const status = statusOf(error)
-  // No status at all means the request never completed: DNS, TCP reset,
-  // or our own timeout. All worth one more try.
   if (status === undefined) return true
   return RETRYABLE_STATUSES.has(status)
 }
 
-/**
- * Full jitter matters more than the exponent: SSR fires several requests in
- * parallel, and without it a shared hiccup makes them all retry on one tick.
- */
 export function backoffDelay(attempt: number, random: () => number = Math.random): number {
   const ceiling = Math.min(MAX_BACKOFF_MS, BASE_BACKOFF_MS * 2 ** attempt)
   return Math.round(random() * ceiling)
@@ -78,7 +63,6 @@ export function createUpstreamClient(baseURL: string, userAgent: string): Upstre
       'User-Agent': userAgent,
       Accept: 'application/json',
     },
-    // Retry is handled below so that backoff and retryability stay under test.
     retry: false,
   })
 
@@ -92,8 +76,6 @@ export function createUpstreamClient(baseURL: string, userAgent: string): Upstre
     let lastError: unknown
 
     for (let attempt = 0; attempt <= retries; attempt++) {
-      // A fresh timeout per attempt, linked to the caller's signal so an
-      // aborted SSR render does not leave requests running.
       const timeoutSignal = AbortSignal.timeout(timeoutMs)
       const attemptSignal = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal
 
@@ -102,7 +84,6 @@ export function createUpstreamClient(baseURL: string, userAgent: string): Upstre
       } catch (error) {
         lastError = error
 
-        // The caller gave up. Stop immediately rather than spending retries.
         if (signal?.aborted) throw error
 
         const hasAttemptsLeft = attempt < retries
@@ -121,7 +102,6 @@ export function createUpstreamClient(baseURL: string, userAgent: string): Upstre
 let searchClient: UpstreamClient | undefined
 let productClient: UpstreamClient | undefined
 
-/** Search-a-licious, the Elasticsearch-backed search and aggregation service. */
 export function useSearchClient(): UpstreamClient {
   if (!searchClient) {
     const config = useRuntimeConfig()
@@ -133,7 +113,6 @@ export function useSearchClient(): UpstreamClient {
   return searchClient
 }
 
-/** The v2 REST API, which is the only one that serves a full product record. */
 export function useProductClient(): UpstreamClient {
   if (!productClient) {
     const config = useRuntimeConfig()

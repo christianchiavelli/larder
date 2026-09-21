@@ -8,10 +8,6 @@ const push = vi.fn((to: { query: LocationQuery }) => {
   return Promise.resolve()
 })
 
-/**
- * The router is replaced wholesale, and there is no Nuxt runtime: the composable
- * imports `computed` from Vue so it can be tested without one.
- */
 vi.mock('vue-router', () => ({
   useRoute: () => ({
     get query() {
@@ -28,7 +24,6 @@ beforeEach(() => {
   push.mockClear()
 })
 
-/** The query object the last `router.push` wrote. */
 function lastPush(): LocationQuery {
   const call = push.mock.calls.at(-1)
   if (!call) throw new Error('nothing was pushed')
@@ -51,16 +46,10 @@ describe('useProductQuery', () => {
 
     setSearchTerm('cocoa')
 
-    // A URL carrying every default is a URL nobody can read, and it makes two
-    // identical searches look like different ones in a cache key or a bookmark.
     expect(lastPush()).toEqual({ q: 'cocoa' })
   })
 
   describe('the page number', () => {
-    /**
-     * Narrowing while holding the page number lands the reader on an empty page of
-     * a set that now has three.
-     */
     it('resets when a filter changes', () => {
       currentQuery.value = { page: '8' }
       const { toggleNutriScore } = useProductQuery()
@@ -88,8 +77,6 @@ describe('useProductQuery', () => {
       expect(lastPush().page).toBeUndefined()
     })
 
-    // Sort is a preference, not a filter: it reorders the same set rather than
-    // shrinking it, so the page the user is on still exists.
     it('survives a sort change', () => {
       currentQuery.value = { page: '8' }
       const { setSort } = useProductQuery()
@@ -130,10 +117,6 @@ describe('useProductQuery', () => {
       },
     )
 
-    /**
-     * Brands take a value from either of two vocabularies: the facet passes the
-     * stored slug, a suggestion passes the same brand prefixed.
-     */
     it('adds a brand from the facet and from a suggestion as one filter', () => {
       const { toggleTag } = useProductQuery()
 
@@ -146,7 +129,6 @@ describe('useProductQuery', () => {
       currentQuery.value = { brand: ['olivari', 'carrefour'] }
       const { toggleTag } = useProductQuery()
 
-      // Without normalising, this misses and adds `olivari` a second time.
       toggleTag('brand', 'en:olivari')
 
       expect(lastPush().brand).toEqual(['carrefour'])
@@ -158,9 +140,6 @@ describe('useProductQuery', () => {
 
       toggleTag('category', 'en:snacks')
 
-      // The bug this file was written for: `toQueryParams` omits an empty list,
-      // so a patch that empties one used to leave the previous value in place
-      // and the filter could not be switched off at all.
       expect(lastPush().category).toBeUndefined()
     })
 
@@ -201,10 +180,6 @@ describe('useProductQuery', () => {
       expect(lastPush()).toEqual({})
     })
 
-    /**
-     * Sort and page size are how the reader chose to read the list, not what they
-     * chose to look at.
-     */
     it('keeps the sort and the page size', () => {
       currentQuery.value = { category: ['en:snacks'], sort: 'popularity', pageSize: '48' }
       const { clearFilters } = useProductQuery()
@@ -220,8 +195,6 @@ describe('useProductQuery', () => {
 
     const { query } = useProductQuery()
 
-    // A stale bookmark or a truncated link is a normal thing to receive, and an
-    // error page is a worse answer than the unfiltered directory.
     expect(query.value.page).toBe(1)
     expect(query.value.nutriScore).toEqual([])
     expect(query.value.sort).toBe('relevance')

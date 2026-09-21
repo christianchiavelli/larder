@@ -2,12 +2,6 @@ import { describe, expect, it, vi } from 'vitest'
 import { suggestTaxonomy } from '~~/server/services/suggest'
 import type { UpstreamClient } from '~~/server/utils/upstream-client'
 
-/**
- * Upstream ranks a multi-taxonomy call globally, so the highest-scoring taxonomy
- * fills the response: "choc" comes back as eight brands and no category.
- */
-
-/** Answers each taxonomy with its own list, and records every call. */
 function stubClient(byTaxonomy: Record<string, string[]>) {
   const get = vi.fn(async (_path: string, query?: Record<string, unknown>) => {
     const taxonomy = String(query?.taxonomy_names ?? '')
@@ -33,8 +27,6 @@ describe('suggestTaxonomy', () => {
   })
 
   it('takes one from each list in turn', async () => {
-    // Concatenating would put every category above every brand, and the reader
-    // would see one taxonomy until they scrolled.
     const { client } = stubClient({
       category: ['en:cat-1', 'en:cat-2', 'en:cat-3'],
       brand: ['en:brand-1', 'en:brand-2'],
@@ -60,8 +52,6 @@ describe('suggestTaxonomy', () => {
   })
 
   it('shows an id once when two taxonomies both return it', async () => {
-    // Keeping both would show the reader one entry twice, and the two copies
-    // would apply different filters.
     const { client } = stubClient({ category: ['en:same'], brand: ['en:same'] })
 
     const suggestions = await suggestTaxonomy(client, { q: 'ch', taxonomy: 'category,brand' })
@@ -86,9 +76,6 @@ describe('suggestTaxonomy', () => {
   })
 
   it('asks each taxonomy for its share plus one, not for the whole limit', async () => {
-    // The spare is what lets the others fill the list when one comes up short.
-    // Asking each for the full limit would multiply the load on the endpoint
-    // with upstream's tightest published ceiling.
     const { client, get } = stubClient({ category: [], brand: [] })
 
     await suggestTaxonomy(client, { q: 'ch', taxonomy: 'category,brand', limit: 8 })
@@ -113,19 +100,12 @@ describe('suggestTaxonomy', () => {
   })
 
   it('rejects an unknown taxonomy rather than forwarding it', async () => {
-    // Substituting the default would be worse than answering with nothing: the
-    // caller asked for something specific and would get categories back with
-    // no signal that their request was discarded.
     const { client, get } = stubClient({ category: ['en:a'], brand: ['en:b'] })
 
     expect(await suggestTaxonomy(client, { q: 'ch', taxonomy: 'category,nonsense' })).toEqual([])
     expect(get).not.toHaveBeenCalled()
   })
 
-  /**
-   * Too short is not an error, it is an input someone has just started typing
-   * into. A 400 would put a red line in the console on every first keystroke.
-   */
   it.each([[''], ['c'], ['  ']])('answers %j locally without calling upstream', async (q) => {
     const { client, get } = stubClient({ category: ['en:a'] })
 
@@ -171,9 +151,6 @@ describe('suggestTaxonomy', () => {
   })
 
   it('survives an upstream response in an unexpected shape', async () => {
-    // A suggestion list is an enhancement. An empty dropdown is a better
-    // outcome than a failed page, and a contract change still surfaces in the
-    // search route, which does throw.
     const get = vi.fn().mockResolvedValue({ unexpected: true })
 
     expect(await suggestTaxonomy({ get } as UpstreamClient, { q: 'ch' })).toEqual([])

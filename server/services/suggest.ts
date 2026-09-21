@@ -4,16 +4,9 @@ import type { Suggestion } from '#shared/domain/search'
 import { toUpstreamError } from '~~/server/utils/upstream-error'
 import type { UpstreamClient } from '~~/server/utils/upstream-client'
 
-/**
- * One call per taxonomy: upstream accepts a list but ranks it globally, so the
- * highest-scoring taxonomy fills the whole response.
- */
-
 const suggestQuerySchema = z.object({
-  /** A single letter matches most of a taxonomy and suggests nothing useful. */
   q: z.string().trim().min(2).max(60),
 
-  /** Repeated parameter or comma-joined string. */
   taxonomy: z
     .preprocess(
       (value) =>
@@ -47,7 +40,6 @@ export async function suggestTaxonomy(
 ): Promise<Suggestion[]> {
   const parsed = suggestQuerySchema.safeParse(rawQuery)
 
-  // Too short is the normal state of an input someone just started typing in.
   if (!parsed.success) return []
 
   const { q, taxonomy, limit } = parsed.data
@@ -72,7 +64,6 @@ async function suggestOne(
       taxonomy_names: taxonomy,
       lang: 'en',
       size,
-      // A completion field returns nothing at all for a typo.
       fuzziness: 1,
     })
   } catch (error) {
@@ -81,7 +72,6 @@ async function suggestOne(
 
   const response = upstreamSuggestSchema.safeParse(raw)
 
-  // An empty dropdown beats a failed page; the search route still throws.
   if (!response.success) return []
 
   return response.data.options.map((option): Suggestion => ({
@@ -91,17 +81,10 @@ async function suggestOne(
   }))
 }
 
-/**
- * A share plus one, so a taxonomy that comes up short leaves the others a spare.
- */
 function quotaFor(limit: number, taxonomies: number): number {
   return Math.ceil(limit / taxonomies) + 1
 }
 
-/**
- * Round-robin, not concatenation, which would show one taxonomy until the reader
- * scrolls.
- */
 function interleave(lists: Suggestion[][]): Suggestion[] {
   const merged: Suggestion[] = []
   const seen = new Set<string>()
@@ -110,7 +93,6 @@ function interleave(lists: Suggestion[][]): Suggestion[] {
   for (let index = 0; index < longest; index++) {
     for (const list of lists) {
       const suggestion = list[index]
-      // The same id in two taxonomies would list one entry twice.
       if (!suggestion || seen.has(suggestion.id)) continue
       seen.add(suggestion.id)
       merged.push(suggestion)

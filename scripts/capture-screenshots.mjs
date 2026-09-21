@@ -1,17 +1,9 @@
-/**
- * Regenerates the README screenshots against a production build:
- *
- *   pnpm run build
- *   node .output/server/index.mjs &
- *   pnpm run screenshots
- */
 import { mkdir } from 'node:fs/promises'
 import { chromium } from '@playwright/test'
 
 const BASE_URL = process.env.SCREENSHOT_BASE_URL ?? 'http://localhost:3210'
 const OUT_DIR = 'docs/screenshots'
 
-/** Wide enough for the directory's three-column grid without being a billboard. */
 const VIEWPORT = { width: 1440, height: 900 }
 
 const SHOTS = [
@@ -30,7 +22,6 @@ for (const shot of SHOTS) {
   const context = await browser.newContext({
     viewport: VIEWPORT,
     colorScheme: shot.scheme,
-    // Keeps file sizes reasonable; these are README illustrations, not assets.
     deviceScaleFactor: 1,
     reducedMotion: 'reduce',
   })
@@ -38,14 +29,8 @@ for (const shot of SHOTS) {
   const page = await context.newPage()
   await page.goto(`${BASE_URL}${shot.path}`, { waitUntil: 'networkidle' })
 
-  // Charts animate in on a canvas, so a screenshot taken at networkidle can
-  // catch them mid-draw.
   await page.waitForTimeout(1200)
 
-  /**
-   * Rebuilding while the production server runs leaves it serving HTML that points
-   * at replaced asset hashes, so every stylesheet 404s and the page still renders.
-   */
   const styled = await page.evaluate(() => {
     const probe = document.createElement('div')
     probe.className = 'bg-chrome'

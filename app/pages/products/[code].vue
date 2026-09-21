@@ -26,10 +26,6 @@ const modifiedLabel = computed(() => {
   )
 })
 
-/**
- * A missing product is a normal outcome a reader can act on; an outage is not,
- * and offering "try again" for a barcode that does not exist cannot work.
- */
 const isNotFound = computed(
   () => (error.value as { statusCode?: number } | null)?.statusCode === 404,
 )
@@ -38,15 +34,7 @@ const isNotFound = computed(
 <template>
   <UiPageContainer>
     <div class="flex flex-col gap-6">
-      <nav aria-label="Breadcrumb" class="text-label">
-        <NuxtLink
-          to="/products"
-          class="inline-flex items-center gap-1.5 text-ink-muted hover:text-ink"
-        >
-          <UiIcon name="chevron-left" class="size-2.5" />
-          All products
-        </NuxtLink>
-      </nav>
+      <UiBreadcrumbs :items="[{ text: 'Products', to: '/products' }, { text: title }]" />
 
       <UiEmptyState
         v-if="isNotFound"
@@ -71,22 +59,11 @@ const isNotFound = computed(
 
       <template v-else>
         <header class="flex flex-col gap-4 sm:flex-row sm:items-start">
-          <!--
-            Same name the grid gave this product's tile, so the browser pairs
-            the two boxes and carries the photograph between the pages instead
-            of cross-fading the whole screen over it.
-          -->
           <div
             class="flex size-28 shrink-0 items-center justify-center overflow-hidden rounded-card border border-edge-subtle bg-surface-media"
             :style="{ viewTransitionName: `product-image-${code}` }"
           >
             <UiSkeleton v-if="isLoading" class="size-full" />
-            <!--
-              Drawn at 112px. The 200px variant covers a standard display and the
-              400px one a retina display, and there is exactly one of these on the
-              page, so it is not lazy: it is above the fold and part of what the
-              reader came for.
-            -->
             <img
               v-else-if="product?.image"
               :src="product.image.small ?? product.image.large ?? product.image.thumb ?? undefined"
@@ -142,16 +119,6 @@ const isNotFound = computed(
           </div>
         </header>
 
-        <!--
-          The nutrition table sets the height of the row, and the column beside it
-          divides that height rather than ending where its content does.
-
-          Mechanically: the grid stretches both columns to the taller of the two,
-          and the two cards inside the right one are `flex-1`, so they take an
-          equal share of whatever is left once the gap between them is removed.
-          No height is declared anywhere, so the row still grows with the content
-          of either side and collapses to a single column below `lg`.
-        -->
         <div data-scroll-section class="grid scroll-mt-6 gap-4 lg:grid-cols-3">
           <UiSurfaceCard class="lg:col-span-2">
             <h2 class="mb-3 text-heading text-ink">Nutrition</h2>

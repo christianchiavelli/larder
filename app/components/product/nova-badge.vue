@@ -1,24 +1,15 @@
 <script setup lang="ts">
 import { NOVA_LABELS, NOVA_SHORT_LABELS, type NovaGroup } from '#shared/domain/nutrition'
 
-/**
- * Round at every size, where Nutri-Score is square: the two sit side by side and
- * the shape tells them apart before either number is read.
- */
 withDefaults(
   defineProps<{
     group: NovaGroup | null
     size?: 'sm' | 'lg'
-    /** Adds the group's name beside the number. */
     withLabel?: boolean
   }>(),
   { size: 'sm', withLabel: false },
 )
 
-/**
- * Fill and ink are one token: the ramp runs green to red through two yellows and
- * no single ink clears AA on all four.
- */
 const GROUP_CLASSES: Record<NovaGroup, string> = {
   1: 'bg-nova-1 text-nova-1-ink',
   2: 'bg-nova-2 text-nova-2-ink',

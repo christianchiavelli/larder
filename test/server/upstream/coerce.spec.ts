@@ -14,10 +14,6 @@ describe('looseString', () => {
     expect(looseString.parse(input)).toBeNull()
   })
 
-  /**
-   * The value is text and Vue escapes text, so the reader saw the entity where the
-   * bottle says `<`.
-   */
   it.each([
     ['&lt;2 mg/l', '<2 mg/l'],
     ['Salt &amp; pepper', 'Salt & pepper'],
@@ -33,10 +29,6 @@ describe('looseString', () => {
     expect(looseString.parse('400&nbsp;g')).toBe('400 g')
   })
 
-  /**
-   * One pass, not a chain: decoding `&amp;` and running again would turn text that
-   * legitimately reads `&lt;` into a `<` nobody wrote.
-   */
   it('does not decode twice', () => {
     expect(looseString.parse('&amp;lt;2')).toBe('&lt;2')
   })
@@ -62,10 +54,6 @@ describe('looseNumber', () => {
     expect(looseNumber.parse(input)).toBe(expected)
   })
 
-  /**
-   * JSON carries no NaN or Infinity literal, so a bad record sends the string
-   * spelling of one.
-   */
   it.each([[null], [undefined], [''], ['banana'], ['NaN'], ['Infinity']])(
     'reads %s as absent',
     (input) => {

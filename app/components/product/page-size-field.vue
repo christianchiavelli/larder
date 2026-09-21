@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { PAGE_SIZES } from '#shared/domain/search'
 
-/**
- * Sizes stop at 96: the list is not virtualised.
- */
 const { query, setPageSize } = useProductQuery()
 
 const value = computed<number>({

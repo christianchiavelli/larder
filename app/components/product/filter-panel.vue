@@ -8,10 +8,6 @@ import {
 import { activeFilterCount, hasActiveFilters } from '#shared/domain/search'
 import type { ProductSearchResult } from '#shared/domain/search'
 
-/**
- * Facets come in as a prop, the selection is read from the URL. Two props
- * instead of seven props and six events.
- */
 defineProps<{
   facets: ProductSearchResult['facets'] | null
   loading?: boolean

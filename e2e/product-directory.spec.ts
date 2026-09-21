@@ -1,13 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
-/**
- * Nothing here depends on a specific product: the catalogue changes daily. What
- * is asserted are the invariants.
- */
-
 test.describe('product directory', () => {
   test('renders results on the server, before any JavaScript runs', async ({ browser }) => {
-    // JavaScript disabled, so anything visible here came from SSR.
     const context = await browser.newContext({ javaScriptEnabled: false })
     const page = await context.newPage()
 
@@ -28,7 +22,6 @@ test.describe('product directory', () => {
       .click()
     await expect(page).toHaveURL(/nutriScore=a/)
 
-    // The whole claim behind keeping state in the URL.
     await page.reload()
     await expect(page).toHaveURL(/nutriScore=a/)
     await expect(page.getByRole('button', { name: /Nutri-Score A,/ }).first()).toHaveAttribute(
@@ -37,10 +30,6 @@ test.describe('product directory', () => {
     )
   })
 
-  /**
-   * Removing is a different operation from applying, and the suite only ever
-   * applied.
-   */
   test('switches a filter back off again', async ({ page }) => {
     await page.goto('/products')
 
@@ -60,14 +49,9 @@ test.describe('product directory', () => {
     await page.getByRole('button', { name: /clear all/i }).click()
 
     await expect(page).not.toHaveURL(/nutriScore|nova/)
-    // Sort is how the list is read, not what is in it.
     await expect(page).toHaveURL(/sort=popularity/)
   })
 
-  /**
-   * Asserted one at a time: a single control selecting both could not tell a
-   * product nobody has graded from a beer the scheme never will.
-   */
   for (const { label, value } of [
     { label: 'Nutri-Score not reported', value: 'unknown' },
     { label: 'Nutri-Score not applicable', value: 'not-applicable' },
@@ -78,8 +62,6 @@ test.describe('product directory', () => {
       await page.getByRole('button', { name: label }).first().click()
       await expect(page).toHaveURL(new RegExp(`nutriScore=${value}`))
 
-      // Polled: the directory holds the previous page while the next loads, so
-      // a single read lands on the rows from before the filter.
       const rows = page.getByTestId('product-row')
       const matching = rows.getByRole('img', { name: label })
 
@@ -103,7 +85,6 @@ test.describe('product directory', () => {
     )
   })
 
-  /** Page size was reachable only by editing the address bar: no control. */
   test('changes the page size and starts again from page one', async ({ page }) => {
     await page.goto('/products?page=5')
 
@@ -127,11 +108,9 @@ test.describe('product directory', () => {
     await expect(page).not.toHaveURL(/nutriScore=a/)
   })
 
-  /** Upstream pins the count at 10,000, so an exact total would be a lie. */
   test('marks an approximate total as approximate', async ({ page }) => {
     await page.goto('/products')
 
-    // NuxtRouteAnnouncer is also aria-live polite.
     const summary = page.getByTestId('result-summary')
     await expect(summary).toContainText(/\d/)
 
@@ -142,21 +121,15 @@ test.describe('product directory', () => {
   })
 
   test('recovers from a hand-edited URL instead of erroring', async ({ page }) => {
-    // Every value is invalid. The schema drops them and the page renders.
     await page.goto('/products?nutriScore=z&nova=99&sort=by-vibes&page=999999')
 
     await expect(page.getByRole('heading', { name: 'Products', level: 1 })).toBeVisible()
     await expect(page.getByLabel('Sort')).toHaveValue('relevance')
   })
 
-  /**
-   * The barcode, not the heading: the two upstream services disagree about names,
-   * so a row and the page it opens may legitimately differ.
-   */
   test('navigates to the product the card links to', async ({ page }) => {
     await page.goto('/products')
 
-    // Card or row is a layout decision; a navigation spec should survive it.
     const firstProduct = page.getByTestId('product-row').first().locator('h3 a')
     const href = await firstProduct.getAttribute('href')
     await firstProduct.click()
@@ -189,10 +162,6 @@ test.describe('product directory', () => {
 })
 
 test.describe('filter suggestions', () => {
-  /**
-   * Real key events, because the point of the pattern is the keyboard: the active
-   * option is pointed at rather than focused.
-   */
   const search = (page: Page) => page.getByRole('combobox', { name: 'Search products' })
 
   test('suggests taxonomy filters once the term is long enough', async ({ page }) => {
@@ -201,8 +170,6 @@ test.describe('filter suggestions', () => {
     const input = search(page)
     await expect(input).toHaveAttribute('aria-expanded', 'false')
 
-    // One character matches most of a taxonomy, so the service declines to
-    // call upstream and the listbox stays shut.
     await input.fill('c')
     await expect(input).toHaveAttribute('aria-expanded', 'false')
 
@@ -213,9 +180,6 @@ test.describe('filter suggestions', () => {
   })
 
   test('mixes taxonomies instead of showing one of them', async ({ page }) => {
-    // Upstream ranks a multi-taxonomy request globally, so asking it for
-    // categories and brands together returns brands only. The service issues
-    // one call per taxonomy and interleaves, and this is the visible result.
     await page.goto('/products')
     await search(page).fill('choc')
 
@@ -240,22 +204,13 @@ test.describe('filter suggestions', () => {
 
     await input.press('Enter')
 
-    // Some filter dimension now carries a taxonomy id, and the term that was
-    // only ever typed in order to find it is gone.
     await expect(page).toHaveURL(/(category|brand|country|label)=/)
     await expect(page).not.toHaveURL(/[?&]q=/)
     await expect(input).toHaveValue('')
 
-    // And it matches something. Asserting only the URL is how a suggestion that
-    // applied a filter upstream could not understand passed as working: the
-    // address bar was right and the catalogue came back empty.
     await expect(page.getByTestId('product-row').first()).toBeVisible()
   })
 
-  /**
-   * Brands specifically: the facet returns a bare slug and autocomplete returns
-   * the same brand with a language prefix.
-   */
   test('applies a brand suggestion to a dimension that matches', async ({ page }) => {
     await page.goto('/products')
 
@@ -291,8 +246,6 @@ test.describe('filter suggestions', () => {
     await input.press('Escape')
 
     await expect(input).toHaveAttribute('aria-expanded', 'false')
-    // The term survives: Escape dismisses the suggestions, it does not undo
-    // the search the reader is in the middle of typing.
     await expect(input).toHaveValue('choc')
   })
 
@@ -310,15 +263,9 @@ test.describe('filter suggestions', () => {
   })
 })
 
-/**
- * One column of cards filling the height of the card beside it, asserted as an
- * arithmetic relationship: a stray `items-start` switches this off while the
- * page still renders. Below `lg` there is one column and nothing to fill.
- */
 test.describe('the product page columns', () => {
   const CODE = '3017620425035'
 
-  /** Heights of the three cards in the first row, plus the gap between two of them. */
   async function measure(page: Page) {
     return page.evaluate(() => {
       const card = (heading: string) =>
@@ -335,8 +282,6 @@ test.describe('the product page columns', () => {
         composition: composition.getBoundingClientRect().height,
         source: source.getBoundingClientRect().height,
         gap: parseFloat(getComputedStyle(composition.parentElement!).rowGap),
-        // Every height here has to come from the layout, never from a number
-        // someone typed.
         declared: [nutrition, composition, source].map((el) => el.style.height).join(''),
       }
     })
@@ -379,10 +324,6 @@ test.describe('the product page columns', () => {
   })
 })
 
-/**
- * The badge may grow sideways for a three-glyph label. Nothing else about it may
- * differ, and a type scale keyed on content fails nothing.
- */
 test.describe('the Nutri-Score filter row', () => {
   test('draws every value at the same height and type size', async ({ page }) => {
     await page.goto('/products')
@@ -400,8 +341,6 @@ test.describe('the Nutri-Score filter row', () => {
       }),
     )
 
-    // Derived from the domain, so a value added there arrives here unmeasured
-    // rather than silently unchecked.
     expect(chips.length).toBeGreaterThan(1)
 
     const first = chips[0]!

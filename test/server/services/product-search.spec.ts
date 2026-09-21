@@ -5,7 +5,6 @@ import type { UpstreamClient } from '~~/server/utils/upstream-client'
 
 const query = (input: Record<string, unknown> = {}) => productQuerySchema.parse(input)
 
-/** A client that answers with whatever the test hands it, and records the call. */
 function stubClient(response: unknown): UpstreamClient & { get: ReturnType<typeof vi.fn> } {
   const get = vi.fn().mockResolvedValue(response)
   return { get }
@@ -65,10 +64,6 @@ describe('searchProducts', () => {
     expect(client.get.mock.calls[0]![1].q).toBe('granola AND categories_tags:"en:biscuits"')
   })
 
-  /**
-   * Upstream derives `page_count` from the truncated count, so it advertises pages
-   * that return nothing.
-   */
   it('clamps a page beyond the tracking ceiling to the last real page', async () => {
     const client = stubClient(upstreamResponse({ count: MAX_TRACKED_HITS, is_count_exact: false }))
 
@@ -119,7 +114,6 @@ describe('searchProducts', () => {
               { key: 'a', name: 'a', count: 10 },
               { key: 'unknown', name: 'unknown', count: 5 },
               { key: 'not-applicable', name: 'not-applicable', count: 3 },
-              // A spelling of "nobody graded this" that is not the word itself.
               { key: '', name: '', count: 2 },
             ],
           },
@@ -177,10 +171,6 @@ describe('searchProducts', () => {
     })
   })
 
-  /**
-   * `hits` not being a list means this is not a search response. Reading it as
-   * zero results presents an outage as a legitimately empty search.
-   */
   it('refuses to read a structurally wrong response as an empty result', async () => {
     const client = stubClient({ hits: 'not a list', count: 0 })
 
@@ -189,10 +179,6 @@ describe('searchProducts', () => {
 })
 
 describe('NOVA coverage', () => {
-  /**
-   * The facet has no bucket for a product without the field, so coverage only
-   * exists as the sum of the buckets that do.
-   */
   it('adds up the groups that exist, since the absence has no bucket', async () => {
     const client = stubClient(
       upstreamResponse({
@@ -213,11 +199,6 @@ describe('NOVA coverage', () => {
     expect(result.novaClassifiedCount).toBe(42)
   })
 
-  /**
-   * Per group as well as summed. The front page names one group and says how
-   * large it is, which the total cannot answer, and the facet was being reduced
-   * to that total before anything asked.
-   */
   it('keeps the groups apart rather than only their sum', async () => {
     const client = stubClient(
       upstreamResponse({
@@ -238,11 +219,6 @@ describe('NOVA coverage', () => {
     expect(result.novaDistribution).toEqual({ 1: 11, 4: 31 })
   })
 
-  /**
-   * Upstream is community-edited and the facet returns whatever is on the
-   * documents. A group outside 1 to 4 is not a fifth kind of processing, it is
-   * a bad record, and letting it through would put it in a chart axis.
-   */
   it('drops a group the scale does not define', async () => {
     const client = stubClient(
       upstreamResponse({

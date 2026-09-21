@@ -5,10 +5,6 @@ import type { TaxonomyName } from '#shared/domain/taxonomy'
 
 const { query, apply, setSearchTerm, setSort } = useProductQuery()
 
-/**
- * Debounced, or every keystroke is a history entry. Watched both ways, since the
- * URL also changes from the back button, a pasted link or Clear all.
- */
 const term = ref(query.value.q)
 
 watch(
@@ -26,15 +22,12 @@ watchDebounced(
   { debounce: 350 },
 )
 
-/** Getter reads the URL, setter writes through the router. */
 const sortValue = computed<SortOption>({
   get: () => query.value.sort,
   set: (value) => {
     setSort(value)
   },
 })
-
-/* -- Suggestions ----------------------------------------------------------- */
 
 const FILTERABLE = ['category', 'brand', 'country', 'label'] as const
 type FilterableTaxonomy = (typeof FILTERABLE)[number]
@@ -46,14 +39,12 @@ function isFilterable(taxonomy: TaxonomyName | string): taxonomy is FilterableTa
 const { state } = useSuggestions(term)
 
 const isOpen = ref(false)
-/** -1 is the input itself. */
 const activeIndex = ref(-1)
 const listboxId = useId()
 
 const options = computed(() =>
   (state.value.data ?? [])
     .filter((suggestion) => isFilterable(suggestion.taxonomy))
-    // Already applied: offering it again presents a no-op as a choice.
     .filter(
       (suggestion) =>
         !query.value[suggestion.taxonomy as FilterableTaxonomy].includes(suggestion.id),
@@ -66,10 +57,6 @@ const activeOptionId = computed(() =>
   activeIndex.value >= 0 ? `${listboxId}-option-${activeIndex.value}` : undefined,
 )
 
-/**
- * Watched by contents, not by reference: `options` rebuilds on every evaluation,
- * which cleared the highlight between a keypress and the Enter after it.
- */
 watch(
   () => options.value.map((option) => option.id).join(','),
   () => {
@@ -77,10 +64,6 @@ watch(
   },
 )
 
-/**
- * Cleared in the same patch as the filter, or both narrow and the reader gets
- * the intersection.
- */
 function select(index: number) {
   const suggestion = options.value[index]
   if (!suggestion || !isFilterable(suggestion.taxonomy)) return
@@ -102,7 +85,6 @@ function move(delta: number) {
   }
 
   const count = options.value.length
-  // Wraps through -1, so up from the first option returns to the input.
   activeIndex.value = ((activeIndex.value + 1 + delta + count + 1) % (count + 1)) - 1
 }
 
@@ -117,7 +99,6 @@ function onKeydown(event: KeyboardEvent) {
       move(-1)
       break
     case 'Enter':
-      // Otherwise Enter belongs to the form; the debounce already applied it.
       if (isExpanded.value && activeIndex.value >= 0) {
         event.preventDefault()
         select(activeIndex.value)
@@ -146,11 +127,6 @@ function labelFor(taxonomy: FilterableTaxonomy): string {
     <div class="relative flex-1">
       <label for="product-search" class="sr-only">Search products</label>
 
-      <!--
-        A combobox in the ARIA sense: the input owns a listbox, and the active
-        option is pointed at rather than focused, so focus never leaves the
-        input and typing continues to work while the list is open.
-      -->
       <input
         id="product-search"
         v-model="term"

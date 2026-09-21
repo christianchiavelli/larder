@@ -1,10 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { productQuerySchema } from '#shared/domain/search'
 
-/**
- * Stubbed before the module loads: `$fetch` is a Nuxt ambient global, so the
- * binding is resolved at import time.
- */
 const $fetch = vi.fn().mockResolvedValue({})
 vi.stubGlobal('$fetch', $fetch)
 
@@ -14,7 +10,6 @@ beforeEach(() => {
   $fetch.mockClear()
 })
 
-/** The path and options of the last call. */
 function lastCall() {
   const call = $fetch.mock.calls.at(-1)
   if (!call) throw new Error('nothing was fetched')
@@ -44,8 +39,6 @@ describe('fetchProducts', () => {
   it('omits everything at its default', () => {
     fetchProducts(productQuerySchema.parse({}))
 
-    // The request and the address bar use one serialiser precisely so an
-    // unfiltered search is one cache entry rather than several spellings of it.
     expect(lastCall().options.query).toEqual({})
   })
 })
@@ -58,8 +51,6 @@ describe('fetchProduct', () => {
   })
 
   it('encodes a code that would otherwise change the path', () => {
-    // Barcodes come from user input and from upstream, and neither is a
-    // guarantee. A slash would silently address a different route.
     fetchProduct('30176/20425035?x=1')
 
     expect(lastCall().path).toBe('/api/products/30176%2F20425035%3Fx%3D1')

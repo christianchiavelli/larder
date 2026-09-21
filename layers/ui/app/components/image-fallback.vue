@@ -1,13 +1,7 @@
 <script setup lang="ts">
-/**
- * A filled tile rather than an empty outline: an empty box reads as an image
- * that failed to load. One component for every size, because a list and a detail
- * page were answering the same question two different ways.
- */
 withDefaults(
   defineProps<{
     size?: 'sm' | 'lg'
-    /** Omit where a name beside the tile already says which product this is. */
     label?: string
   }>(),
   { size: 'sm' },

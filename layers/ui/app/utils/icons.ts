@@ -12,10 +12,6 @@ import {
   faSun,
 } from '@fortawesome/free-solid-svg-icons'
 
-/**
- * Passed as definitions rather than registered in Font Awesome's runtime
- * library, so a name the map does not carry is a type error.
- */
 export const ICONS = {
   'arrow-down': faArrowDown,
   'chart-simple': faChartSimple,
@@ -31,8 +27,4 @@ export const ICONS = {
 
 export type IconName = keyof typeof ICONS
 
-/**
- * The library stylesheet sizes every icon at `1em` and is not imported, so an
- * icon is an ordinary SVG the sizing utilities control.
- */
 config.autoAddCss = false

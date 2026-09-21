@@ -5,12 +5,6 @@ import { looseNumber, looseString } from './coerce'
 import { mapProductImage, upstreamImageFields } from './image'
 import { mapNovaGroup, mapNutriments, mapNutriScore } from './search'
 
-/**
- * A separate service with a separate shape for the same entity: `brands` is a
- * comma-joined string here and an array in search. What they share is the
- * mapping target.
- */
-
 const looseTagArray = z
   .union([z.array(z.union([z.string(), z.number()])), z.null()])
   .nullish()
@@ -42,9 +36,6 @@ const upstreamProductSchema = z.looseObject({
   last_modified_t: looseNumber,
 })
 
-/**
- * `status`, not the HTTP status: a missing barcode still answers 200.
- */
 export const upstreamProductResponseSchema = z.looseObject({
   status: z.coerce.number().int().catch(0),
   code: z.union([z.string(), z.number()]).transform(String).nullish(),
@@ -53,7 +44,6 @@ export const upstreamProductResponseSchema = z.looseObject({
 
 export type UpstreamProductResponse = z.infer<typeof upstreamProductResponseSchema>
 
-/** The `_100g` keys the summary mapper reads, plus the detail-only ones. */
 export const PRODUCT_FIELDS = [
   'code',
   'product_name',

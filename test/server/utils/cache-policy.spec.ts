@@ -1,15 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { upstreamCache } from '~~/server/utils/cache-policy'
 
-/**
- * One invariant, only ever noticed when it is missing: every upstream route
- * bypasses the cache in development.
- */
-
 describe('upstreamCache', () => {
   it('bypasses the cache in development and only in development', () => {
-    // Asserted against the flag rather than against a literal, because the
-    // point is that the two always agree.
     expect(upstreamCache({ name: 'x', maxAge: 60 }).shouldBypassCache?.({} as never)).toBe(
       import.meta.dev,
     )
@@ -24,8 +17,6 @@ describe('upstreamCache', () => {
   })
 
   it('keeps the bypass even when a route passes its own', () => {
-    // The whole reason the policy is centralised: a route cannot switch the
-    // development bypass off, by accident or otherwise.
     const policy = upstreamCache({
       name: 'x',
       maxAge: 60,

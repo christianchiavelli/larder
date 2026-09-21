@@ -1,9 +1,4 @@
 <script setup lang="ts">
-/**
- * `tone` separates a search that matched nothing from a request that failed.
- * Presenting an outage as an empty result set is the one failure a reader cannot
- * detect.
- */
 withDefaults(
   defineProps<{
     title: string

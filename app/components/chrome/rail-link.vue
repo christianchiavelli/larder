@@ -1,8 +1,4 @@
 <script setup lang="ts">
-/**
- * Icon-only, so the accessible name comes from `aria-label` and the tooltip
- * stays presentational.
- */
 defineProps<{
   to: string
   label: string
@@ -18,11 +14,6 @@ defineProps<{
   >
     <slot />
 
-    <!--
-      Pure decoration: the link already has an accessible name, so announcing
-      this as well would read the destination twice. It exists for pointer
-      users, who otherwise have only an icon to go on.
-    -->
     <span
       aria-hidden="true"
       class="pointer-events-none absolute left-full z-50 ml-2 origin-left scale-95 rounded-control bg-chrome-raised px-2 py-1 text-caption whitespace-nowrap text-chrome-ink-strong opacity-0 shadow-overlay transition group-hover:scale-100 group-hover:opacity-100"

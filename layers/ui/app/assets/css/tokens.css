@@ -1,15 +1,6 @@
-/* Primitives, semantics, domain. Components reference the last two, never the
- * first, and only the semantic tier is redefined for dark mode.
- *
- * Hex rather than OKLCH so each value can be diffed against its source. Gaps in
- * the ramps are real: a step nothing references is one no contrast check
- * covers. */
-
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* 1. Primitives ------------------------------------------------------- */
-
   --primitive-white: #ffffff;
 
   --primitive-blue-50: #e3f4ff;
@@ -19,8 +10,6 @@
   --primitive-blue-400: #002296;
   --primitive-blue-500: #002244;
 
-  /* Cool grey carries surfaces and chrome, flat grey carries text and borders:
-   * a blue cast competes with the links in the same paragraph. */
   --primitive-cool-25: #f7f9fc;
   --primitive-cool-50: #ebeff6;
   --primitive-cool-100: #d5dcea;
@@ -41,9 +30,6 @@
   --primitive-yellow-200: #eeaf00;
   --primitive-yellow-300: #d48013;
 
-  /* Steps the shipped ramps skip, needed by dark mode. Each is an OKLab
-   * interpolation between two shipped neighbours; the fraction is recorded so
-   * the value can be recomputed rather than trusted. */
   --primitive-grey-175: #8890a3; /* grey-200 -> grey-150, 40% */
 
   --primitive-cool-450: #1f2b46; /* cool-500 -> cool-400, 62% */
@@ -52,11 +38,8 @@
   --primitive-cool-550: #0e1526; /* cool-500 -> black,     9% */
   --primitive-cool-600: #0a1020; /* cool-500 -> black,    18% */
 
-  /* Dark mode, where blue-50 would be a floodlight. */
   --primitive-blue-tint: #102552; /* cool-500 -> blue-300, 30% */
   --primitive-blue-tint-strong: #0f2a65; /* cool-500 -> blue-300, 45% */
-
-  /* 2. Semantics: light ------------------------------------------------- */
 
   --surface-base: var(--primitive-cool-25);
   --surface-raised: var(--primitive-white);
@@ -65,12 +48,8 @@
   --surface-overlay: var(--primitive-white);
   --surface-accent: var(--primitive-blue-50);
   --surface-hover: var(--primitive-blue-50);
-  /* Selected, for a control that already carries its own colour. Neutral so it
-   * does not add a second hue beside a scale read by hue. */
   --surface-selected: var(--primitive-cool-100);
 
-  /* The navigation rail. Its own pair because it stays dark in both themes: a
-   * light-on-light frame is a divider, not a frame. */
   --chrome-base: var(--primitive-cool-500);
   --chrome-raised: var(--primitive-cool-400);
   --chrome-content: var(--primitive-grey-100);
@@ -92,16 +71,11 @@
   --accent-solid-hover: var(--primitive-blue-400);
   --accent-muted: var(--primitive-blue-50);
 
-  /* The darker red, not the brand red, which reaches only 3.4 on its own tint. */
   --status-danger-surface: var(--primitive-red-50);
   --status-danger-content: var(--primitive-red-300);
 
   --focus-ring: var(--primitive-blue-300);
 
-  /* 3. Domain ----------------------------------------------------------- */
-
-  /* Prescribed by the scheme, so fixed across themes: recolouring a regulated
-   * label would make the chart lie. Each grade ships its own AA ink. */
   --nutriscore-a: #038141;
   --nutriscore-a-content: #ffffff;
   --nutriscore-b: #85bb2f;
@@ -115,9 +89,6 @@
   --nutriscore-ungraded: var(--primitive-grey-100);
   --nutriscore-ungraded-content: var(--primitive-grey-300);
 
-  /* Ordinal, so a sequential ramp. Per-step ink again: one ink for all four
-   * would force the ramp uniformly dark, and a dark green-to-red is four
-   * browns. */
   --nova-1: var(--primitive-green-300);
   --nova-1-content: #0e3406;
   --nova-2: var(--primitive-yellow-200);
@@ -129,8 +100,6 @@
   --nova-unknown: var(--primitive-grey-100);
   --nova-unknown-content: var(--primitive-grey-300);
 
-  /* Categorical, ordered for separation between neighbours. Each clears 3:1 on
-   * the card, and the two nearest the Nutri-Score arc are kept out of front. */
   --viz-1: #003cb2;
   --viz-2: #ad7fe5;
   --viz-3: #00a69b;
@@ -140,15 +109,6 @@
   --viz-7: #b05223;
   --viz-8: #968f88;
 
-  /* The hero's two lights.
-   *
-   * Not `--accent-solid`. Any colour laid over a near-white surface can only
-   * darken it, and the darker the ink the more of its chroma the mix spends on
-   * getting there: blue-300 at 40% keeps 0.081 of its 0.194, which is a grey
-   * smudge rather than a light. Blue-100 is light enough that the mix keeps
-   * 0.114, matching what the dark theme reads at, so the wash carries colour in
-   * both. The support colour is the same in both themes and only its strength
-   * changes. */
   --hero-light-primary: var(--primitive-blue-100);
   --hero-light-support: var(--viz-3);
 
@@ -161,16 +121,12 @@
   --surface-base: var(--primitive-cool-500);
   --surface-raised: var(--primitive-cool-490);
   --surface-sunken: var(--primitive-cool-550);
-  /* Packaging is shot on a white sweep and carries it in the file, so a tinted
-   * tile puts a seam around every portrait bottle. */
   --surface-media: var(--primitive-white);
   --surface-overlay: var(--primitive-cool-475);
   --surface-accent: var(--primitive-blue-tint);
   --surface-hover: var(--primitive-cool-450);
   --surface-selected: var(--primitive-cool-400);
 
-  /* The chrome drops a step rather than staying put: held at the page colour it
-   * would merge with it and lose the edge the rail exists to draw. */
   --chrome-base: var(--primitive-cool-600);
   --chrome-raised: var(--primitive-cool-475);
   --chrome-content: var(--primitive-grey-150);
@@ -188,8 +144,6 @@
   --content-accent: var(--primitive-blue-100);
   --content-on-accent: var(--primitive-white);
 
-  /* #003cb2 on a dark page is a hole, so solid controls move up the ramp to the
-   * step that still carries white and the bright blue stays for text. */
   --accent-solid: var(--primitive-blue-200);
   --accent-solid-hover: #1488e1; /* blue-200 -> blue-100, 45% */
   --accent-muted: var(--primitive-blue-tint-strong);
@@ -204,8 +158,6 @@
   --nova-unknown: var(--primitive-cool-400);
   --nova-unknown-content: var(--primitive-cool-100);
 
-  /* Lifted toward white by a constant 34%, so a series keeps its hue across
-   * themes. Untouched, blue and turquoise sit at 1.7 and 2.2 on the card. */
   --viz-1: #5982d1;
   --viz-2: #c8abf0;
   --viz-3: #7ac4bc;
@@ -215,7 +167,6 @@
   --viz-7: #cf8d71;
   --viz-8: #b9b4af;
 
-  /* Lighter than the surface here, so this one reads as emitted light. */
   --hero-light-primary: var(--primitive-blue-200);
   --hero-light-support: var(--viz-3);
 

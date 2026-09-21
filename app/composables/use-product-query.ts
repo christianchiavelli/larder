@@ -10,25 +10,14 @@ import {
 import type { NutriScore, NovaFilterValue } from '#shared/domain/nutrition'
 import { toFilterValue } from '#shared/domain/taxonomy'
 
-/**
- * The URL is the state. No store and no two-way watcher, so there is no moment
- * where the address bar and the results disagree.
- */
-
 type ListDimension = 'category' | 'brand' | 'country' | 'label'
 
 export function useProductQuery() {
   const route = useRoute()
   const router = useRouter()
 
-  /** The schema drops anything malformed, so a stale link still renders. */
   const query = computed<ProductQuery>(() => productQuerySchema.parse(route.query))
 
-  /**
-   * Merged onto the parsed query, never its serialised form: `toQueryParams` omits
-   * defaults, so merging two serialised objects cannot express removal.
-   * A filter change resets to page one.
-   */
   function apply(patch: Partial<ProductQuery>, options: { keepPage?: boolean } = {}) {
     const next = productQuerySchema.parse({
       ...query.value,
@@ -55,10 +44,6 @@ export function useProductQuery() {
     return apply({ pageSize })
   }
 
-  /**
-   * Normalised first: a facet key and a taxonomy suggestion spell a brand
-   * differently, so comparing them raw makes "remove" add a second copy.
-   */
   function toggleTag(dimension: ListDimension, value: string) {
     const id = toFilterValue(dimension, value)
     const current = query.value[dimension]
@@ -67,7 +52,6 @@ export function useProductQuery() {
     return apply({ [dimension]: next } as Partial<ProductQuery>)
   }
 
-  /** Takes an absence as readily as a grade; they are most of the catalogue. */
   function toggleNutriScore(grade: NutriScore) {
     const current = query.value.nutriScore
     return apply({
@@ -86,7 +70,6 @@ export function useProductQuery() {
     })
   }
 
-  /** Sort and page size are preferences, so they survive. */
   function clearFilters() {
     return apply(clearedFilters())
   }

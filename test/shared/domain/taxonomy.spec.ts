@@ -30,10 +30,6 @@ describe('humanizeTagId', () => {
     expect(humanizeTagId('en:breakfast-cereals-and-bars')).toBe('Breakfast cereals and bars')
   })
 
-  /**
-   * Certification marks have fixed casing: naive title-casing renders these as
-   * "Pdo" and "Igp".
-   */
   it.each([
     ['en:pdo', 'PDO'],
     ['en:igp', 'IGP'],
@@ -56,9 +52,6 @@ describe('toTaxonomyTag', () => {
     })
   })
 
-  /**
-   * A label that only echoes the id is treated as no label.
-   */
   it('ignores a label that merely echoes the slug', () => {
     expect(toTaxonomyTag('lu', 'lu').label).toBe('Lu')
   })
@@ -95,16 +88,11 @@ describe('mostSpecificTag', () => {
 })
 
 describe('toFilterValue', () => {
-  /**
-   * The categories facet returns `en:beverages` and the brands facet `carrefour`,
-   * but autocomplete prefixes everything, so a brand suggestion matches nothing.
-   */
   it('strips the language prefix from a brand', () => {
     expect(toFilterValue('brand', 'en:olivari')).toBe('olivari')
   })
 
   it('leaves a brand that is already bare alone', () => {
-    // Which is the form the facet itself returns, so both sources agree.
     expect(toFilterValue('brand', 'carrefour')).toBe('carrefour')
   })
 

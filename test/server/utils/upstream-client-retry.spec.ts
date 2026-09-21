@@ -1,11 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createUpstreamClient } from '~~/server/utils/upstream-client'
 
-/**
- * What matters is which failures consume a retry: spending the rate-limit budget
- * three times to receive the same 400 is a self-inflicted outage.
- */
-
 const USER_AGENT = 'Larder/test'
 
 function jsonResponse(body: unknown, status = 200) {
@@ -20,7 +15,6 @@ let fetchMock: ReturnType<typeof vi.fn>
 beforeEach(() => {
   fetchMock = vi.fn()
   vi.stubGlobal('fetch', fetchMock)
-  // Backoff sleeps for real otherwise, and these cases retry twice.
   vi.useFakeTimers({ shouldAdvanceTime: true })
 })
 
@@ -105,7 +99,6 @@ describe('createUpstreamClient', () => {
 
     await expect(client().get('/thing', undefined, { retries: 2 })).rejects.toThrow()
 
-    // One initial attempt plus two retries.
     expect(fetchMock).toHaveBeenCalledTimes(3)
   })
 
@@ -116,9 +109,6 @@ describe('createUpstreamClient', () => {
     expect(fetchMock).toHaveBeenCalledOnce()
   })
 
-  /**
-   * An aborted SSR render must not leave retries running upstream.
-   */
   it('stops immediately when the caller aborts, without spending a retry', async () => {
     const controller = new AbortController()
 

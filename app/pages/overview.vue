@@ -13,10 +13,6 @@ definePageMeta({
   viewTransition: true,
 })
 
-/**
- * Reads the unfiltered search, which already returns facet counts over the whole
- * match set.
- */
 const query = computed(() => EMPTY_PRODUCT_QUERY)
 const { state, asyncStatus, refresh } = useProductSearch(query)
 
@@ -24,23 +20,13 @@ const result = computed(() => state.value.data)
 const error = computed(() => state.value.error)
 const isLoading = computed(() => asyncStatus.value === 'loading' && !result.value)
 
-// Annotated because the empty-object fallback would otherwise narrow the
-// whole type to `{}` and make every grade lookup an implicit any.
 const distribution = computed<NutriScoreDistribution>(
   () => result.value?.nutriScoreDistribution ?? {},
 )
 
-/**
- * From the facet buckets, not the hit count: Elasticsearch pins `totalCount` at
- * 10,000 but still aggregates over every matching document.
- */
 const catalogueSize = computed(() => catalogueSizeOf(distribution.value))
 const scored = computed(() => gradedShare(distribution.value))
 
-/**
- * This tile used to read "Categories represented: 10", which was the number of
- * buckets a facet page returns, not a fact about the catalogue.
- */
 const classified = computed(() =>
   result.value ? classifiedShare(distribution.value, result.value.novaClassifiedCount) : null,
 )
@@ -64,9 +50,6 @@ const classified = computed(() =>
 
       <template v-else>
         <UiSurfaceCard data-scroll-section class="scroll-mt-6">
-          <!-- Divided rather than merely spaced: three figures in a row read as one
-               sentence without a rule between them, and these measure different
-               things. -->
           <div class="grid gap-6 sm:grid-cols-3 sm:gap-0 sm:divide-x sm:divide-edge-subtle">
             <UiStatTile
               class="sm:pr-6"

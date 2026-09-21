@@ -6,10 +6,6 @@ import {
   type NutrientProfile,
 } from '#shared/domain/nutrition'
 
-/**
- * Per 100g, not per serving: serving sizes are free text set by the manufacturer.
- * Reference intake percentages only where Regulation 1169/2011 sets one.
- */
 const props = defineProps<{ nutrients: NutrientProfile }>()
 
 const rows = computed(() =>
@@ -25,8 +21,6 @@ const rows = computed(() =>
       value,
       formatted: value === null ? null : value.toFixed(descriptor.precision),
       share,
-      // Bars are capped for layout, but the number beside them is not, so a
-      // product carrying twice a daily reference still says so.
       barWidth: share === null ? 0 : Math.min(100, share * 100),
       sharePercent: share === null ? null : Math.round(share * 100),
     }

@@ -4,25 +4,16 @@ import { suggestTaxonomy } from '~~/server/services/suggest'
 import { useSearchClient } from '~~/server/utils/upstream-client'
 import { upstreamCache } from '~~/server/utils/cache-policy'
 
-/**
- * Fired on keystroke against upstream's tightest published ceiling, so the cache
- * is keyed on the prefix. The lookup lives in ~~/server/services/suggest.
- */
 export default defineCachedEventHandler(
   async (event): Promise<Suggestion[]> => suggestTaxonomy(useSearchClient(), getQuery(event)),
   upstreamCache({
     name: 'taxonomy-suggest',
-    // Taxonomies change on the order of weeks. This is the cheapest route to
-    // cache hard and the most expensive one to call.
     maxAge: 60 * 60 * 24,
     getKey: (event) => {
       const query = getQuery(event)
       const term = String(query.q ?? '')
         .trim()
         .toLowerCase()
-      // Sorted, because `category,brand` and `brand,category` are the same
-      // request and an unsorted key would cache them separately, then serve
-      // whichever arrived first under a key the other one also matches.
       const taxonomy = (Array.isArray(query.taxonomy) ? query.taxonomy : [query.taxonomy ?? ''])
         .flatMap((entry) => String(entry).split(','))
         .map((entry) => entry.trim())

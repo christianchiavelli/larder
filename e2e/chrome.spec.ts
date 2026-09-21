@@ -1,10 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
 
-/**
- * Both fail in only one theme or one browser, and the suite used to run only in
- * the light Chromium default.
- */
-
 function collectErrors(page: Page): string[] {
   const errors: string[] = []
   page.on('console', (message) => {
@@ -15,10 +10,6 @@ function collectErrors(page: Page): string[] {
 }
 
 test.describe('theme', () => {
-  /**
-   * Anything branching on the theme during render produces one tree on the server
-   * and another on the client. No screenshot catches that.
-   */
   for (const colorScheme of ['light', 'dark'] as const) {
     test(`hydrates without a mismatch in ${colorScheme} mode`, async ({ browser }) => {
       const context = await browser.newContext({ colorScheme })
@@ -39,9 +30,6 @@ test.describe('theme', () => {
     const context = await browser.newContext({ colorScheme: 'light' })
     const page = await context.newPage()
 
-    // A returning visitor who chose dark. The inline bootstrap script has to
-    // put the class on <html> before anything renders, or they get a white
-    // flash on every navigation.
     await page.addInitScript(() => {
       localStorage.setItem('larder-theme', 'dark')
     })
@@ -60,15 +48,10 @@ test.describe('theme', () => {
     const before = await page.locator('html').getAttribute('class')
     await toggle.click()
 
-    // The label describes the action, so it has to change with the state.
     await expect(page.locator('html')).not.toHaveClass(new RegExp(before ?? '^$'))
     await expect(page.getByRole('button', { name: /switch to (dark|light) theme/i })).toBeVisible()
   })
 
-  /**
-   * A leaf component that sets its own `display` beats the `hidden` a caller
-   * passes, which drew a sun and a moon at once while every test stayed green.
-   */
   test('the theme toggle shows exactly one icon, in both themes', async ({ page }) => {
     await page.goto('/products')
 
@@ -97,10 +80,6 @@ test.describe('select', () => {
     await page.goto('/products')
   })
 
-  /**
-   * Keyboard, type-ahead and the accessible role come from the element. Asserting
-   * them is asserting nobody has replaced it with divs.
-   */
   test('is a real select, operable by keyboard', async ({ page }) => {
     const select = page.getByLabel('Sort')
 
@@ -126,10 +105,6 @@ test.describe('select', () => {
     await expect(page.getByLabel('Sort')).toHaveValue('popularity')
   })
 
-  /**
-   * `appearance: base-select` is not baseline in September 2026, so this asserts
-   * where it applies and skips where the documented fallback is correct.
-   */
   test('opts into the customizable select where supported', async ({ page }) => {
     const supported = await page.evaluate(() => CSS.supports('appearance', 'base-select'))
     test.skip(!supported, 'Browser does not implement the customizable select API')
@@ -140,9 +115,6 @@ test.describe('select', () => {
 
     expect(appearance).toBe('base-select')
 
-    // `<selectedcontent>` mirrors the chosen option into the closed button.
-    // Vue renders nothing for it unless the compiler is told the tag exists,
-    // which is a silent failure: the control looks empty rather than broken.
     const mirrored = await page
       .getByLabel('Sort')
       .evaluate((element) => !!element.querySelector('selectedcontent'))
@@ -151,9 +123,6 @@ test.describe('select', () => {
   })
 
   test('survives HTML parsing with its button intact', async ({ page }) => {
-    // `<button>` inside `<select>` is only legal under the customizable select
-    // spec. If a parser dropped it the control would still work but could not
-    // be styled, so this checks the server-rendered markup survived.
     const hasButton = await page
       .getByLabel('Sort')
       .evaluate((element) => !!element.querySelector('button'))
@@ -162,16 +131,9 @@ test.describe('select', () => {
   })
 })
 
-/**
- * Stepping down a page section by section.
- *
- * All of this is a function of how much happens to fit on screen, so it is
- * only observable at a real viewport size against real content.
- */
 test.describe('the see more button', () => {
   const fab = (page: Page) => page.getByRole('button', { name: 'Skip to the next section' })
 
-  /** Where each marked section sits, and the offset each one asks to keep. */
   function sections(page: Page) {
     return page.evaluate(() =>
       [...document.querySelectorAll('[data-scroll-section]')].map((element) => ({
@@ -192,17 +154,12 @@ test.describe('the see more button', () => {
       await page.waitForTimeout(600)
 
       const measured = await sections(page)
-      // The section closest to the top is the one just scrolled to, and it
-      // should be resting on its margin rather than under the viewport edge or
-      // somewhere below the fold.
       const parked = measured.findIndex(
         ({ top, scrollMarginTop }) => Math.abs(top - scrollMarginTop) <= 1,
       )
       if (parked !== -1) visited.push(parked)
     }
 
-    // Each click moves on rather than landing on the same section twice, which
-    // is what a fixed tolerance against a scroll margin does.
     expect(visited).toEqual([...visited].sort((a, b) => a - b))
     expect(new Set(visited).size).toBe(visited.length)
     expect(visited.length).toBeGreaterThan(1)
@@ -220,10 +177,6 @@ test.describe('the see more button', () => {
     await expect(fab(page)).toBeHidden()
   })
 
-  /**
-   * The layout renders it on every page, so a page that marks no sections has
-   * to be the thing that keeps it away rather than a per-page opt-in.
-   */
   test('is absent on a page with no sections', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 })
     await page.goto('/products')

@@ -5,7 +5,6 @@ import { z } from 'zod'
 
 const context = { service: 'test-upstream', operation: 'GET /thing' }
 
-/** Shapes an ofetch error the way ofetch actually throws one. */
 function fetchError(status: number, headers?: Record<string, string>) {
   const error = new Error(`HTTP ${status}`) as Error & {
     response: { status: number; headers: Headers }
@@ -27,10 +26,6 @@ describe('backoffDelay', () => {
     expect(backoffDelay(20, () => 1)).toBe(2000)
   })
 
-  /**
-   * Full jitter: SSR fires several requests at once, and without it a shared
-   * hiccup makes them retry on the same tick.
-   */
   it('applies full jitter, so the delay spans zero to the ceiling', () => {
     expect(backoffDelay(1, () => 0)).toBe(0)
     expect(backoffDelay(1, () => 0.5)).toBe(250)
@@ -70,10 +65,6 @@ describe('toUpstreamError', () => {
     expect(toUpstreamError(fetchError(429), context).data).toMatchObject({ retryAfter: null })
   })
 
-  /**
-   * A 4xx means we built a request upstream rejected, so it surfaces as 500: a 502
-   * would point an on-call engineer at a third party during our own incident.
-   */
   it('reports a rejected request as our own 500, not as upstream being down', () => {
     expect(toUpstreamError(fetchError(422), context).statusCode).toBe(500)
   })

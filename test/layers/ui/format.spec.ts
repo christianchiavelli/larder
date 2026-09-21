@@ -25,10 +25,6 @@ describe('formatCompact', () => {
 })
 
 describe('formatCountCompact', () => {
-  /**
-   * Below the threshold the exact figure is short enough to keep; above it the
-   * count and its label fill the sidebar.
-   */
   it('stays exact below ten thousand', () => {
     expect(formatCountCompact(9_999)).toBe('9,999')
   })
@@ -41,7 +37,6 @@ describe('formatCountCompact', () => {
 
 describe('formatMeasure', () => {
   it('pads to the requested precision', () => {
-    // 33.2 and 33.0 have to be the same width or the column stops lining up.
     expect(formatMeasure(33, 1)).toBe('33.0')
     expect(formatMeasure(33.24, 1)).toBe('33.2')
   })
@@ -60,9 +55,6 @@ describe('formatShare', () => {
     expect(formatShare(1, 4)).toBe('25.0%')
   })
 
-  /**
-   * An empty catalogue is a real state: every filter applied and nothing matching.
-   */
   it('returns zero rather than NaN when the whole is empty', () => {
     expect(formatShare(0, 0)).toBe('0%')
   })

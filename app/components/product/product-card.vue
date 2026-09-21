@@ -3,38 +3,17 @@ import { useQueryCache } from '@pinia/colada'
 import { productDisplayName, type ProductSummary } from '#shared/domain/product'
 import { mostSpecificTag } from '#shared/domain/taxonomy'
 
-/**
- * A product as a card, for the landing page only.
- *
- * The directory uses rows, because a directory exists to compare measurements
- * down a column. Nothing is being compared here: these are a handful of
- * products offered as a way in, so the photograph leads and no figures are
- * shown at all. Half a figure is worse than none.
- */
 const props = defineProps<{ product: ProductSummary }>()
 
 const name = computed(() => productDisplayName(props.product))
 const category = computed(() => mostSpecificTag(props.product.categories))
 const brand = computed(() => props.product.brands[0] ?? null)
 
-/**
- * The detail page is a different query from the search that produced this card,
- * so following the link starts from nothing and the photograph the view
- * transition just carried over is replaced by a skeleton on arrival. Warming
- * the entry on hover means the page usually has its data before the morph ends
- * and the image stays put.
- *
- * `refresh`, not `fetch`: a fresh entry is left alone, so moving the pointer
- * back and forth across a card does not re-request anything.
- */
 const queryCache = useQueryCache()
 
 function prefetch() {
   const entry = queryCache.ensure(productDetailQuery(props.product.code))
-  queryCache.refresh(entry).catch(() => {
-    // A failed prefetch is not the reader's problem: the page will ask again
-    // and show its own error state if it fails there too.
-  })
+  queryCache.refresh(entry).catch(() => {})
 }
 </script>
 
@@ -47,31 +26,6 @@ function prefetch() {
     @mouseenter="prefetch"
     @focusin="prefetch"
   >
-    <!--
-      Drawn around 200px wide, so the 200px variant covers a standard display
-      and the 400px one covers a retina display. White tile in both themes, for
-      the same reason as the directory: packaging is shot on a white sweep.
-    -->
-    <!--
-      The image is positioned out of flow so it cannot push the box taller than
-      its ratio. Left in flow, a portrait bottle sets the row height for every
-      card beside it: `aspect-ratio` states a preferred size, and a flex item's
-      `min-height: auto` beats it.
-    -->
-    <!--
-      Named per product, so this tile can be paired with the same product's page
-      and carried across rather than cross-faded with the rest of the screen.
-      The name has to be unique within one captured document, which a barcode
-      already is; a fixed `product-image` would collide eight times over and the
-      browser would abandon the transition.
-      Static rather than set on the clicked card at click time, which is the
-      other way to do this. The cost is that the seven cards with no counterpart
-      on the next page leave as their own layers instead of going with the page
-      snapshot — measured, and indistinguishable, because they are all fading
-      out over the same duration as the page behind them. The saving is that
-      there is no click handler to keep in step, and the transition works in
-      reverse for free when the reader comes back.
-    -->
     <div
       class="relative aspect-[4/3] shrink-0 bg-surface-media"
       :style="{ viewTransitionName: `product-image-${product.code}` }"

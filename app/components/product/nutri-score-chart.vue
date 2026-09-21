@@ -7,11 +7,6 @@ import {
   type NutriScore,
 } from '#shared/domain/nutrition'
 
-/**
- * Bars, not a donut: the grades are ordered and a ring makes that arbitrary.
- * The two ungraded bars are kept, and kept apart, since they are routinely most
- * of the catalogue.
- */
 const props = defineProps<{
   distribution: Partial<Record<NutriScore, number>>
   loading?: boolean
@@ -34,10 +29,7 @@ const option = computed<EChartsOption>(() => ({
   xAxis: valueAxis(theme.value),
   yAxis: categoryAxis(
     theme.value,
-    // The same glyphs the badges use, so the chart and the rows below it agree
-    // without a legend between them.
     entries.value.map((entry) => NUTRI_SCORE_SHORT_LABELS[entry.grade]),
-    // Heavier than a category name, because these are the grades themselves.
     { fontWeight: 600 },
   ),
   tooltip: itemTooltip(theme.value, (index) => {
@@ -50,8 +42,6 @@ const option = computed<EChartsOption>(() => ({
       type: 'bar',
       data: entries.value.map((entry) => ({
         value: entry.count,
-        // Each bar carries the grade's own regulated colour, so the chart and
-        // the badges on the cards below agree without a legend.
         itemStyle: { color: grades.value[entry.grade], borderRadius: BAR_RADIUS },
       })),
       barMaxWidth: 28,

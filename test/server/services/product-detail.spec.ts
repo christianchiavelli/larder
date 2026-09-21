@@ -35,8 +35,6 @@ describe('getProductDetail', () => {
       data: { reason: 'invalid_barcode' },
     })
 
-    // The point of validating first: a malformed code never reaches the
-    // outbound URL, so it cannot be used to steer the request somewhere else.
     expect(client.get).not.toHaveBeenCalled()
   })
 
@@ -44,10 +42,6 @@ describe('getProductDetail', () => {
     await expect(getProductDetail(stubClient(FOUND), '42', PRODUCT_BASE)).resolves.toBeDefined()
   })
 
-  /**
-   * Upstream answers 200 with `status: 0` for a malformed code, so HTTP status
-   * alone cannot detect a missing product.
-   */
   it('maps a 200 carrying status 0 to a 404', async () => {
     const client = stubClient({ status: 0, status_verbose: 'no code or invalid code' })
 

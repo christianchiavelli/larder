@@ -1,9 +1,4 @@
 <script setup lang="ts">
-/**
- * `tone` is the whole API: `accent` for something the product claims about
- * itself, `neutral` for a classification, `muted` for something present but not
- * endorsed. Renders as a link with `to`, a span without.
- */
 withDefaults(
   defineProps<{
     tone?: 'accent' | 'neutral' | 'muted'

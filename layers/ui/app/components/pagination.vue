@@ -1,13 +1,8 @@
 <script setup lang="ts">
-/**
- * A fixed-width window of page numbers, so the control does not reflow as the
- * reader moves through the set.
- */
 const props = withDefaults(
   defineProps<{
     page: number
     pageCount: number
-    /** Page numbers shown either side of the current one. */
     siblings?: number
     disabled?: boolean
   }>(),
@@ -22,8 +17,6 @@ const entries = computed<PageEntry[]>(() => {
   const { page, pageCount, siblings } = props
   if (pageCount <= 1) return []
 
-  // First, last, current, and `siblings` either side. A Set removes the
-  // overlap that occurs near the ends without any special-casing.
   const window = new Set<number>([1, pageCount, page])
   for (let offset = 1; offset <= siblings; offset++) {
     if (page - offset >= 1) window.add(page - offset)
@@ -35,8 +28,6 @@ const entries = computed<PageEntry[]>(() => {
 
   for (const [index, value] of sorted.entries()) {
     const previous = sorted[index - 1]
-    // A gap of exactly one is rendered as the number itself: an ellipsis
-    // hiding a single page is longer than the page it hides.
     if (previous !== undefined && value - previous === 2) {
       result.push({ type: 'page', value: previous + 1 })
     } else if (previous !== undefined && value - previous > 2) {

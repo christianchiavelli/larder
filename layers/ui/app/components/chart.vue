@@ -1,29 +1,18 @@
 <script setup lang="ts">
 import type { EChartsOption } from 'echarts'
 
-/**
- * ECharts draws to a canvas, so `dataTable` renders the same figures as a real
- * table for a screen reader and for find-in-page. Client-only, with the height
- * reserved on both sides of hydration. Colours come from useChartTheme.
- */
 const props = withDefaults(
   defineProps<{
     option: EChartsOption
-    /** Describes the chart to assistive technology. Required, not decorative. */
     title: string
-    /** CSS height. Reserved before hydration to prevent a layout shift. */
     height?: string
     loading?: boolean
-    /** The same figures in tabular form, for readers the canvas excludes. */
     dataTable?: { columns: string[]; rows: (string | number)[][] }
   }>(),
   { height: '20rem', loading: false },
 )
 
 const VChart = defineAsyncComponent(async () => {
-  // Registering only what is used keeps the bundle from carrying every chart
-  // type the library ships. Imported here rather than at module scope so none
-  // of it is pulled into the server build.
   const [{ use }, { CanvasRenderer }, charts, components] = await Promise.all([
     import('echarts/core'),
     import('echarts/renderers'),
@@ -56,30 +45,30 @@ const VChart = defineAsyncComponent(async () => {
     <ClientOnly v-else>
       <VChart class="size-full" :option="props.option" autoresize role="img" :aria-label="title" />
 
-      <!-- Matches the reserved height exactly, so hydration swaps the canvas
-           in without the surrounding content moving. -->
       <template #fallback>
         <UiSkeleton rounded="card" class="size-full" />
       </template>
     </ClientOnly>
 
-    <table v-if="dataTable" class="sr-only">
-      <caption>
-        {{
-          title
-        }}
-      </caption>
-      <thead>
-        <tr>
-          <th v-for="column in dataTable.columns" :key="column" scope="col">{{ column }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(row, index) in dataTable.rows" :key="index">
-          <th scope="row">{{ row[0] }}</th>
-          <td v-for="(cell, cellIndex) in row.slice(1)" :key="cellIndex">{{ cell }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div v-if="dataTable" class="sr-only">
+      <table>
+        <caption>
+          {{
+            title
+          }}
+        </caption>
+        <thead>
+          <tr>
+            <th v-for="column in dataTable.columns" :key="column" scope="col">{{ column }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(row, index) in dataTable.rows" :key="index">
+            <th scope="row">{{ row[0] }}</th>
+            <td v-for="(cell, cellIndex) in row.slice(1)" :key="cellIndex">{{ cell }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </figure>
 </template>

@@ -1,11 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
 
-/**
- * Nothing under `layers/` was scanned, so every design-system-only utility was
- * dead with the build green and the elements unstyled. This notices if the
- * `@source` paths drift.
- */
-
 async function selectors(page: Page): Promise<string[]> {
   return page.evaluate(() => {
     const found: string[] = []
@@ -13,7 +7,6 @@ async function selectors(page: Page): Promise<string[]> {
     const walk = (rules: CSSRuleList) => {
       for (const rule of rules) {
         if (rule instanceof CSSStyleRule) found.push(rule.selectorText)
-        // Utilities nest inside @layer and @media.
         else if ('cssRules' in rule) walk((rule as CSSGroupingRule).cssRules)
       }
     }
@@ -22,7 +15,7 @@ async function selectors(page: Page): Promise<string[]> {
       try {
         walk(sheet.cssRules)
       } catch {
-        // A cross-origin sheet is not one of ours.
+        continue
       }
     }
 
@@ -66,16 +59,10 @@ test.describe('design tokens reach the browser', () => {
   })
 
   test('layer-only sizing utilities resolve', async ({ page }) => {
-    // Only tokens something uses: Tailwind generates on demand, so an unused
-    // one fails for the unrelated reason that nobody referenced it.
     expect(await computeUtility(page, 'rounded-card', 'border-radius')).not.toBe('0px')
     expect(await computeUtility(page, 'rounded-control', 'border-radius')).not.toBe('0px')
   })
 
-  /**
-   * The rule existing, not each step having a unique size: `text-subheading` and
-   * `text-body` share a size and differ in weight.
-   */
   test('every named typography step is generated', async ({ page }) => {
     const rules = await selectors(page)
 
@@ -103,8 +90,6 @@ test.describe('design tokens reach the browser', () => {
     expect(await computeUtility(page, 'text-title', 'font-family')).toContain('Lora')
     expect(await computeUtility(page, 'text-heading', 'font-family')).toContain('Lora')
     expect(await computeUtility(page, 'text-body', 'font-family')).toContain('Open Sans')
-    // Lora's numerals are old-style, so a metric set in it could not line up in
-    // a column.
     expect(await computeUtility(page, 'text-metric', 'font-family')).toContain('Open Sans')
   })
 
@@ -117,8 +102,6 @@ test.describe('design tokens reach the browser', () => {
   test('Nutri-Score keeps its regulated colours rather than the theme palette', async ({
     page,
   }) => {
-    // Set by the scheme's own guidelines. Recolouring them to suit a palette
-    // would make the badge misrepresent a regulated label.
     expect(await computeUtility(page, 'bg-nutri-a', 'background-color')).toBe('rgb(3, 129, 65)')
     expect(await computeUtility(page, 'bg-nutri-e', 'background-color')).toBe('rgb(230, 62, 17)')
   })
@@ -139,10 +122,6 @@ test.describe('design tokens reach the browser', () => {
   })
 })
 
-/**
- * Outer radius = inner radius + the gap, or the curves do not run parallel.
- * Asserted as the relationship, so changing the padding alone is what fails.
- */
 test('the grade filter frame is concentric with the badge inside it', async ({ page }) => {
   await page.goto('/products')
 
@@ -164,15 +143,9 @@ test('the grade filter frame is concentric with the badge inside it', async ({ p
 
   expect(measured.outerRadius).toBeCloseTo(measured.innerRadius + measured.inset, 1)
 
-  // An inline child sits in a line box taller than itself, which made a square
-  // badge wear a rectangle.
   expect(measured.square, 'the frame is not square').toBe(true)
 })
 
-/**
- * Neutral because the ring wraps a colour scale, and visible because WCAG 1.4.11
- * puts a non-text indicator at 3:1. Asserted on the filter, not the token.
- */
 test('the chosen grade is marked in a neutral colour, in both themes', async ({ page }) => {
   await page.goto('/products')
   await page
@@ -181,7 +154,6 @@ test('the chosen grade is marked in a neutral colour, in both themes', async ({ 
     .click()
   await expect(page).toHaveURL(/nutriScore=a/)
 
-  // The frame animates, so a read right after the flip lands mid-interpolation.
   await page.addStyleTag({ content: '*, *::before, *::after { transition: none !important }' })
 
   const measure = () =>
@@ -213,7 +185,6 @@ test('the chosen grade is marked in a neutral colour, in both themes', async ({ 
         const [min, max] = [Math.min(...border), Math.max(...border)]
 
         return {
-          // HSL saturation. Accent blue reads 100, a cool grey reads about 11.
           saturation: (max - min) / (255 - Math.abs(max + min - 255)),
           contrast: contrast(border, fill),
         }
@@ -234,12 +205,6 @@ test('the chosen grade is marked in a neutral colour, in both themes', async ({ 
   }
 })
 
-/**
- * The product page once drew its own NOVA chip at 1.95:1 and nothing caught it.
- *
- * Nutri-Score is excluded on purpose: its colours are prescribed, and grade E is
- * 4.15:1 against the 4.5 AA asks. The grade is never carried by colour alone.
- */
 test('every badge the app colours itself is readable on its own fill', async ({
   page,
   request,
@@ -290,19 +255,6 @@ test('every badge the app colours itself is readable on its own fill', async ({
   }
 })
 
-/**
- * The hero's light, which fails in a way nothing else reports.
- *
- * A gradient whose colour does not resolve is not a wrong colour, it is an
- * invalid declaration: the browser drops `background-image` entirely and the
- * element keeps every other class, so the banner renders as a plain dark box
- * and the build, the types and the unit suite all stay green.
- *
- * It happened twice while this was written. First as an arbitrary
- * `bg-[radial-gradient(...)]`, which Tailwind did not generate at all, and then
- * by reading `--color-accent-solid`, which `@theme inline` writes into the
- * generated utilities rather than onto `:root`.
- */
 test('the hero draws its light', async ({ page }) => {
   await page.goto('/')
 
@@ -314,8 +266,6 @@ test('the hero draws its light', async ({ page }) => {
 
   for (const backgroundImage of fields) {
     expect(backgroundImage).toContain('gradient')
-    // An unresolved custom property leaves the colour stop empty, which is how
-    // this failed the second time.
     expect(backgroundImage).toMatch(/rgba?\(/)
   }
 })

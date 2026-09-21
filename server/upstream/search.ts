@@ -12,11 +12,6 @@ import { looseNumber, looseString } from './coerce'
 import { mapProductImage, upstreamImageFields } from './image'
 import type { FacetItem } from '#shared/domain/search'
 
-/**
- * Permissive about values, strict about structure: `hits` not being a list means
- * this is not a search response, and guessing past that shows an empty directory.
- */
-
 const looseStringArray = z
   .union([z.array(z.union([z.string(), z.number()])), z.string(), z.null()])
   .nullish()
@@ -37,7 +32,6 @@ const upstreamHitSchema = z.looseObject({
   brands: looseStringArray,
   categories_tags: looseStringArray,
   nutriscore_grade: looseString,
-  /** Both spellings exist on the same document and disagree often enough to matter. */
   nova_group: looseNumber,
   nova_groups: looseNumber,
   ...upstreamImageFields,
@@ -58,7 +52,6 @@ const upstreamFacetSchema = z.looseObject({
 })
 
 export const upstreamSearchResponseSchema = z.looseObject({
-  // Structure we refuse to guess past.
   hits: z.array(z.unknown()),
   count: z.coerce.number().int().nonnegative().catch(0),
   page: z.coerce.number().int().min(1).catch(1),
@@ -72,10 +65,6 @@ export const upstreamSearchResponseSchema = z.looseObject({
 
 export type UpstreamSearchResponse = z.infer<typeof upstreamSearchResponseSchema>
 
-/**
- * Only `_100g`: the bare key and `_value` are in whatever unit the pack
- * declared.
- */
 const NUTRIMENT_SOURCE_KEYS: Record<NutrientKey, string> = {
   energyKcal: 'energy-kcal_100g',
   fat: 'fat_100g',
@@ -97,7 +86,6 @@ export function mapNutriments(raw: Record<string, unknown> | null | undefined): 
     const parsed = looseNumber.safeParse(raw[NUTRIMENT_SOURCE_KEYS[key]])
     if (!parsed.success || parsed.data === null) continue
 
-    // Negative mass is a data-entry error, and it drags category averages down.
     if (parsed.data < 0) continue
 
     profile[key] = parsed.data
@@ -106,10 +94,6 @@ export function mapNutriments(raw: Record<string, unknown> | null | undefined): 
   return profile
 }
 
-/**
- * Upstream spells "no grade" four ways and means two things: `not-applicable` is
- * the scheme excluding a product, the rest is nobody having graded it.
- */
 export function mapNutriScore(raw: string | null): NutriScore {
   if (!raw) return 'unknown'
   const value = raw.toLowerCase()
@@ -130,7 +114,6 @@ export function mapNovaGroup(
 function mapHit(hit: UpstreamHit): ProductSummary {
   return {
     code: hit.code,
-    // The translated field is absent more often, so the raw one backs it up.
     name: hit.product_name_en ?? hit.product_name ?? '',
     brands: normaliseBrands(hit.brands),
     categories: hit.categories_tags.map((id) => toTaxonomyTag(id)),
@@ -143,13 +126,9 @@ function mapHit(hit: UpstreamHit): ProductSummary {
 
 export interface MappedHits {
   items: ProductSummary[]
-  /** Records that failed to parse. Reported so the schema can be corrected. */
   rejected: number
 }
 
-/**
- * Per hit, so one malformed record renders 23 rows instead of none.
- */
 export function mapSearchHits(hits: readonly unknown[]): MappedHits {
   const items: ProductSummary[] = []
   let rejected = 0
@@ -166,16 +145,8 @@ export function mapSearchHits(hits: readonly unknown[]): MappedHits {
   return { items, rejected }
 }
 
-/**
- * Bookkeeping buckets, not values: no product carries either, and `--other--`
- * drawn as a bar reads as the largest category of food in the world.
- */
 const SENTINEL_FACET_KEYS = new Set(['unknown', '--other--', 'not-applicable', ''])
 
-/**
- * Facet keys differ by dimension: `categories_tags` is prefixed, `brands_tags`
- * is a bare slug.
- */
 export function mapFacet(items: readonly z.infer<typeof upstreamFacetItemSchema>[]): FacetItem[] {
   return items
     .filter((item) => !SENTINEL_FACET_KEYS.has(item.key))

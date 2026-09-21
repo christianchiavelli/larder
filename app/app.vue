@@ -6,10 +6,7 @@ const { siteName } = useRuntimeConfig().public
 useHead({
   titleTemplate: (title) => (title ? `${title} | ${siteName}` : siteName),
   htmlAttrs: { lang: 'en' },
-  script: [
-    // Blocking, in head, before any paint. See use-theme.ts for why.
-    { innerHTML: THEME_BOOTSTRAP_SCRIPT, tagPriority: 'critical' },
-  ],
+  script: [{ innerHTML: THEME_BOOTSTRAP_SCRIPT, tagPriority: 'critical' }],
   meta: [
     {
       name: 'description',

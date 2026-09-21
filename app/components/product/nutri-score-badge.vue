@@ -6,13 +6,6 @@ import {
   type NutriScore,
 } from '#shared/domain/nutrition'
 
-/**
- * The letter is always rendered and the accessible name spells the scale out:
- * green to red is the exact pair a red-green deficiency collapses.
- *
- * The two ungraded states share a swatch. Two neutral greys a step apart measure
- * 1.3:1, so the glyph and the name carry the difference instead.
- */
 const props = withDefaults(
   defineProps<{
     grade: NutriScore
@@ -31,11 +24,6 @@ const CHIP_CLASSES: Record<NutriScore, string> = {
   'not-applicable': 'bg-nutri-ungraded text-nutri-ungraded-ink',
 }
 
-/**
- * A minimum width, so the one value that is not a single glyph becomes a pill.
- * The type scale follows the size and never the content: two type sizes in a row
- * is what a reader notices, a wider box is not.
- */
 const SIZE_CLASSES = {
   sm: 'h-5 min-w-5 text-caption',
   md: 'h-7 min-w-7 text-subheading',

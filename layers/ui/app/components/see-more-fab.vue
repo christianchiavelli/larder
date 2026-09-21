@@ -2,22 +2,6 @@
 import { ref } from 'vue'
 import { useScrollSections } from '../composables/use-scroll-sections'
 
-/**
- * Steps down a long page one section at a time, and gets out of the way once
- * there is nothing left below.
- *
- * Sections are marked with `data-scroll-section` and set their own
- * `scroll-mt-*`, so a page decides where a section should land. This only
- * decides which one is next.
- *
- * Rendered after the page content, because the sentinel it uses to know it has
- * reached the end has to sit there. The button itself is fixed, so where it
- * appears in the markup is not where it is drawn.
- *
- * Solid accent, like every other control that acts on its own here. A neutral
- * disc measured 1.12:1 against the card it floats over in the dark theme, so
- * the shape disappeared and only the arrow was left.
- */
 const sentinel = ref<HTMLElement | null>(null)
 const { hasNext, goToNext } = useScrollSections(sentinel)
 </script>

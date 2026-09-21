@@ -3,12 +3,10 @@ import { mapProductDetail, upstreamProductResponseSchema } from '~~/server/upstr
 
 const PRODUCT_BASE = 'https://world.openfoodfacts.org'
 
-/** Trimmed from the live v2 response for barcode 3017620425035. */
 const RAW_NUTELLA = {
   code: '3017620425035',
   product_name: 'Nutella',
   product_name_en: 'Nutella',
-  // The v2 API joins brands into one string. The search API sends an array.
   brands: 'Nutella, FERRERO FRANCE COMMERCIALE',
   categories_tags: ['en:breakfasts', 'en:spreads', 'en:sweet-spreads'],
   countries_tags: ['en:france'],
@@ -66,10 +64,6 @@ describe('mapProductDetail', () => {
     expect(parse({ ...RAW_NUTELLA, last_modified_t: 0 }).lastModified).toBeNull()
   })
 
-  /**
-   * The shape most of the catalogue is in: every optional key absent from the
-   * payload rather than present and null.
-   */
   it('maps a record that carries nothing but a code', () => {
     const product = parse({ code: '123' })
 
@@ -97,8 +91,6 @@ describe('mapProductDetail', () => {
   })
 
   it('rejects a malformed image URL instead of rendering a broken element', () => {
-    // Upstream occasionally stores a bare path. Every width here is one, so
-    // there is no image at all rather than an element pointing at nothing.
     expect(parse({ ...RAW_NUTELLA, image_front_url: '/images/relative.jpg' }).image).toBeNull()
   })
 

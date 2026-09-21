@@ -1,16 +1,11 @@
 <script setup lang="ts">
 import type { FacetItem } from '#shared/domain/search'
 
-/**
- * A selected value is always rendered, even when it falls outside the top N or
- * out of the facet counts, or applying a filter can hide its own checkbox.
- */
 const props = withDefaults(
   defineProps<{
     title: string
     items: FacetItem[]
     selected: string[]
-    /** How many options to show before collapsing. */
     limit?: number
     loading?: boolean
   }>(),
@@ -26,8 +21,6 @@ const visible = computed(() => {
   const shown = expanded.value ? props.items : props.items.slice(0, props.limit)
   const shownKeys = new Set(shown.map((item) => item.key))
 
-  // Selected values that the facet response no longer lists, pinned on so the
-  // filter can always be removed.
   const orphans = props.selected
     .filter((key) => !shownKeys.has(key))
     .map((key) => props.items.find((item) => item.key === key) ?? { key, label: key, count: 0 })

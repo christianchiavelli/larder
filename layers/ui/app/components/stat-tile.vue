@@ -1,15 +1,10 @@
 <script setup lang="ts">
-/**
- * No pre-formatted string: a value formatted by the caller loses the tabular
- * alignment. An absent value renders an em-dash, never a zero.
- */
 const props = withDefaults(
   defineProps<{
     label: string
     value: number | null
     unit?: string
     precision?: number
-    /** Extra context under the figure, such as what the total is out of. */
     caption?: string
     size?: 'md' | 'lg'
     loading?: boolean

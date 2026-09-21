@@ -16,10 +16,6 @@ import {
   type NutriScoreDistribution,
 } from '#shared/domain/search'
 
-/**
- * The inputs are whatever someone can put in an address bar. A malformed filter
- * drops out and the page still renders.
- */
 describe('productQuerySchema', () => {
   it('fills in defaults for an empty query string', () => {
     expect(productQuerySchema.parse({})).toEqual({
@@ -153,7 +149,6 @@ describe('toQueryParams', () => {
     expect(toQueryParams(productQuerySchema.parse({ nova: ['1', '4'] })).nova).toEqual(['1', '4'])
   })
 
-  /** What the app writes has to parse back, or a reload changes the results. */
   it('round-trips through the schema unchanged', () => {
     const original = productQuerySchema.parse({
       q: 'dark chocolate',
@@ -171,7 +166,6 @@ describe('toQueryParams', () => {
 })
 
 describe('the brand filter', () => {
-  /** So a suggestion, a shared link and a hand-edited URL all agree. */
   it('accepts a prefixed brand id and stores the bare slug', () => {
     expect(productQuerySchema.parse({ brand: 'en:olivari' }).brand).toEqual(['olivari'])
   })
@@ -188,7 +182,6 @@ describe('the brand filter', () => {
   })
 
   it('collapses the two spellings of one brand into a single filter', () => {
-    // A shared link can carry both, and the upstream query would double-count.
     expect(productQuerySchema.parse({ brand: ['en:olivari', 'olivari'] }).brand).toEqual([
       'olivari',
     ])
@@ -196,15 +189,10 @@ describe('the brand filter', () => {
 })
 
 describe('the Nutri-Score filter', () => {
-  /**
-   * The schema used to drop these as invalid, and a dropped filter narrows
-   * nothing: the control read as applied over the whole catalogue.
-   */
   it.each(['a', 'b', 'c', 'd', 'e', 'unknown', 'not-applicable'])('accepts %s', (value) => {
     expect(productQuerySchema.parse({ nutriScore: value }).nutriScore).toEqual([value])
   })
 
-  /** Separately, or a search for missing data comes back full of beers. */
   it('takes the two absences independently', () => {
     expect(productQuerySchema.parse({ nutriScore: ['unknown'] }).nutriScore).toEqual(['unknown'])
     expect(productQuerySchema.parse({ nutriScore: ['not-applicable'] }).nutriScore).toEqual([
@@ -220,15 +208,7 @@ describe('the Nutri-Score filter', () => {
   })
 })
 
-/**
- * Four helpers used to enumerate the same seven names by hand, each with its own
- * passing spot check.
- */
 describe('the filter dimensions', () => {
-  /**
-   * Typed on `FilterKey`, so a new dimension stops this compiling until someone
-   * says what a set value looks like.
-   */
   const EVERY_DIMENSION: Record<FilterKey, unknown> = {
     q: 'granola',
     category: ['en:snacks'],
@@ -274,8 +254,6 @@ describe('the filter dimensions', () => {
 })
 
 describe('the NOVA filter', () => {
-  /** Groups reach a URL as numerals and the absence as a word, so no batch
-   * coercion: `Number('none')` is NaN and the filter silently disappeared. */
   it.each(['1', '2', '3', '4'])('accepts group %s as the number it is', (group) => {
     expect(productQuerySchema.parse({ nova: group }).nova).toEqual([Number(group)])
   })
@@ -298,15 +276,6 @@ describe('the NOVA filter', () => {
   })
 })
 
-/**
- * The headline figures, which are read off the facet buckets rather than the
- * hit count: Elasticsearch pins the count at its tracking ceiling but still
- * aggregates over every matching document.
- *
- * Shared by the front page and the overview. They were written out twice once,
- * and the copy that named its buckets went short by 71,025 products the day a
- * seventh value appeared.
- */
 describe('the catalogue figures', () => {
   const catalogue: NutriScoreDistribution = {
     a: 100,
@@ -322,11 +291,6 @@ describe('the catalogue figures', () => {
     expect(catalogueSize(catalogue)).toBe(1000)
   })
 
-  /**
-   * The regression that matters. Summing the five grades plus `unknown` is what
-   * the overview used to do, and it reported a smaller catalogue than the chart
-   * beside it without failing anywhere.
-   */
   it('does not lose a bucket it was not told about', () => {
     const { 'not-applicable': excluded, ...withoutTheNewest } = catalogue
     expect(excluded).toBeGreaterThan(0)
@@ -334,7 +298,6 @@ describe('the catalogue figures', () => {
   })
 
   it('reads an empty distribution as no answer rather than as an empty catalogue', () => {
-    // A page that has not loaded yet renders an em-dash, never a zero.
     expect(catalogueSize({})).toBeNull()
     expect(gradedShare({})).toBeNull()
     expect(classifiedShare({}, 0)).toBeNull()
@@ -344,16 +307,10 @@ describe('the catalogue figures', () => {
     expect(gradedShare(catalogue)).toBe(50)
   })
 
-  /**
-   * The ungraded buckets are two thirds of the real catalogue, so excluding
-   * them from the denominator would report a third of the products as most of
-   * them.
-   */
   it('counts the ungraded in the denominator', () => {
     expect(gradedShare({ a: 1, unknown: 3 })).toBe(25)
   })
 
-  /** A count rather than a distribution: the facet has no bucket for it. */
   it('takes the classified share from the count the facet cannot report', () => {
     expect(classifiedShare(catalogue, 263)).toBeCloseTo(26.3, 5)
   })

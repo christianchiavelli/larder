@@ -1,8 +1,4 @@
 <script setup lang="ts">
-/**
- * `as` exists so a card can be a section, an article or a list item: the visual
- * treatment and the document outline are separate decisions.
- */
 withDefaults(
   defineProps<{
     as?: string

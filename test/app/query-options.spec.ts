@@ -2,12 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 import { productQuerySchema } from '#shared/domain/search'
 
-/**
- * What these composables decide is the options object they hand to Pinia
- * Colada: the cache key, when a request is allowed to fire, and what is shown
- * while the next one loads. The library's own behaviour is not ours to test, so
- * `useQuery` is replaced and the options are read straight off the call.
- */
 const useQuery = vi.fn()
 vi.mock('@pinia/colada', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@pinia/colada')>()),
@@ -29,7 +23,6 @@ interface QueryOptions {
   placeholderData?: (previous: unknown) => unknown
 }
 
-/** The options the composable under test passed to `useQuery`. */
 function lastOptions(): QueryOptions {
   const call = useQuery.mock.calls.at(-1)
   if (!call) throw new Error('useQuery was never called')
@@ -50,10 +43,6 @@ describe('useProductSearch', () => {
     expect(lastOptions().key()).toEqual(productSearchKey(query.value))
   })
 
-  /**
-   * The key is a function, so a filter change re-reads the ref. Computing it
-   * once at setup would pin the directory to the query it mounted with.
-   */
   it('re-reads the query when it changes', () => {
     useProductSearch(query)
     const before = lastOptions().key()
@@ -63,10 +52,6 @@ describe('useProductSearch', () => {
     expect(lastOptions().key()).not.toEqual(before)
   })
 
-  /**
-   * The query is read when it runs, not when the composable was set up, so a
-   * request always carries the filters the address bar currently shows.
-   */
   it('fetches the query it was keyed on', async () => {
     query.value = productQuerySchema.parse({ q: 'cocoa' })
     useProductSearch(query)
@@ -78,10 +63,6 @@ describe('useProductSearch', () => {
     })
   })
 
-  /**
-   * Without this the grid empties on every keystroke and every checkbox, the
-   * layout collapses to its loading state, and the reader loses their place.
-   */
   it('holds the previous page through a refetch', () => {
     useProductSearch(query)
 
@@ -94,10 +75,6 @@ describe('productDetailQuery', () => {
     expect(productDetailQuery('3017620425035').key).toEqual(['product', '3017620425035'])
   })
 
-  /**
-   * Defined as options rather than a composable so a prefetch from a directory
-   * row and the page it opens land on one cache entry.
-   */
   it('builds the same options for the same barcode', () => {
     expect(productDetailQuery('3017620425035').key).toEqual(productDetailQuery('3017620425035').key)
   })
@@ -110,11 +87,6 @@ describe('productDetailQuery', () => {
 })
 
 describe('useSuggestions', () => {
-  /**
-   * The key is what collapses a typing burst into one request per distinct
-   * prefix. Keying on the raw term would make "Choc" and "choc " two entries
-   * for one search, and backspacing over a word would refetch every step.
-   */
   it('keys on the trimmed, lowercased term', () => {
     useSuggestions(ref('  ChocoLate  '))
 
@@ -132,10 +104,6 @@ describe('useSuggestions', () => {
     expect(lastOptions().enabled?.()).toBe(expected)
   })
 
-  /**
-   * A one-character term matches most of a taxonomy, so the request costs a
-   * round trip on upstream's tightest ceiling to suggest nothing useful.
-   */
   it('re-evaluates the gate as the term grows', () => {
     const term = ref('c')
     useSuggestions(term)
@@ -146,10 +114,6 @@ describe('useSuggestions', () => {
     expect(lastOptions().enabled?.()).toBe(true)
   })
 
-  /**
-   * Without it the listbox empties on every keystroke and reappears a moment
-   * later, so the option under the pointer moves out from under it.
-   */
   it('holds the previous list while the next one loads', () => {
     useSuggestions(ref('chocolate'))
 
