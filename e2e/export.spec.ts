@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises'
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test, type Download, type Locator, type Page } from '@playwright/test'
 import { parse } from 'csv-parse/sync'
+import { transitionsSettled } from './support/motion'
 
 async function records(download: Download): Promise<Record<string, string>[]> {
   const text = await readFile(await download.path(), 'utf8')
@@ -31,17 +32,6 @@ async function settledCount(dialog: Locator): Promise<number> {
   await expect(count).toContainText(/\d products?/)
 
   return Number((await count.innerText()).match(/([\d,]+) products?/)![1]!.replaceAll(',', ''))
-}
-
-async function transitionsSettled(page: Page) {
-  await page.evaluate(() =>
-    Promise.all(
-      document
-        .getAnimations()
-        .filter((animation) => animation instanceof CSSTransition)
-        .map((animation) => animation.finished.catch(() => undefined)),
-    ),
-  )
 }
 
 async function pickCategory(dialog: Locator, term: string, option: string) {

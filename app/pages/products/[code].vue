@@ -15,6 +15,8 @@ const product = computed(() => state.value.data)
 const error = computed(() => state.value.error)
 const isLoading = computed(() => asyncStatus.value === 'loading' && !product.value)
 
+useErrorStatus(error, refresh)
+
 const title = computed(() => (product.value ? productDisplayName(product.value) : 'Product'))
 
 useHead(() => ({ title: title.value }))
@@ -38,6 +40,7 @@ const isNotFound = computed(
 
       <UiEmptyState
         v-if="isNotFound"
+        :heading-level="1"
         title="No product under that barcode"
         :description="`Nothing in the catalogue is registered as ${code}. It may not have been contributed yet.`"
       >
@@ -49,11 +52,12 @@ const isNotFound = computed(
         </NuxtLink>
       </UiEmptyState>
 
-      <UiEmptyState
+      <UiErrorState
         v-else-if="error"
-        tone="error"
-        title="Could not load this product"
-        :description="error.message"
+        :heading-level="1"
+        title="We couldn't load this product"
+        :description="SOURCE_UNAVAILABLE"
+        :retrying="isLoading"
         @retry="refresh()"
       />
 

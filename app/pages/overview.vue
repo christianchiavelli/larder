@@ -20,6 +20,8 @@ const result = computed(() => state.value.data)
 const error = computed(() => state.value.error)
 const isLoading = computed(() => asyncStatus.value === 'loading' && !result.value)
 
+useErrorStatus(error, refresh)
+
 const distribution = computed<NutriScoreDistribution>(
   () => result.value?.nutriScoreDistribution ?? {},
 )
@@ -40,11 +42,11 @@ const classified = computed(() =>
         description="Nutrition, processing and labelling across a public catalogue of packaged food."
       />
 
-      <UiEmptyState
+      <UiErrorState
         v-if="error"
-        tone="error"
-        title="Could not load the overview"
-        :description="error.message"
+        title="We couldn't load the overview"
+        :description="SOURCE_UNAVAILABLE"
+        :retrying="isLoading"
         @retry="refresh()"
       />
 

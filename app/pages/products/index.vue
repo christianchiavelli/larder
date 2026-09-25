@@ -16,6 +16,8 @@ const error = computed(() => state.value.error)
 const showingFilters = computed(() => hasActiveFilters(query.value))
 const exportable = computed(() => !error.value && (result.value?.totalCount ?? 0) > 0)
 
+useErrorStatus(error, refresh)
+
 const totalLabel = computed(() => {
   if (!result.value) return null
   const formatted = formatCount(result.value.totalCount)
@@ -32,7 +34,10 @@ const totalLabel = computed(() => {
       />
 
       <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
-        <ProductFilterPanel :facets="result?.facets ?? null" :loading="isLoading && !result" />
+        <ProductFilterPanel
+          :facets="result?.facets ?? null"
+          :loading="isLoading && !result && !error"
+        />
 
         <div
           class="flex min-w-0 flex-1 flex-col overflow-hidden rounded-card border border-edge-subtle bg-surface-raised shadow-card"
@@ -40,6 +45,7 @@ const totalLabel = computed(() => {
           <ProductSearchControls />
 
           <div
+            v-if="!error"
             class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-edge-subtle bg-surface px-3 py-2"
           >
             <p class="text-caption text-ink-muted" aria-live="polite" data-testid="result-summary">
@@ -57,11 +63,11 @@ const totalLabel = computed(() => {
           </div>
 
           <div class="flex flex-1 flex-col gap-2 bg-surface p-2">
-            <UiEmptyState
+            <UiErrorState
               v-if="error"
-              tone="error"
-              title="Could not load products"
-              :description="error.message"
+              title="We couldn't load the products"
+              :description="SOURCE_UNAVAILABLE"
+              :retrying="isLoading"
               @retry="refresh()"
             />
 

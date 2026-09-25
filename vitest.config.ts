@@ -17,7 +17,12 @@ export default defineVitestConfig({
         'app/composables/**/*.ts',
         'layers/ui/app/utils/**/*.ts',
       ],
-      exclude: ['**/*.d.ts', '**/types.ts', 'layers/ui/app/utils/icons.ts'],
+      exclude: [
+        '**/*.d.ts',
+        '**/types.ts',
+        'layers/ui/app/utils/icons.ts',
+        'app/composables/use-error-status.ts',
+      ],
       thresholds: {
         statements: 95,
         branches: 94,

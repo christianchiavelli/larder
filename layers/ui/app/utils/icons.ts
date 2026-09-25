@@ -1,6 +1,7 @@
 import { config, type IconDefinition } from '@fortawesome/fontawesome-svg-core'
 import {
   faArrowDown,
+  faArrowRotateRight,
   faArrowUpRightFromSquare,
   faBox,
   faChartSimple,
@@ -20,6 +21,7 @@ import {
 
 export const ICONS = {
   'arrow-down': faArrowDown,
+  'arrow-rotate-right': faArrowRotateRight,
   'arrow-up-right-from-square': faArrowUpRightFromSquare,
   'chart-simple': faChartSimple,
   box: faBox,

@@ -53,28 +53,30 @@ const showingFilters = computed(() => hasActiveFilters(query.value))
       </div>
     </fieldset>
 
-    <ProductFilterGroup
-      title="Category"
-      :items="facets?.categories_tags ?? []"
-      :selected="query.category"
-      :loading="loading"
-      @toggle="toggleTag('category', $event)"
-    />
+    <template v-if="facets || loading">
+      <ProductFilterGroup
+        title="Category"
+        :items="facets?.categories_tags ?? []"
+        :selected="query.category"
+        :loading="loading"
+        @toggle="toggleTag('category', $event)"
+      />
 
-    <ProductFilterGroup
-      title="Brand"
-      :items="facets?.brands_tags ?? []"
-      :selected="query.brand"
-      :loading="loading"
-      @toggle="toggleTag('brand', $event)"
-    />
+      <ProductFilterGroup
+        title="Brand"
+        :items="facets?.brands_tags ?? []"
+        :selected="query.brand"
+        :loading="loading"
+        @toggle="toggleTag('brand', $event)"
+      />
 
-    <ProductFilterGroup
-      title="Country"
-      :items="facets?.countries_tags ?? []"
-      :selected="query.country"
-      :loading="loading"
-      @toggle="toggleTag('country', $event)"
-    />
+      <ProductFilterGroup
+        title="Country"
+        :items="facets?.countries_tags ?? []"
+        :selected="query.country"
+        :loading="loading"
+        @toggle="toggleTag('country', $event)"
+      />
+    </template>
   </aside>
 </template>

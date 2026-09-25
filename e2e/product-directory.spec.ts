@@ -139,9 +139,13 @@ test.describe('product directory', () => {
   })
 
   test('reports a barcode that does not exist without breaking the page', async ({ page }) => {
-    await page.goto('/products/00000000000001')
+    const response = await page.goto('/products/00000000000001')
 
-    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+    expect(response?.status()).toBe(404)
+    await expect(
+      page.getByRole('heading', { level: 1, name: 'No product under that barcode' }),
+    ).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Browse products' })).toBeVisible()
   })
 
   test('logs no console errors during a normal session', async ({ page }) => {

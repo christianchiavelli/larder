@@ -3,39 +3,25 @@ withDefaults(
   defineProps<{
     title: string
     description?: string
-    tone?: 'empty' | 'error'
+    headingLevel?: 1 | 2
   }>(),
-  { tone: 'empty' },
+  { description: undefined, headingLevel: 2 },
 )
-
-defineEmits<{ retry: [] }>()
 </script>
 
 <template>
   <div
-    class="flex flex-col items-center justify-center gap-2 rounded-card border border-dashed px-6 py-12 text-center"
-    :class="
-      tone === 'error' ? 'border-danger/40 bg-danger-surface' : 'border-edge bg-surface-sunken'
-    "
-    :role="tone === 'error' ? 'alert' : 'status'"
+    class="flex flex-col items-center justify-center gap-2 rounded-card border border-dashed border-edge bg-surface-sunken px-6 py-12 text-center"
+    role="status"
   >
-    <p class="text-subheading" :class="tone === 'error' ? 'text-danger' : 'text-ink'">
+    <component :is="`h${headingLevel}`" class="text-subheading text-ink">
       {{ title }}
-    </p>
+    </component>
 
     <p v-if="description" class="max-w-prose text-body text-ink-muted">
       {{ description }}
     </p>
 
     <slot />
-
-    <button
-      v-if="tone === 'error'"
-      type="button"
-      class="mt-2 rounded-control border border-edge-strong px-3 py-1.5 text-label text-ink transition-colors hover:bg-surface-hover"
-      @click="$emit('retry')"
-    >
-      Try again
-    </button>
   </div>
 </template>
