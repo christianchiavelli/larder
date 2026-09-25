@@ -77,6 +77,8 @@ const NUTRIMENT_SOURCE_KEYS: Record<NutrientKey, string> = {
   sodium: 'sodium_100g',
 }
 
+const FLOAT32_DIGITS = 6
+
 export function mapNutriments(raw: Record<string, unknown> | null | undefined): NutrientProfile {
   if (!raw) return { ...EMPTY_NUTRIENT_PROFILE }
 
@@ -88,7 +90,7 @@ export function mapNutriments(raw: Record<string, unknown> | null | undefined): 
 
     if (parsed.data < 0) continue
 
-    profile[key] = parsed.data
+    profile[key] = Number(parsed.data.toPrecision(FLOAT32_DIGITS))
   }
 
   return profile

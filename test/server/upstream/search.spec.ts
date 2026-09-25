@@ -144,6 +144,29 @@ describe('mapNutriments', () => {
     expect(mapNutriments(null)).toEqual(EMPTY_NUTRIENT_PROFILE)
     expect(mapNutriments(undefined)).toEqual(EMPTY_NUTRIENT_PROFILE)
   })
+
+  it('gives back the figure that was typed, not the 32-bit float it was stored as', () => {
+    const profile = mapNutriments({
+      fat_100g: 0.20000000298023,
+      carbohydrates_100g: 78.099998474121,
+      sodium_100g: 0.047999998927116,
+    })
+
+    expect(profile.fat).toBe(0.2)
+    expect(profile.carbohydrates).toBe(78.1)
+    expect(profile.sodium).toBe(0.048)
+  })
+
+  it('drops the noise of arithmetic done upstream, such as salt derived from sodium', () => {
+    expect(mapNutriments({ salt_100g: 0.607999999999999 }).salt).toBe(0.608)
+  })
+
+  it('keeps every digit a label could plausibly carry', () => {
+    const profile = mapNutriments({ 'energy-kcal_100g': 2345.5, sodium_100g: 0.00123 })
+
+    expect(profile.energyKcal).toBe(2345.5)
+    expect(profile.sodium).toBe(0.00123)
+  })
 })
 
 describe('mapNutriScore', () => {
