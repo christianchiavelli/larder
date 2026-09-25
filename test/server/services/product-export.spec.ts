@@ -93,7 +93,7 @@ const open = (client: UpstreamClient, input: Record<string, unknown> = {}, signa
 
 async function exported(client: UpstreamClient, input: Record<string, unknown> = {}) {
   const text = (await Array.fromAsync(await open(client, input))).join('')
-  expect(text.startsWith('﻿')).toBe(true)
+  expect(text.startsWith('\uFEFF')).toBe(true)
 
   const [header, ...records] = parseCsv(text.slice(1))
   return { header, records }

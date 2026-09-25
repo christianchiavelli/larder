@@ -4,7 +4,7 @@ import { parseCsv } from '../test/support/csv'
 
 async function records(download: Download) {
   const text = await readFile(await download.path(), 'utf8')
-  expect(text.startsWith('﻿'), 'the file has no UTF-8 byte order mark').toBe(true)
+  expect(text.startsWith('\uFEFF'), 'the file has no UTF-8 byte order mark').toBe(true)
 
   const [header, ...rows] = parseCsv(text.slice(1))
   return rows.map((row) => Object.fromEntries(header!.map((name, index) => [name, row[index]])))

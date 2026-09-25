@@ -40,7 +40,7 @@ describe('csvRecord', () => {
   })
 
   describe('a field a spreadsheet would run as a formula', () => {
-    const triggers = ['=', '+', '-', '@', '\t', '\r', '\n', '＝', '＋', '－', '＠']
+    const triggers = ['=', '+', '-', '@', '\t', '\r', '\n', '\uFF1D', '\uFF0B', '\uFF0D', '\uFF20']
 
     for (const trigger of triggers) {
       it(`is led by a tab when it starts with ${JSON.stringify(trigger)}`, () => {

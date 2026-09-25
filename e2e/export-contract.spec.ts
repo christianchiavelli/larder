@@ -25,7 +25,7 @@ async function csv(request: APIRequestContext, url: string) {
   expect(response.ok(), `${url} answered ${response.status()}`).toBe(true)
 
   const text = await response.text()
-  expect(text.startsWith('﻿')).toBe(true)
+  expect(text.startsWith('\uFEFF')).toBe(true)
 
   const [header, ...records] = parseCsv(text.slice(1))
   return { response, header, records }

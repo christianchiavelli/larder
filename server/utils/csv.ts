@@ -1,8 +1,8 @@
 export type CsvValue = string | number | null
 
-export const CSV_BYTE_ORDER_MARK = '﻿'
+export const CSV_BYTE_ORDER_MARK = '\uFEFF'
 
-const FORMULA_TRIGGER = /^[=+\-@\t\r\n＝＋－＠]/
+const FORMULA_TRIGGER = /^[=+\-@\t\r\n\uFF1D\uFF0B\uFF0D\uFF20]/
 
 function csvField(value: CsvValue): string {
   if (value === null) return ''
