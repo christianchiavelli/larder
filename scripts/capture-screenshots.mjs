@@ -6,12 +6,31 @@ const OUT_DIR = 'docs/screenshots'
 
 const VIEWPORT = { width: 1440, height: 900 }
 
+async function openExport(page) {
+  await page.getByRole('button', { name: 'Export CSV' }).click()
+  await page.locator('[data-testid="export-count"]', { hasText: /\d/ }).waitFor()
+}
+
 const SHOTS = [
   { name: 'landing-dark', path: '/', scheme: 'dark', fullPage: false },
   { name: 'overview-light', path: '/overview', scheme: 'light', fullPage: true },
   { name: 'overview-dark', path: '/overview', scheme: 'dark', fullPage: true },
   { name: 'directory-light', path: '/products', scheme: 'light', fullPage: false },
   { name: 'product-dark', path: '/products/3017620425035', scheme: 'dark', fullPage: false },
+  {
+    name: 'export-light',
+    path: '/products?q=chocolate&brand=milka',
+    scheme: 'light',
+    fullPage: false,
+    prepare: openExport,
+  },
+  {
+    name: 'export-too-many-dark',
+    path: '/products?q=chocolate',
+    scheme: 'dark',
+    fullPage: false,
+    prepare: openExport,
+  },
 ]
 
 await mkdir(OUT_DIR, { recursive: true })
@@ -46,6 +65,11 @@ for (const shot of SHOTS) {
       `${shot.name}: the page loaded without stylesheets. Restart the production ` +
         `server so it picks up the current build, then run this again.`,
     )
+  }
+
+  if (shot.prepare) {
+    await shot.prepare(page)
+    await page.waitForTimeout(400)
   }
 
   await page.screenshot({ path: `${OUT_DIR}/${shot.name}.png`, fullPage: shot.fullPage })
