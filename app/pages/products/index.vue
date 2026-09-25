@@ -8,12 +8,13 @@ definePageMeta({
 })
 
 const { query, setPage, clearFilters } = useProductQuery()
-const { state, asyncStatus, refresh } = useProductSearch(query)
+const { state, asyncStatus, isPlaceholderData, refresh } = useProductSearch(query)
 
 const result = computed(() => state.value.data)
 const isLoading = computed(() => asyncStatus.value === 'loading')
 const error = computed(() => state.value.error)
 const showingFilters = computed(() => hasActiveFilters(query.value))
+const exportable = computed(() => !error.value && (result.value?.totalCount ?? 0) > 0)
 
 const totalLabel = computed(() => {
   if (!result.value) return null
@@ -38,20 +39,26 @@ const totalLabel = computed(() => {
         >
           <ProductSearchControls />
 
-          <p
-            class="border-b border-edge-subtle bg-surface px-3 py-2 text-caption text-ink-muted"
-            aria-live="polite"
-            data-testid="result-summary"
+          <div
+            class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-edge-subtle bg-surface px-3 py-2"
           >
-            <template v-if="totalLabel">
-              <span data-numeric>{{ totalLabel }}</span>
-              {{ result!.totalCount === 1 ? 'product' : 'products' }}
-              <span v-if="!result!.isTotalExact" class="text-ink-subtle">
-                (upstream stops counting at 10,000)
-              </span>
-            </template>
-            <UiSkeleton v-else class="h-4 w-32" />
-          </p>
+            <p class="text-caption text-ink-muted" aria-live="polite" data-testid="result-summary">
+              <template v-if="totalLabel">
+                <span data-numeric>{{ totalLabel }}</span>
+                {{ result!.totalCount === 1 ? 'product' : 'products' }}
+                <span v-if="!result!.isTotalExact" class="text-ink-subtle">
+                  (upstream stops counting at 10,000)
+                </span>
+              </template>
+              <UiSkeleton v-else class="h-4 w-32" />
+            </p>
+
+            <ProductExportLink
+              v-if="exportable"
+              :exact="result!.isTotalExact"
+              :pending="isPlaceholderData"
+            />
+          </div>
 
           <div class="flex flex-1 flex-col gap-2 bg-surface p-2">
             <UiEmptyState

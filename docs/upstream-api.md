@@ -30,7 +30,14 @@ The divergence in `brands` alone means no single client-side type can model both
 
 `Search-a-licious` returns `is_count_exact: false` once the match set passes the Elasticsearch tracking threshold, with `count` pinned at 10000. The UI must render that as "10,000+" rather than claiming an exact total.
 
-`page_count` is derived from the truncated count, so deep paging past the threshold returns empty pages. We clamp requested pages against a known-safe ceiling in the BFF.
+`page_count` is derived from the truncated count. Paging past the threshold is refused rather than answered empty: once `page * page_size` passes 10,000 the service returns a 400.
+
+```
+GET /search?page_size=24&page=416    -> 200, 24 hits   (9,984 rows deep)
+GET /search?page_size=24&page=417    -> 400  Maximum number of returned results is 10 000
+```
+
+Requested pages are clamped to that ceiling in the BFF, and the CSV export stops at it. `page_size` is accepted up to the same 10,000, so the whole window fits in one request, but that request takes about ten seconds and returns nothing until it is done. The export reads pages of 1,000 instead: the first rows reach the reader after one page, not after all ten.
 
 ## Absence is signalled two ways
 
@@ -47,6 +54,8 @@ So HTTP status alone is not sufficient to detect a missing product, and neither 
 ## Sorting is restricted to indexed fields
 
 `sort_by` only accepts fields the index declares sortable. Confirmed working: `nutriscore_score` (ascending is best-first, it is a penalty score), `-popularity_key`, `-unique_scans_n`. Confirmed rejected with a Pydantic validation error: anything under `nutriments.*`. There is no server-side sort by sugar, salt or protein content.
+
+A request without `q` must carry a `sort_by`, or it is rejected with a 400 as well. The unfiltered directory therefore sends `-popularity_key` even when the reader picked Relevance.
 
 ## Facet counts are exact; the hit count is not
 

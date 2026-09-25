@@ -22,7 +22,7 @@ export default defineConfig({
     {
       name: 'mobile',
       use: { ...devices['Pixel 7'] },
-      testIgnore: /filter-round-trip\.spec\.ts/,
+      testIgnore: /(filter-round-trip|export-contract)\.spec\.ts/,
     },
   ],
 
@@ -34,6 +34,6 @@ export default defineConfig({
 
         reuseExistingServer: false,
         timeout: 120_000,
-        env: { PORT: String(PORT), NITRO_PORT: String(PORT) },
+        env: { PORT: String(PORT), NITRO_PORT: String(PORT), NUXT_EXPORT_CONCURRENCY: '16' },
       },
 })

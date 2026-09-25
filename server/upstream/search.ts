@@ -25,6 +25,17 @@ const looseStringArray = z
     return value.map((entry) => String(entry).trim()).filter(Boolean)
   })
 
+export const SUMMARY_FIELDS = [
+  'code',
+  'product_name',
+  'product_name_en',
+  'brands',
+  'categories_tags',
+  'nutriscore_grade',
+  'nova_groups',
+  'nutriments',
+] as const
+
 const upstreamHitSchema = z.looseObject({
   code: z.union([z.string(), z.number()]).transform(String),
   product_name: looseString,

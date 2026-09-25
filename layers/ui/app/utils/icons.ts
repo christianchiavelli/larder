@@ -6,6 +6,7 @@ import {
   faChevronDown,
   faChevronLeft,
   faChevronRight,
+  faDownload,
   faImage,
   faMagnifyingGlass,
   faMoon,
@@ -21,6 +22,7 @@ export const ICONS = {
   'chevron-down': faChevronDown,
   'chevron-left': faChevronLeft,
   'chevron-right': faChevronRight,
+  download: faDownload,
   image: faImage,
   search: faMagnifyingGlass,
 } as const satisfies Record<string, IconDefinition>

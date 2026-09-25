@@ -1,4 +1,5 @@
 import { ZodError } from 'zod'
+import type { ProductSummary } from '#shared/domain/product'
 import {
   FACET_FIELDS,
   maxPageFor,
@@ -8,55 +9,37 @@ import {
 } from '#shared/domain/search'
 import type { NutriScore } from '#shared/domain/nutrition'
 import { buildProductQuery } from '~~/server/utils/lucene'
+import { IMAGE_FIELDS } from '~~/server/upstream/image'
 import {
+  SUMMARY_FIELDS,
   mapFacet,
   mapNutriScore,
   mapSearchHits,
   upstreamSearchResponseSchema,
+  type UpstreamSearchResponse,
 } from '~~/server/upstream/search'
 import { toContractError, toUpstreamError } from '~~/server/utils/upstream-error'
-import type { UpstreamClient } from '~~/server/utils/upstream-client'
+import type { UpstreamClient, UpstreamRequestOptions } from '~~/server/utils/upstream-client'
 
-const REQUESTED_FIELDS = [
-  'code',
-  'product_name',
-  'product_name_en',
-  'brands',
-  'categories_tags',
-  'nutriscore_grade',
-  'nova_groups',
-  'image_front_thumb_url',
-  'image_front_small_url',
-  'image_front_url',
-  'image_thumb_url',
-  'image_small_url',
-  'image_url',
-  'nutriments',
-].join(',')
+const REQUESTED_FIELDS = [...SUMMARY_FIELDS, ...IMAGE_FIELDS].join(',')
 
 const REQUESTED_FACETS = [...FACET_FIELDS, 'nutriscore_grade', 'nova_groups'].join(',')
 
 const CONTEXT = { service: 'search-a-licious', operation: 'GET /search' }
 
-export async function searchProducts(
+export interface SearchPage {
+  response: UpstreamSearchResponse
+  items: ProductSummary[]
+}
+
+export async function fetchSearchPage(
   client: UpstreamClient,
-  query: ProductQuery,
-): Promise<ProductSearchResult> {
-  const page = Math.min(query.page, maxPageFor(query.pageSize))
-
-  const { q, sort_by } = buildProductQuery(query)
-
+  params: Record<string, unknown>,
+  options?: UpstreamRequestOptions,
+): Promise<SearchPage> {
   let raw: unknown
   try {
-    raw = await client.get('/search', {
-      ...(q ? { q } : {}),
-      ...(sort_by ? { sort_by } : {}),
-      page,
-      page_size: query.pageSize,
-      fields: REQUESTED_FIELDS,
-      facets: REQUESTED_FACETS,
-      langs: 'en',
-    })
+    raw = await client.get('/search', { ...params, langs: 'en' }, options)
   } catch (error) {
     throw toUpstreamError(error, CONTEXT)
   }
@@ -74,6 +57,23 @@ export async function searchProducts(
   if (rejected > 0) {
     console.warn('[search] dropped unparseable hits', { rejected, total: response.hits.length })
   }
+
+  return { response, items }
+}
+
+export async function searchProducts(
+  client: UpstreamClient,
+  query: ProductQuery,
+): Promise<ProductSearchResult> {
+  const page = Math.min(query.page, maxPageFor(query.pageSize))
+
+  const { response, items } = await fetchSearchPage(client, {
+    ...buildProductQuery(query),
+    page,
+    page_size: query.pageSize,
+    fields: REQUESTED_FIELDS,
+    facets: REQUESTED_FACETS,
+  })
 
   const facets: Record<string, ReturnType<typeof mapFacet>> = {}
   for (const field of FACET_FIELDS) {

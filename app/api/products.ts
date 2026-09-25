@@ -1,3 +1,4 @@
+import { withQuery } from 'ufo'
 import type { ProductDetail } from '#shared/domain/product'
 import {
   toQueryParams,
@@ -11,6 +12,11 @@ export function fetchProducts(query: ProductQuery): Promise<ProductSearchResult>
   return $fetch<ProductSearchResult>('/api/products', {
     query: toQueryParams(query),
   })
+}
+
+export function productExportUrl(query: ProductQuery): string {
+  const { page: _page, pageSize: _pageSize, ...params } = toQueryParams(query)
+  return withQuery('/api/products.csv', params)
 }
 
 export function fetchProduct(code: string): Promise<ProductDetail> {

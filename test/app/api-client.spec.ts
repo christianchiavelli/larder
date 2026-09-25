@@ -4,7 +4,8 @@ import { productQuerySchema } from '#shared/domain/search'
 const $fetch = vi.fn().mockResolvedValue({})
 vi.stubGlobal('$fetch', $fetch)
 
-const { fetchProduct, fetchProducts, fetchSuggestions } = await import('~/api/products')
+const { fetchProduct, fetchProducts, fetchSuggestions, productExportUrl } =
+  await import('~/api/products')
 
 beforeEach(() => {
   $fetch.mockClear()
@@ -40,6 +41,42 @@ describe('fetchProducts', () => {
     fetchProducts(productQuerySchema.parse({}))
 
     expect(lastCall().options.query).toEqual({})
+  })
+})
+
+describe('productExportUrl', () => {
+  it('carries the filters and the sort the directory is showing', () => {
+    const url = productExportUrl(
+      productQuerySchema.parse({
+        q: 'cocoa spread',
+        category: ['en:snacks', 'en:spreads'],
+        nutriScore: 'not-applicable',
+        sort: 'popularity',
+      }),
+    )
+
+    const { pathname, searchParams } = new URL(url, 'http://larder.test')
+    expect(pathname).toBe('/api/products.csv')
+    expect(searchParams.get('q')).toBe('cocoa spread')
+    expect(searchParams.getAll('category')).toEqual(['en:snacks', 'en:spreads'])
+    expect(searchParams.getAll('nutriScore')).toEqual(['not-applicable'])
+    expect(searchParams.get('sort')).toBe('popularity')
+  })
+
+  it('leaves the page behind, since an export starts from the first row', () => {
+    const url = productExportUrl(productQuerySchema.parse({ page: '5', pageSize: '48', nova: '4' }))
+
+    expect(url).toBe('/api/products.csv?nova=4')
+  })
+
+  it('is the bare path when nothing is filtered', () => {
+    expect(productExportUrl(productQuerySchema.parse({}))).toBe('/api/products.csv')
+  })
+
+  it('encodes a term that would otherwise read as more parameters', () => {
+    const url = productExportUrl(productQuerySchema.parse({ q: 'salt&vinegar=crisps' }))
+
+    expect(new URL(url, 'http://larder.test').searchParams.get('q')).toBe('salt&vinegar=crisps')
   })
 })
 

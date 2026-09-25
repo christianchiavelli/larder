@@ -10,6 +10,8 @@ export const upstreamImageFields = {
   image_url: looseString,
 }
 
+export const IMAGE_FIELDS = Object.keys(upstreamImageFields)
+
 type UpstreamImageFields = {
   [K in keyof typeof upstreamImageFields]?: string | null
 }

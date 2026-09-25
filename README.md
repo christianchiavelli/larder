@@ -64,6 +64,7 @@ Two thirds of the catalogue has no Nutri-Score, for two different reasons. A bee
 - **A BFF, not a proxy.** Nitro routes talk to two upstream services with different engines and contradictory shapes, and hand the client one contract it can trust. Every response is parsed with Zod at the boundary.
 - **The domain comes first.** `shared/domain` owes nothing to the upstream shape. Nutri-Score and NOVA are defined by public health bodies, not by the API we happen to read them from.
 - **Filter state lives in the URL.** No store, no two-way watcher. Sharing, bookmarking and the back button work with nothing written for them.
+- **The export streams, and cannot end quietly.** `/api/products.csv` reads the directory's own query string, so the link is built from the URL alone and works before any JavaScript runs. Rows are written as upstream pages arrive, up to the 10,000 the search index will page to. A reader who cancels stops the upstream requests, and a failure halfway cuts the connection instead of closing the file, so a partial export cannot pass for a whole one.
 - **Missing data is a value, never a zero.** A nutrient nobody reported shows an em-dash; a product with no photograph gets a tile that says so.
 - **The design system is a Nuxt layer**, and the boundary is enforced rather than agreed: nothing under `layers/ui` imports from the domain or knows that food is being catalogued at all.
 - **One theme, read from tokens.** Components use semantic utilities and charts read the same custom properties at runtime, so a colour is never written twice. The handful of `dark:` variants left are for what a colour token cannot say: which of two icons is drawn, and how strong a decorative wash should be.
@@ -73,8 +74,8 @@ Two thirds of the catalogue has no Nutri-Score, for two different reasons. A bee
 ## Testing
 
 ```bash
-pnpm run ci    # format, lint, types, and 396 unit specs with coverage
-pnpm run e2e   # 150 Playwright runs across two viewports, on a production build
+pnpm run ci    # format, lint, types, and the unit specs with coverage
+pnpm run e2e   # Playwright across two viewports, on a production build
 ```
 
 The suites divide by what they can see. Vitest covers the domain, services, mappers and URL state. Playwright owns what only a browser can answer: whether a Tailwind utility resolves, whether a chart's hover state renders, whether a tree hydrates cleanly. All three have broken here at some point, and a jsdom render sees none of them.
@@ -91,4 +92,4 @@ Everything else is documented where it applies: a trap is a comment on the line 
 
 ## Licence
 
-Code under MIT. Product data is Open Food Facts', under [ODbL](https://opendatacommons.org/licenses/odbl/); attribution is rendered on every page that shows it.
+Code under MIT. Product data is Open Food Facts', under [ODbL](https://opendatacommons.org/licenses/odbl/); attribution is rendered on every page that shows it, and every exported row links to the record it came from.

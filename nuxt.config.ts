@@ -30,6 +30,7 @@ export default defineNuxtConfig({
       productBase: 'https://world.openfoodfacts.org',
       userAgent: 'Larder/0.1 (+https://github.com/christianchiavelli/larder)',
     },
+    exportConcurrency: 2,
     public: {
       siteName: 'Larder',
     },

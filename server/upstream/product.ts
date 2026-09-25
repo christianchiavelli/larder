@@ -70,6 +70,10 @@ export const PRODUCT_FIELDS = [
   'last_modified_t',
 ].join(',')
 
+export function productSourceUrl(productBase: string, code: string): string {
+  return `${productBase}/product/${encodeURIComponent(code)}`
+}
+
 function toIsoOrNull(unixSeconds: number | null): string | null {
   if (unixSeconds === null || unixSeconds <= 0) return null
   const date = new Date(unixSeconds * 1000)
@@ -96,7 +100,7 @@ export function mapProductDetail(
     servingSize: raw.serving_size,
     ingredientsText: raw.ingredients_text_en ?? raw.ingredients_text,
     ingredientCount: raw.ingredients_n === null ? null : Math.max(0, Math.round(raw.ingredients_n)),
-    sourceUrl: `${productBase}/product/${encodeURIComponent(raw.code)}`,
+    sourceUrl: productSourceUrl(productBase, raw.code),
     lastModified: toIsoOrNull(raw.last_modified_t),
   }
 }
