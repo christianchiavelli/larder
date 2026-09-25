@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { toCountryTag } from '#shared/domain/country'
 import { TAXONOMIES, toTaxonomyTag, type TaxonomyName } from '#shared/domain/taxonomy'
 import type { Suggestion } from '#shared/domain/search'
 import { toUpstreamError } from '~~/server/utils/upstream-error'
@@ -74,11 +75,16 @@ async function suggestOne(
 
   if (!response.success) return []
 
-  return response.data.options.map((option): Suggestion => ({
-    id: option.id,
-    label: toTaxonomyTag(option.id, option.text).label,
-    taxonomy: option.taxonomy_name ?? taxonomy,
-  }))
+  return response.data.options.map((option): Suggestion => {
+    const taxonomyName = option.taxonomy_name ?? taxonomy
+    const toTag = taxonomyName === 'country' ? toCountryTag : toTaxonomyTag
+
+    return {
+      id: option.id,
+      label: toTag(option.id, option.text).label,
+      taxonomy: taxonomyName,
+    }
+  })
 }
 
 function quotaFor(limit: number, taxonomies: number): number {

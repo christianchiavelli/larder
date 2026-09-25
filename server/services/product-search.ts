@@ -78,7 +78,7 @@ export async function searchProducts(
   const facets: Record<string, ReturnType<typeof mapFacet>> = {}
   for (const field of FACET_FIELDS) {
     const facet = response.facets?.[field]
-    if (facet) facets[field] = mapFacet(facet.items)
+    if (facet) facets[field] = mapFacet(field, facet.items)
   }
 
   const distribution: Partial<Record<NutriScore, number>> = {}

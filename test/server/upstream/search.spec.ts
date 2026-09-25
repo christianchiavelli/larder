@@ -212,20 +212,22 @@ describe('mapNovaGroup', () => {
 
 describe('mapFacet', () => {
   it('humanises a bare slug key, as brands_tags returns', () => {
-    expect(mapFacet([{ key: 'lu', name: 'lu', count: 265 }])).toEqual([
+    expect(mapFacet('brands_tags', [{ key: 'lu', name: 'lu', count: 265 }])).toEqual([
       { key: 'lu', label: 'Lu', count: 265 },
     ])
   })
 
   it('keeps the language prefix in the key and strips it from the label', () => {
-    const [facet] = mapFacet([{ key: 'en:sweet-spreads', name: null, count: 12 }])
+    const [facet] = mapFacet('categories_tags', [
+      { key: 'en:sweet-spreads', name: null, count: 12 },
+    ])
 
     expect(facet!.key).toBe('en:sweet-spreads')
     expect(facet!.label).toBe('Sweet spreads')
   })
 
   it('drops the unknown bucket, which is not a filterable value', () => {
-    const facets = mapFacet([
+    const facets = mapFacet('brands_tags', [
       { key: 'unknown', name: 'unknown', count: 4832 },
       { key: 'lu', name: 'lu', count: 265 },
     ])
@@ -234,7 +236,7 @@ describe('mapFacet', () => {
   })
 
   it('drops the --other-- remainder bucket', () => {
-    const facets = mapFacet([
+    const facets = mapFacet('categories_tags', [
       { key: '--other--', name: 'Other', count: 6_127_608 },
       { key: 'en:snacks', name: 'Snacks', count: 290_398 },
     ])
@@ -243,12 +245,38 @@ describe('mapFacet', () => {
   })
 
   it('drops the not-applicable bucket', () => {
-    expect(mapFacet([{ key: 'not-applicable', name: 'not-applicable', count: 12 }])).toEqual([])
+    expect(
+      mapFacet('labels_tags', [{ key: 'not-applicable', name: 'not-applicable', count: 12 }]),
+    ).toEqual([])
   })
 
   it('keeps a real value whose label happens to read like a sentinel', () => {
-    const facets = mapFacet([{ key: 'en:other-vegetables', name: 'Other vegetables', count: 40 }])
+    const facets = mapFacet('categories_tags', [
+      { key: 'en:other-vegetables', name: 'Other vegetables', count: 40 },
+    ])
 
     expect(facets).toHaveLength(1)
+  })
+
+  it('names a country the way people write it, not by the synonym the facet picks', () => {
+    const facets = mapFacet('countries_tags', [
+      { key: 'en:france', name: 'FRA', count: 37_646 },
+      { key: 'en:united-states', name: 'U.S.', count: 37_611 },
+      { key: 'en:switzerland', name: 'Swiss Confederation', count: 4_039 },
+      { key: 'en:canada', name: 'Dominion of Canada', count: 2_510 },
+    ])
+
+    expect(facets.map((facet) => facet.label)).toEqual([
+      'France',
+      'United States',
+      'Switzerland',
+      'Canada',
+    ])
+  })
+
+  it('leaves the names of every other dimension to upstream', () => {
+    const [facet] = mapFacet('labels_tags', [{ key: 'en:fr-bio-01', name: 'FR-BIO-01', count: 8 }])
+
+    expect(facet!.label).toBe('FR-BIO-01')
   })
 })

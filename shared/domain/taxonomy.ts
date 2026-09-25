@@ -68,8 +68,9 @@ export function toTaxonomyTag(id: string, label?: string | null): TaxonomyTag {
 
   const { slug } = parseTagId(id)
   const echoesTheSlug = trimmed.toLowerCase().replace(/[\s_]+/g, '-') === slug.toLowerCase()
+  const carriesNoCasing = trimmed === trimmed.toLowerCase()
 
-  return { id, label: echoesTheSlug ? humanizeTagId(id) : trimmed }
+  return { id, label: echoesTheSlug && carriesNoCasing ? humanizeTagId(id) : trimmed }
 }
 
 export function mostSpecificTag(tags: readonly TaxonomyTag[]): TaxonomyTag | null {

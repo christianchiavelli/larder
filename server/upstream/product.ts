@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { normaliseBrands, type ProductDetail } from '#shared/domain/product'
+import { toCountryTag } from '#shared/domain/country'
 import { toTaxonomyTag } from '#shared/domain/taxonomy'
 import { looseNumber, looseString } from './coerce'
 import { mapProductImage, upstreamImageFields } from './image'
@@ -89,7 +90,7 @@ export function mapProductDetail(
     name: raw.product_name_en ?? raw.product_name ?? '',
     brands: normaliseBrands(raw.brands),
     categories: raw.categories_tags.map((id) => toTaxonomyTag(id)),
-    countries: raw.countries_tags.map((id) => toTaxonomyTag(id)),
+    countries: raw.countries_tags.map((id) => toCountryTag(id)),
     labels: raw.labels_tags.map((id) => toTaxonomyTag(id)),
     additives: raw.additives_tags.map((id) => toTaxonomyTag(id)),
     nutriScore: mapNutriScore(raw.nutriscore_grade),

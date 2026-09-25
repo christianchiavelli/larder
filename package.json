@@ -27,7 +27,8 @@
     "test:coverage": "vitest run --coverage",
     "e2e": "playwright test",
     "ci": "pnpm run format:check && pnpm run lint && pnpm run typecheck && pnpm run test:coverage",
-    "screenshots": "node scripts/capture-screenshots.mjs"
+    "screenshots": "node scripts/capture-screenshots.mjs",
+    "country-names": "node scripts/generate-country-names.mjs"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.3.1",

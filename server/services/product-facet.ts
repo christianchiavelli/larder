@@ -25,5 +25,5 @@ export async function topFacetValues(
   })
 
   const facet = response.facets?.[field]
-  return facet ? mapFacet(facet.items) : []
+  return facet ? mapFacet(field, facet.items) : []
 }

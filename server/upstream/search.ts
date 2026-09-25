@@ -7,10 +7,11 @@ import {
   type NutriScore,
 } from '#shared/domain/nutrition'
 import { normaliseBrands, type ProductSummary } from '#shared/domain/product'
+import { toCountryTag } from '#shared/domain/country'
 import { toTaxonomyTag } from '#shared/domain/taxonomy'
 import { looseNumber, looseString } from './coerce'
 import { mapProductImage, upstreamImageFields } from './image'
-import type { FacetItem } from '#shared/domain/search'
+import type { FacetField, FacetItem } from '#shared/domain/search'
 
 const looseStringArray = z
   .union([z.array(z.union([z.string(), z.number()])), z.string(), z.null()])
@@ -160,12 +161,17 @@ export function mapSearchHits(hits: readonly unknown[]): MappedHits {
 
 const SENTINEL_FACET_KEYS = new Set(['unknown', '--other--', 'not-applicable', ''])
 
-export function mapFacet(items: readonly z.infer<typeof upstreamFacetItemSchema>[]): FacetItem[] {
+export function mapFacet(
+  field: FacetField,
+  items: readonly z.infer<typeof upstreamFacetItemSchema>[],
+): FacetItem[] {
+  const toTag = field === 'countries_tags' ? toCountryTag : toTaxonomyTag
+
   return items
     .filter((item) => !SENTINEL_FACET_KEYS.has(item.key))
     .map((item) => ({
       key: item.key,
-      label: toTaxonomyTag(item.key, item.name).label,
+      label: toTag(item.key, item.name).label,
       count: item.count,
     }))
 }

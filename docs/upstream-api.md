@@ -86,6 +86,27 @@ This is not fixable from our side. Picking "whichever looks most like a product 
 
 So the mapper applies one rule consistently, `product_name_en` then `product_name`, and the divergence is accepted as a property of the data. The end-to-end test for directory navigation asserts the barcode, not the heading, because the heading is genuinely allowed to differ.
 
+## Country facets are named by synonym
+
+The name the search facet attaches to a country is one of the taxonomy's synonyms rather than its English name, and which one it picks looks arbitrary:
+
+```
+GET /search?q=chocolate&facets=countries_tags&langs=en
+  en:france          "FRA"
+  en:united-states   "U.S."
+  en:spain           "ESP"
+  en:belgium         "BE"
+  en:switzerland     "Swiss Confederation"
+  en:canada          "Dominion of Canada"
+  en:germany         "Germany"
+```
+
+`/autocomplete` names the same tags correctly ("France"), so a country picked from a suggestion and the same country in a facet list would read differently.
+
+Country labels therefore come from the taxonomy itself. `shared/domain/country-names.json` maps every country tag to its English name in [`countries.json`](https://static.openfoodfacts.org/data/taxonomies/countries.json), and facets, suggestions and product pages all read from it. A tag the file does not know yet falls back to whatever upstream sent. Regenerate it with `pnpm run country-names`.
+
+A related trap was ours. A label that spells out its slug, "United Kingdom" for `en:united-kingdom`, was treated as an echo and sentence-cased into "United kingdom". An echo is now only replaced when it carries no casing of its own.
+
 ## The query parser fails silently
 
 `q` is parsed as Lucene. Unescaped input does not raise an error, it changes meaning: `q=foo: bar"baz` returns `count: 0` rather than a 400. A product whose name contains a colon would appear not to exist. Values are escaped in `server/utils/lucene.ts`.

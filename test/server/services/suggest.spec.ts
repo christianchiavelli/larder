@@ -132,6 +132,19 @@ describe('suggestTaxonomy', () => {
     })
   })
 
+  it('names a suggested country the same way the country facet does', async () => {
+    const get = vi.fn().mockResolvedValue({
+      options: [{ id: 'en:united-states', text: 'USA', taxonomy_name: 'country' }],
+    })
+
+    const suggestions = await suggestTaxonomy({ get } as UpstreamClient, {
+      q: 'us',
+      taxonomy: 'country',
+    })
+
+    expect(suggestions[0]!.label).toBe('United States')
+  })
+
   it('surfaces a transport failure, unlike a shape mismatch', async () => {
     const get = vi
       .fn()

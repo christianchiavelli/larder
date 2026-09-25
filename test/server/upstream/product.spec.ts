@@ -52,6 +52,19 @@ describe('mapProductDetail', () => {
     expect(product.additives[0]?.id).toBe('en:e322')
   })
 
+  it('names countries from the country taxonomy, casing and all', () => {
+    const product = parse({
+      ...RAW_NUTELLA,
+      countries_tags: ['en:united-kingdom', 'en:united-states', 'en:world'],
+    })
+
+    expect(product.countries.map((country) => country.label)).toEqual([
+      'United Kingdom',
+      'United States',
+      'World',
+    ])
+  })
+
   it('builds a provenance link back to the upstream record', () => {
     expect(parse(RAW_NUTELLA).sourceUrl).toBe(`${PRODUCT_BASE}/product/3017620425035`)
   })

@@ -60,6 +60,11 @@ describe('toTaxonomyTag', () => {
     expect(toTaxonomyTag('en:sweet-spreads', 'sweet spreads').label).toBe('Sweet spreads')
   })
 
+  it('keeps an echoed label that upstream already cased, instead of lowering its words', () => {
+    expect(toTaxonomyTag('en:united-kingdom', 'United Kingdom').label).toBe('United Kingdom')
+    expect(toTaxonomyTag('en:pdo', 'PDO').label).toBe('PDO')
+  })
+
   it('falls back to the id when the label is empty or whitespace', () => {
     expect(toTaxonomyTag('en:biscuits', '   ').label).toBe('Biscuits')
     expect(toTaxonomyTag('en:biscuits', null).label).toBe('Biscuits')

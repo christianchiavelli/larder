@@ -17,3 +17,4 @@
 
 # Generated. Collapsed in review and excluded from language statistics.
 pnpm-lock.yaml linguist-generated=true -diff
+shared/domain/country-names.json linguist-generated=true

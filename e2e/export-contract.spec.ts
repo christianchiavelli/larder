@@ -132,6 +132,28 @@ test.describe('the values of one dimension', () => {
     expect(values.some((value) => value.key.startsWith('--'))).toBe(false)
   })
 
+  test('name countries the way people write them, not by the facet synonym', async ({
+    request,
+  }) => {
+    const response = await request.get('/api/products/facets/country?q=chocolate')
+    const labels = ((await response.json()) as { label: string }[]).map((value) => value.label)
+
+    expect(labels).toEqual(expect.arrayContaining(['France', 'United States']))
+    expect(labels).not.toContain('FRA')
+    expect(labels).not.toContain('U.S.')
+  })
+
+  test('give the directory filters the same country names', async ({ request }) => {
+    const response = await request.get('/api/products?q=chocolate')
+    const { facets } = (await response.json()) as {
+      facets: { countries_tags?: { label: string }[] }
+    }
+    const labels = (facets.countries_tags ?? []).map((value) => value.label)
+
+    expect(labels).toContain('France')
+    expect(labels).not.toContain('FRA')
+  })
+
   test('answer a dimension that does not exist with a 404', async ({ request }) => {
     const response = await request.get('/api/products/facets/additive')
 
