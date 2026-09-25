@@ -39,10 +39,6 @@ const selectedLabel = computed(
         :aria-label="ariaLabel"
         @change="onChange"
       >
-        <button>
-          <selectedcontent></selectedcontent>
-        </button>
-
         <option v-for="option in options" :key="option.value" :value="option.value">
           {{ option.label }}
         </option>

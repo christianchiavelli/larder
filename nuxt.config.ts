@@ -18,12 +18,6 @@ export default defineNuxtConfig({
     plugins: [tailwindcss()],
   },
 
-  vue: {
-    compilerOptions: {
-      isCustomElement: (tag) => tag === 'selectedcontent',
-    },
-  },
-
   runtimeConfig: {
     openFoodFacts: {
       searchBase: 'https://search.openfoodfacts.org',

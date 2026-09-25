@@ -114,20 +114,6 @@ test.describe('select', () => {
       .evaluate((element) => getComputedStyle(element).appearance)
 
     expect(appearance).toBe('base-select')
-
-    const mirrored = await page
-      .getByLabel('Sort')
-      .evaluate((element) => !!element.querySelector('selectedcontent'))
-
-    expect(mirrored, '<selectedcontent> was not rendered').toBe(true)
-  })
-
-  test('survives HTML parsing with its button intact', async ({ page }) => {
-    const hasButton = await page
-      .getByLabel('Sort')
-      .evaluate((element) => !!element.querySelector('button'))
-
-    expect(hasButton).toBe(true)
   })
 })
 
