@@ -3,6 +3,13 @@
   "type": "module",
   "private": true,
   "packageManager": "pnpm@11.11.0",
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": "^24.11.0",
+      "onFail": "download"
+    }
+  },
   "description": "Food product analytics dashboard built with Nuxt 4",
   "scripts": {
     "dev": "nuxt dev",
