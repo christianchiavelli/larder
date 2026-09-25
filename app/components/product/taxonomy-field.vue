@@ -78,7 +78,7 @@ const status = computed(() => {
     v-model:open="isOpen"
     :label="noun.singular"
     :placeholder="`All ${noun.plural}`"
-    :all-label="`All ${noun.plural}`"
+    :all-label="`All ${noun.plural} included`"
     :search-label="`Search ${noun.plural}`"
     :options="options"
     :status="status"

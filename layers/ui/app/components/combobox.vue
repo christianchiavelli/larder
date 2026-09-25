@@ -5,10 +5,6 @@ interface Option {
   count?: number
 }
 
-interface Entry extends Option {
-  isAll?: boolean
-}
-
 const props = withDefaults(
   defineProps<{
     label: string
@@ -42,14 +38,13 @@ const activeIndex = ref(-1)
 const selectedValues = computed(() => new Set(selected.value.map((option) => option.value)))
 const isBrowsing = computed(() => search.value.trim() === '')
 
-const entries = computed<Entry[]>(() => {
+const entries = computed<Option[]>(() => {
   if (!isBrowsing.value) return [...props.options]
 
   const listed = new Set(props.options.map((option) => option.value))
   const unlisted = selected.value.filter((option) => !listed.has(option.value))
-  const all: Entry[] = props.allLabel ? [{ value: '', label: props.allLabel, isAll: true }] : []
 
-  return [...all, ...unlisted, ...props.options]
+  return [...unlisted, ...props.options]
 })
 
 const summary = computed(() =>
@@ -61,25 +56,25 @@ const summary = computed(() =>
 const optionId = (index: number) => `${id}-option-${index}`
 
 watch(
-  () => entries.value.map((entry) => (entry.isAll ? '' : entry.value)).join(','),
+  () => entries.value.map((entry) => entry.value).join(','),
   () => {
     activeIndex.value = entries.value.length > 0 ? 0 : -1
   },
 )
 
-function isChecked(entry: Entry): boolean {
-  return entry.isAll ? selected.value.length === 0 : selectedValues.value.has(entry.value)
+function isChecked(entry: Option): boolean {
+  return selectedValues.value.has(entry.value)
 }
 
-function choose(entry: Entry) {
-  if (entry.isAll) {
-    selected.value = []
-    return
-  }
-
+function choose(entry: Option) {
   selected.value = selectedValues.value.has(entry.value)
     ? selected.value.filter((option) => option.value !== entry.value)
     : [...selected.value, { value: entry.value, label: entry.label }]
+}
+
+function clear() {
+  selected.value = []
+  input.value?.focus()
 }
 
 function remove(option: Option) {
@@ -213,6 +208,23 @@ function onToggle() {
         <UiSpinner v-if="loading" class="reveal size-3.5 shrink-0 text-ink-accent" />
       </div>
 
+      <div
+        v-if="allLabel || selected.length > 0"
+        class="mb-1 flex min-h-7 items-center justify-between gap-2 px-2 text-caption"
+      >
+        <span v-if="selected.length === 0" class="reveal text-ink-subtle">{{ allLabel }}</span>
+        <template v-else>
+          <span class="reveal text-ink-muted" data-numeric>{{ selected.length }} selected</span>
+          <button
+            type="button"
+            class="reveal rounded-control px-1 text-ink-accent underline underline-offset-2 transition-colors hover:text-accent-hover"
+            @click="clear"
+          >
+            Clear
+          </button>
+        </template>
+      </div>
+
       <ul
         :id="listboxId"
         role="listbox"
@@ -224,7 +236,7 @@ function onToggle() {
         <li
           v-for="(entry, index) in entries"
           :id="optionId(index)"
-          :key="entry.isAll ? 'all' : entry.value"
+          :key="entry.value"
           role="option"
           :aria-selected="isChecked(entry)"
           :aria-label="

@@ -218,7 +218,7 @@ test.describe('the pickers in the export dialog', () => {
     const dialog = await openExport(page)
 
     const list = await openCountries(dialog)
-    const values = list.getByRole('option').filter({ hasNotText: 'All countries' })
+    const values = list.getByRole('option')
 
     expect(await values.count()).toBeGreaterThan(1)
     for (const text of await values.allInnerTexts()) {
@@ -226,29 +226,33 @@ test.describe('the pickers in the export dialog', () => {
     }
   })
 
-  test('read no selection as every value, and say so', async ({ page }) => {
+  test('read no selection as every value, and say so without a checkbox', async ({ page }) => {
     await page.goto('/products?q=chocolate')
     const dialog = await openExport(page)
     const list = await openCountries(dialog)
-    const all = list.getByRole('option', { name: 'All countries' })
+    const picker = dialog.getByRole('dialog', { name: 'Country' })
+    const clear = picker.getByRole('button', { name: 'Clear' })
 
-    await expect(all).toHaveAttribute('aria-selected', 'true')
+    await expect(picker.getByText('All countries included')).toBeVisible()
+    await expect(list.getByRole('option', { selected: true })).toHaveCount(0)
+    await expect(clear).toBeHidden()
 
-    const first = list.getByRole('option').filter({ hasNotText: 'All countries' }).first()
-    await first.click()
-    await expect(first).toHaveAttribute('aria-selected', 'true')
-    await expect(all).toHaveAttribute('aria-selected', 'false')
+    await list.getByRole('option').first().click()
+    await expect(picker.getByText('1 selected')).toBeVisible()
+    await expect(picker.getByText('All countries included')).toBeHidden()
 
-    await all.click()
-    await expect(all).toHaveAttribute('aria-selected', 'true')
+    await clear.click()
+    await expect(picker.getByText('All countries included')).toBeVisible()
+    await expect(list.getByRole('option', { selected: true })).toHaveCount(0)
     await expect(dialog.getByRole('button', { name: /^Remove / })).toHaveCount(0)
+    await expect(picker.getByRole('combobox', { name: 'Search countries' })).toBeFocused()
   })
 
   test('keep offering the other values of a dimension once one is picked', async ({ page }) => {
     await page.goto('/products?q=chocolate')
     const dialog = await openExport(page)
     const list = await openCountries(dialog)
-    const values = list.getByRole('option').filter({ hasNotText: 'All countries' })
+    const values = list.getByRole('option')
     const before = await values.count()
 
     await values.first().click()
