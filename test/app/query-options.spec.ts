@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ref } from 'vue'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { nextTick, ref } from 'vue'
 import { productQuerySchema } from '#shared/domain/search'
 
 const useQuery = vi.fn()
@@ -163,6 +163,15 @@ describe('productDetailQuery', () => {
 })
 
 describe('useSuggestions', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  async function type(term: { value: string }, text: string) {
+    term.value = text
+    await nextTick()
+  }
+
   it('keys on the trimmed, lowercased term', () => {
     useSuggestions(ref('  ChocoLate  '))
 
@@ -199,14 +208,53 @@ describe('useSuggestions', () => {
     expect(lastOptions().enabled?.()).toBe(expected)
   })
 
-  it('re-evaluates the gate as the term grows', () => {
+  it('re-evaluates the gate as the term grows', async () => {
+    vi.useFakeTimers()
     const term = ref('c')
     useSuggestions(term)
     expect(lastOptions().enabled?.()).toBe(false)
 
-    term.value = 'ch'
+    await type(term, 'ch')
+    vi.advanceTimersByTime(200)
 
     expect(lastOptions().enabled?.()).toBe(true)
+  })
+
+  it('waits for a pause in the typing before it asks for the next term', async () => {
+    vi.useFakeTimers()
+    const term = ref('pi')
+    useSuggestions(term)
+
+    for (const text of ['piz', 'pizz', 'pizza']) {
+      await type(term, text)
+      vi.advanceTimersByTime(60)
+    }
+    expect(lastOptions().key()).toEqual(['suggest', 'category,brand', 'pi'])
+
+    vi.advanceTimersByTime(200)
+    expect(lastOptions().key()).toEqual(['suggest', 'category,brand', 'pizza'])
+  })
+
+  it('says it is waiting while the person is still typing', async () => {
+    vi.useFakeTimers()
+    const term = ref('')
+    const { isTyping } = useSuggestions(term)
+
+    await type(term, 'pizza')
+    expect(isTyping.value).toBe(true)
+
+    vi.advanceTimersByTime(200)
+    expect(isTyping.value).toBe(false)
+  })
+
+  it('does not wait on a term too short to ask about', async () => {
+    vi.useFakeTimers()
+    const term = ref('')
+    const { isTyping } = useSuggestions(term)
+
+    await type(term, 'p')
+
+    expect(isTyping.value).toBe(false)
   })
 
   it('holds the previous list while the next one loads', () => {

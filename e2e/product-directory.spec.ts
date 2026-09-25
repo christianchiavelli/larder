@@ -183,6 +183,21 @@ test.describe('filter suggestions', () => {
     expect(await page.getByRole('option').count()).toBeGreaterThan(0)
   })
 
+  test('asks for suggestions when the typing pauses, not for every letter', async ({ page }) => {
+    await page.goto('/products')
+
+    const asked: string[] = []
+    page.on('request', (request) => {
+      const url = new URL(request.url())
+      if (url.pathname === '/api/suggest') asked.push(url.searchParams.get('q') ?? '')
+    })
+
+    await search(page).pressSequentially('chocolate', { delay: 50 })
+    await expect(page.getByRole('listbox', { name: 'Filter suggestions' })).toBeVisible()
+
+    expect(asked).toEqual(['chocolate'])
+  })
+
   test('mixes taxonomies instead of showing one of them', async ({ page }) => {
     await page.goto('/products')
     await search(page).fill('choc')

@@ -330,6 +330,25 @@ test.describe('the export dialog while it works', () => {
     await expect(searchField.getByTestId('spinner')).toBeHidden()
   })
 
+  test('says it is searching while the person types, never that nothing matches yet', async ({
+    page,
+  }) => {
+    await page.goto('/products?brand=nutella')
+    const dialog = await openExport(page)
+
+    const release = await holdRequests(page, '/api/suggest')
+
+    await dialog.getByRole('button', { name: /^Category/ }).click()
+    await dialog.getByRole('combobox', { name: 'Search categories' }).fill('qzxvq')
+
+    const status = page.getByRole('dialog', { name: 'Category' }).getByRole('status')
+    expect(await status.textContent()).toContain('Searching')
+
+    release()
+
+    await expect(status).toHaveText('No categories match')
+  })
+
   test('keeps a spinner turning for a reader who asked for less motion', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.goto('/products?brand=nutella')

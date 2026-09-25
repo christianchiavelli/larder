@@ -56,7 +56,9 @@ const options = computed(() => {
 })
 
 const loading = computed(() =>
-  term.value ? suggestions.asyncStatus.value === 'loading' : facet.asyncStatus.value === 'loading',
+  term.value
+    ? suggestions.isTyping.value || suggestions.asyncStatus.value === 'loading'
+    : facet.asyncStatus.value === 'loading',
 )
 
 const status = computed(() => {
