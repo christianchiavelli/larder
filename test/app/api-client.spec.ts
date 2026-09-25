@@ -23,6 +23,20 @@ function lastCall() {
   return { path: call[0] as string, options: call[1] as { query?: Record<string, unknown> } }
 }
 
+describe('every request', () => {
+  it.each([
+    ['the search', () => fetchProducts(productQuerySchema.parse({}))],
+    ['the count', () => fetchProductCount(productQuerySchema.parse({}))],
+    ['a dimension', () => fetchProductFacet('brand', productQuerySchema.parse({}))],
+    ['a product', () => fetchProduct('3017620425035')],
+    ['the suggestions', () => fetchSuggestions('choc')],
+  ])('asks for %s once, leaving another try to the person', (_, send) => {
+    send()
+
+    expect(lastCall().options).toMatchObject({ retry: 0 })
+  })
+})
+
 describe('fetchProducts', () => {
   it('sends the query in the same shape the URL uses', () => {
     const query = productQuerySchema.parse({

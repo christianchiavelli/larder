@@ -11,7 +11,7 @@ const DEFAULT_RETRIES = 2
 const BASE_BACKOFF_MS = 250
 const MAX_BACKOFF_MS = 2_000
 
-const RETRYABLE_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504])
+const RETRYABLE_STATUSES = new Set([408, 425, 500, 502, 503, 504])
 
 function statusOf(error: unknown): number | undefined {
   if (typeof error !== 'object' || error === null) return undefined

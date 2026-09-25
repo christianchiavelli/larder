@@ -11,20 +11,22 @@ import {
 } from '#shared/domain/search'
 import type { TaxonomyName } from '#shared/domain/taxonomy'
 
+function request<T>(path: string, query?: Record<string, unknown>): Promise<T> {
+  return $fetch<T>(path, { query, retry: 0 })
+}
+
 function wholeResultParams(query: ProductQuery): Record<string, string | string[]> {
   const { page: _page, pageSize: _pageSize, ...params } = toQueryParams(query)
   return params
 }
 
 export function fetchProducts(query: ProductQuery): Promise<ProductSearchResult> {
-  return $fetch<ProductSearchResult>('/api/products', {
-    query: toQueryParams(query),
-  })
+  return request<ProductSearchResult>('/api/products', toQueryParams(query))
 }
 
 export function fetchProductCount(query: ProductQuery): Promise<ProductCount> {
   const { sort: _sort, ...params } = wholeResultParams(query)
-  return $fetch<ProductCount>('/api/products/count', { query: params })
+  return request<ProductCount>('/api/products/count', params)
 }
 
 export function fetchProductFacet(
@@ -32,7 +34,7 @@ export function fetchProductFacet(
   query: ProductQuery,
 ): Promise<FacetItem[]> {
   const { sort: _sort, ...params } = wholeResultParams(query)
-  return $fetch<FacetItem[]>(`/api/products/facets/${dimension}`, { query: params })
+  return request<FacetItem[]>(`/api/products/facets/${dimension}`, params)
 }
 
 export function productExportUrl(query: ProductQuery): string {
@@ -40,7 +42,7 @@ export function productExportUrl(query: ProductQuery): string {
 }
 
 export function fetchProduct(code: string): Promise<ProductDetail> {
-  return $fetch<ProductDetail>(`/api/products/${encodeURIComponent(code)}`)
+  return request<ProductDetail>(`/api/products/${encodeURIComponent(code)}`)
 }
 
 export const DEFAULT_SUGGEST_TAXONOMIES: readonly TaxonomyName[] = ['category', 'brand']
@@ -50,7 +52,9 @@ export function fetchSuggestions(
   taxonomies: readonly TaxonomyName[] = DEFAULT_SUGGEST_TAXONOMIES,
   limit = 8,
 ): Promise<Suggestion[]> {
-  return $fetch<Suggestion[]>('/api/suggest', {
-    query: { q: term, taxonomy: [...taxonomies].join(','), limit },
+  return request<Suggestion[]>('/api/suggest', {
+    q: term,
+    taxonomy: [...taxonomies].join(','),
+    limit,
   })
 }

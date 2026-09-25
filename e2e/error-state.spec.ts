@@ -46,6 +46,20 @@ test.describe('when the data source fails while browsing', () => {
     await expect(alert).not.toContainText('429')
   })
 
+  test('asks once, instead of repeating a request the server turned away', async ({ page }) => {
+    await openDirectory(page)
+
+    let calls = 0
+    await page.route(isProductSearch, (route) => {
+      calls++
+      return route.fulfill({ status: 429, json: RATE_LIMITED })
+    })
+    await searchFor(page, 'chocolate')
+
+    await expect(page.getByRole('alert')).toBeVisible()
+    expect(calls).toBe(1)
+  })
+
   test('the directory drops what it can no longer show, instead of pretending it is empty', async ({
     page,
   }) => {

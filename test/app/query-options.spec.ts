@@ -65,9 +65,10 @@ describe('useProductSearch', () => {
 
     await lastOptions().query()
 
-    expect($fetch).toHaveBeenCalledWith('/api/products', {
-      query: expect.objectContaining({ q: 'cocoa' }),
-    })
+    expect($fetch).toHaveBeenCalledWith(
+      '/api/products',
+      expect.objectContaining({ query: expect.objectContaining({ q: 'cocoa' }) }),
+    )
   })
 
   it('holds the previous page through a refetch', () => {
@@ -101,7 +102,10 @@ describe('useProductCount', () => {
 
     await lastOptions().query()
 
-    expect($fetch).toHaveBeenCalledWith('/api/products/count', { query: { q: 'cocoa' } })
+    expect($fetch).toHaveBeenCalledWith(
+      '/api/products/count',
+      expect.objectContaining({ query: { q: 'cocoa' } }),
+    )
   })
 
   it('holds the previous count while the next one loads, so the number does not blink', () => {
@@ -135,9 +139,10 @@ describe('useProductFacet', () => {
 
     await lastOptions().query()
 
-    expect($fetch).toHaveBeenCalledWith('/api/products/facets/label', {
-      query: { q: 'chocolate' },
-    })
+    expect($fetch).toHaveBeenCalledWith(
+      '/api/products/facets/label',
+      expect.objectContaining({ query: { q: 'chocolate' } }),
+    )
   })
 })
 
@@ -153,7 +158,7 @@ describe('productDetailQuery', () => {
   it('fetches the product it was keyed on', async () => {
     await productDetailQuery('3017620425035').query()
 
-    expect($fetch).toHaveBeenCalledWith('/api/products/3017620425035')
+    expect($fetch).toHaveBeenCalledWith('/api/products/3017620425035', expect.anything())
   })
 })
 
@@ -175,9 +180,12 @@ describe('useSuggestions', () => {
 
     await lastOptions().query()
 
-    expect($fetch).toHaveBeenCalledWith('/api/suggest', {
-      query: expect.objectContaining({ q: 'choc', taxonomy: 'label' }),
-    })
+    expect($fetch).toHaveBeenCalledWith(
+      '/api/suggest',
+      expect.objectContaining({
+        query: expect.objectContaining({ q: 'choc', taxonomy: 'label' }),
+      }),
+    )
   })
 
   it.each([
@@ -212,9 +220,10 @@ describe('useSuggestions', () => {
 
     await lastOptions().query()
 
-    expect($fetch).toHaveBeenCalledWith('/api/suggest', {
-      query: expect.objectContaining({ q: 'chocolate' }),
-    })
+    expect($fetch).toHaveBeenCalledWith(
+      '/api/suggest',
+      expect.objectContaining({ query: expect.objectContaining({ q: 'chocolate' }) }),
+    )
   })
 
   it('caches for longer than anything else here, because taxonomies barely move', () => {

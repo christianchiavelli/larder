@@ -62,13 +62,11 @@ describe('createUpstreamClient', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2)
   })
 
-  it('retries a 429, which is transient by definition', async () => {
-    fetchMock
-      .mockResolvedValueOnce(jsonResponse({}, 429))
-      .mockResolvedValueOnce(jsonResponse({ ok: true }))
+  it('does not retry a 429: the upstream asked for less traffic, not more', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({}, 429))
 
-    await expect(client().get('/thing')).resolves.toEqual({ ok: true })
-    expect(fetchMock).toHaveBeenCalledTimes(2)
+    await expect(client().get('/thing')).rejects.toThrow()
+    expect(fetchMock).toHaveBeenCalledOnce()
   })
 
   it('retries a network failure, which never reached upstream at all', async () => {
