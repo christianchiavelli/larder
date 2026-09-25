@@ -31,9 +31,12 @@ Regenerate with `pnpm run screenshots` against a production build.
 
 ## Setup
 
-Node 24+ and pnpm. No API key or account.
+Node.js 24.11 or newer, and pnpm. No API key or account.
+
+Check `node -v` first. On an older Node, `pnpm install` gets as far as `nuxt prepare` and stops with `exit code 1`.
 
 ```bash
+node -v
 pnpm install
 pnpm dev
 ```
