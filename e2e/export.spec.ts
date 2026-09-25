@@ -1,13 +1,12 @@
 import { readFile } from 'node:fs/promises'
 import { expect, test, type Download, type Page } from '@playwright/test'
-import { parseCsv } from '../test/support/csv'
+import { parse } from 'csv-parse/sync'
 
-async function records(download: Download) {
+async function records(download: Download): Promise<Record<string, string>[]> {
   const text = await readFile(await download.path(), 'utf8')
   expect(text.startsWith('\uFEFF'), 'the file has no UTF-8 byte order mark').toBe(true)
 
-  const [header, ...rows] = parseCsv(text.slice(1))
-  return rows.map((row) => Object.fromEntries(header!.map((name, index) => [name, row[index]])))
+  return parse<Record<string, string>>(text, { bom: true, columns: true })
 }
 
 async function exportFrom(page: Page, name: string | RegExp = 'Export CSV') {

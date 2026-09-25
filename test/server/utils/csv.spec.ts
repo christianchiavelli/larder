@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
+import { parse } from 'csv-parse/sync'
 import { CSV_BYTE_ORDER_MARK, csvRecord } from '~~/server/utils/csv'
-import { parseCsv } from '../../support/csv'
 
-const roundTrip = (values: string[]) => parseCsv(csvRecord(values))[0]
+const roundTrip = (values: string[]) => parse(csvRecord(values))[0]
 
 describe('csvRecord', () => {
   it('ends every record with CRLF, as RFC 4180 asks', () => {

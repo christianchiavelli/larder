@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
+import { parse } from 'csv-parse/sync'
 import { EXPORT_PAGE_SIZE, openProductExport } from '~~/server/services/product-export'
 import { MAX_TRACKED_HITS, productQuerySchema } from '#shared/domain/search'
 import { buildProductQuery } from '~~/server/utils/lucene'
 import type { UpstreamClient } from '~~/server/utils/upstream-client'
-import { parseCsv } from '../../support/csv'
 
 const PRODUCT_BASE = 'https://world.openfoodfacts.org'
 
@@ -95,7 +95,7 @@ async function exported(client: UpstreamClient, input: Record<string, unknown> =
   const text = (await Array.fromAsync(await open(client, input))).join('')
   expect(text.startsWith('\uFEFF')).toBe(true)
 
-  const [header, ...records] = parseCsv(text.slice(1))
+  const [header, ...records] = parse(text, { bom: true })
   return { header, records }
 }
 

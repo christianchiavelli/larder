@@ -1,5 +1,5 @@
 import { expect, test, type APIRequestContext } from '@playwright/test'
-import { parseCsv } from '../test/support/csv'
+import { parse } from 'csv-parse/sync'
 
 const HEADER = [
   'Barcode',
@@ -27,7 +27,7 @@ async function csv(request: APIRequestContext, url: string) {
   const text = await response.text()
   expect(text.startsWith('\uFEFF')).toBe(true)
 
-  const [header, ...records] = parseCsv(text.slice(1))
+  const [header, ...records] = parse(text, { bom: true })
   return { response, header, records }
 }
 
@@ -49,12 +49,11 @@ test.describe('the CSV export', () => {
     expect(response.headers()['content-length']).toBeUndefined()
   })
 
-  test('opens with the header and gives every record the same width', async ({ request }) => {
+  test('opens with the header, in a file a strict parser reads to the end', async ({ request }) => {
     const { header, records } = await csv(request, '/api/products.csv?brand=nutella')
 
     expect(header).toEqual(HEADER)
     expect(records.length).toBeGreaterThan(0)
-    for (const record of records) expect(record).toHaveLength(HEADER.length)
   })
 
   test('reads past the first upstream page without repeating a product', async ({ request }) => {
