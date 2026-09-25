@@ -40,6 +40,7 @@ const option = computed<EChartsOption>(() => ({
       label: barValueLabel(theme.value),
     },
   ],
+  media: [NARROW_CATEGORY_LABELS],
 }))
 
 const dataTable = computed(() => ({

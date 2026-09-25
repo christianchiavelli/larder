@@ -15,12 +15,18 @@ export const CHART_GRID = {
   outerBoundsClampHeight: 0,
 } as const
 
+export const NARROW_CATEGORY_LABELS = {
+  query: { maxWidth: 400 },
+  option: { yAxis: { axisLabel: { width: 112, overflow: 'truncate' } } },
+} as const satisfies NonNullable<EChartsOption['media']>[number]
+
 export function valueAxis(theme: ChartTheme): EChartsOption['xAxis'] {
   return {
     type: 'value',
     axisLabel: {
       color: theme.inkMuted,
       formatter: (value: number) => formatCompact(value),
+      hideOverlap: true,
     },
     splitLine: { lineStyle: { color: theme.grid, type: 'dashed' } },
   }

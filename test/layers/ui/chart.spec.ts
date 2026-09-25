@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   BAR_RADIUS,
   CHART_GRID,
+  NARROW_CATEGORY_LABELS,
   barValueLabel,
   categoryAxis,
   itemTooltip,
@@ -38,6 +39,25 @@ describe('valueAxis', () => {
 
     expect(axis.axisLabel.color).toBe(theme.inkMuted)
     expect(axis.splitLine.lineStyle.color).toBe(theme.grid)
+  })
+
+  it('drops a tick label that would run into its neighbour on a narrow chart', () => {
+    const axis = valueAxis(theme) as unknown as { axisLabel: { hideOverlap: boolean } }
+
+    expect(axis.axisLabel.hideOverlap).toBe(true)
+  })
+})
+
+describe('NARROW_CATEGORY_LABELS', () => {
+  it('applies only to a chart drawn at phone width', () => {
+    expect(NARROW_CATEGORY_LABELS.query).toEqual({ maxWidth: 400 })
+  })
+
+  it('gives the category labels a width to truncate to, so the bars keep their room', () => {
+    expect(NARROW_CATEGORY_LABELS.option.yAxis.axisLabel).toEqual({
+      width: 112,
+      overflow: 'truncate',
+    })
   })
 })
 
