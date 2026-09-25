@@ -9,7 +9,10 @@ export const CHART_GRID = {
   right: 48,
   top: 8,
   bottom: 8,
-  containLabel: true,
+  outerBoundsMode: 'same',
+  outerBoundsContain: 'axisLabel',
+  outerBoundsClampWidth: 0,
+  outerBoundsClampHeight: 0,
 } as const
 
 export function valueAxis(theme: ChartTheme): EChartsOption['xAxis'] {

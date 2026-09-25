@@ -88,7 +88,16 @@ describe('barValueLabel', () => {
 describe('the shared constants', () => {
   it('reserves the right margin the value labels are drawn in', () => {
     expect(CHART_GRID.right).toBeGreaterThan(CHART_GRID.left)
-    expect(CHART_GRID.containLabel).toBe(true)
+  })
+
+  it('fits the axis labels the way containLabel did, through the option ECharts 6 keeps', () => {
+    expect(CHART_GRID).toMatchObject({
+      outerBoundsMode: 'same',
+      outerBoundsContain: 'axisLabel',
+      outerBoundsClampWidth: 0,
+      outerBoundsClampHeight: 0,
+    })
+    expect(CHART_GRID).not.toHaveProperty('containLabel')
   })
 
   it('rounds only the end a bar grows towards', () => {
