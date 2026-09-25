@@ -79,7 +79,7 @@ const totalLabel = computed(() => {
               <button
                 v-if="showingFilters"
                 type="button"
-                class="mt-2 rounded-control border border-edge-strong px-3 py-1.5 text-label text-ink hover:bg-surface-hover"
+                class="inline-flex h-9 items-center justify-center rounded-control bg-accent px-4 text-label text-ink-on-accent transition-colors hover:bg-accent-hover"
                 @click="clearFilters()"
               >
                 Clear all filters
@@ -103,7 +103,7 @@ const totalLabel = computed(() => {
           </div>
 
           <div
-            v-if="result"
+            v-if="result && result.items.length > 0"
             class="flex flex-col items-center gap-3 border-t border-edge-subtle bg-surface-raised p-3 sm:flex-row sm:justify-between"
           >
             <ProductPageSizeField />

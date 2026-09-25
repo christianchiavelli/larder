@@ -10,18 +10,16 @@ withDefaults(
 </script>
 
 <template>
-  <div
-    class="flex flex-col items-center justify-center gap-2 rounded-card border border-dashed border-edge bg-surface-sunken px-6 py-12 text-center"
+  <UiIllustratedMessage
     role="status"
+    :title="title"
+    :description="description"
+    :heading-level="headingLevel"
   >
-    <component :is="`h${headingLevel}`" class="text-subheading text-ink">
-      {{ title }}
-    </component>
-
-    <p v-if="description" class="max-w-prose text-body text-ink-muted">
-      {{ description }}
-    </p>
+    <template #illustration>
+      <UiIllustrationNoResults class="w-44 sm:w-60" data-testid="empty-illustration" />
+    </template>
 
     <slot />
-  </div>
+  </UiIllustratedMessage>
 </template>

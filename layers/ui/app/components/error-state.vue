@@ -13,13 +13,15 @@ defineEmits<{ retry: [] }>()
 </script>
 
 <template>
-  <div role="alert" class="reveal flex flex-col items-center gap-5 px-6 py-12 text-center">
-    <UiIllustrationUnreachable class="w-44 sm:w-60" data-testid="error-illustration" />
-
-    <div class="flex flex-col items-center gap-1.5">
-      <component :is="`h${headingLevel}`" class="text-heading text-ink">{{ title }}</component>
-      <p class="max-w-md text-body text-ink-muted">{{ description }}</p>
-    </div>
+  <UiIllustratedMessage
+    role="alert"
+    :title="title"
+    :description="description"
+    :heading-level="headingLevel"
+  >
+    <template #illustration>
+      <UiIllustrationUnreachable class="w-44 sm:w-60" data-testid="error-illustration" />
+    </template>
 
     <button
       type="button"
@@ -31,5 +33,5 @@ defineEmits<{ retry: [] }>()
       <UiIcon v-else name="arrow-rotate-right" class="size-3.5" />
       Try again
     </button>
-  </div>
+  </UiIllustratedMessage>
 </template>
