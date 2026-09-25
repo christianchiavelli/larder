@@ -7,22 +7,10 @@ import {
 import { searchProducts } from '~~/server/services/product-search'
 import { useSearchClient } from '~~/server/utils/upstream-client'
 import { upstreamCache } from '~~/server/utils/cache-policy'
+import { filterCacheKey } from '~~/server/utils/product-cache-key'
 
 function cacheKeyFor(query: ProductQuery): string {
-  const parts = [
-    query.q,
-    [...query.category].sort().join('|'),
-    [...query.brand].sort().join('|'),
-    [...query.country].sort().join('|'),
-    [...query.label].sort().join('|'),
-    [...query.nutriScore].sort().join('|'),
-    [...query.nova].sort().join('|'),
-    query.sort,
-    query.page,
-    query.pageSize,
-  ]
-
-  return parts.join('__').replace(/[^a-zA-Z0-9_|.-]/g, '_')
+  return [filterCacheKey(query), query.sort, query.page, query.pageSize].join('__')
 }
 
 export default defineCachedEventHandler(

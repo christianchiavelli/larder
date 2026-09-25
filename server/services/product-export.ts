@@ -1,6 +1,8 @@
+import { createError } from 'h3'
+import { exportVerdict } from '#shared/domain/export'
 import { NUTRIENTS, NUTRIENT_KEYS } from '#shared/domain/nutrition'
 import type { ProductSummary } from '#shared/domain/product'
-import { maxPageFor, type ProductQuery } from '#shared/domain/search'
+import { MAX_TRACKED_HITS, maxPageFor, type ProductQuery } from '#shared/domain/search'
 import { mostSpecificTag } from '#shared/domain/taxonomy'
 import { productSourceUrl } from '~~/server/upstream/product'
 import { SUMMARY_FIELDS } from '~~/server/upstream/search'
@@ -67,6 +69,19 @@ export async function openProductExport(
     items.map((product) => csvRecord(columns.map((column) => column.value(product)))).join('')
 
   const first = await fetchPage(1)
+
+  const verdict = exportVerdict({
+    totalCount: first.response.count,
+    isTotalExact: first.response.is_count_exact,
+  })
+
+  if (verdict === 'too-many') {
+    throw createError({
+      statusCode: 422,
+      statusMessage: 'The search matches more products than one export holds. Narrow it first.',
+      data: { reason: 'too_many_results', limit: MAX_TRACKED_HITS },
+    })
+  }
 
   async function* chunks() {
     const header = csvRecord(columns.map((column) => column.header))

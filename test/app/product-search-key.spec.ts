@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { productDetailQuery, productSearchKey } from '~/composables/use-products'
+import {
+  productCountKey,
+  productDetailQuery,
+  productFacetKey,
+  productSearchKey,
+} from '~/composables/use-products'
 import { productQuerySchema } from '#shared/domain/search'
 
 const query = (input: Record<string, unknown>) => productQuerySchema.parse(input)
@@ -36,6 +41,34 @@ describe('productSearchKey', () => {
     expect(() =>
       structuredClone(productSearchKey(query({ category: ['en:snacks'] }))),
     ).not.toThrow()
+  })
+})
+
+describe('productCountKey', () => {
+  it('changes with the filters', () => {
+    expect(productCountKey(query({ brand: ['lu'] }))).not.toEqual(productCountKey(query({})))
+  })
+
+  it('stays put across sorts and pages, which do not change how many products match', () => {
+    expect(productCountKey(query({ sort: 'popularity', page: '2', pageSize: '48' }))).toEqual(
+      productCountKey(query({})),
+    )
+  })
+
+  it('never collides with a search key for the same filters', () => {
+    expect(productCountKey(query({}))[0]).not.toBe(productSearchKey(query({}))[0])
+  })
+})
+
+describe('productFacetKey', () => {
+  it('tells one dimension from another over the same search', () => {
+    expect(productFacetKey('country', query({}))).not.toEqual(productFacetKey('brand', query({})))
+  })
+
+  it('follows the search it lists the values of', () => {
+    expect(productFacetKey('country', query({ q: 'chocolate' }))).not.toEqual(
+      productFacetKey('country', query({})),
+    )
   })
 })
 

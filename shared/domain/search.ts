@@ -157,6 +157,26 @@ export const FACET_FIELDS = [
 ] as const
 export type FacetField = (typeof FACET_FIELDS)[number]
 
+export const TAG_DIMENSIONS = ['category', 'brand', 'country', 'label'] as const
+export type TagDimension = (typeof TAG_DIMENSIONS)[number]
+
+export const FACET_FIELD_OF: Record<TagDimension, FacetField> = {
+  category: 'categories_tags',
+  brand: 'brands_tags',
+  country: 'countries_tags',
+  label: 'labels_tags',
+}
+
+export function isTagDimension(value: unknown): value is TagDimension {
+  return (TAG_DIMENSIONS as readonly unknown[]).includes(value)
+}
+
+export function withoutDimension(query: ProductQuery, dimension: TagDimension): ProductQuery {
+  const copy = { ...query }
+  copy[dimension] = []
+  return copy
+}
+
 export const facetItemSchema = z.object({
   key: z.string(),
   label: z.string(),
@@ -181,6 +201,13 @@ export const productSearchResultSchema = z.object({
 })
 
 export type ProductSearchResult = z.infer<typeof productSearchResultSchema>
+
+export const productCountSchema = productSearchResultSchema.pick({
+  totalCount: true,
+  isTotalExact: true,
+})
+
+export type ProductCount = z.infer<typeof productCountSchema>
 
 export type NutriScoreDistribution = Partial<Record<NutriScore, number>>
 

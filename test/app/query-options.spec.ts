@@ -11,8 +11,15 @@ vi.mock('@pinia/colada', async (importOriginal) => ({
 const $fetch = vi.fn().mockResolvedValue({})
 vi.stubGlobal('$fetch', $fetch)
 
-const { productDetailQuery, productSearchKey, useProductSearch } =
-  await import('~/composables/use-products')
+const {
+  productCountKey,
+  productDetailQuery,
+  productFacetKey,
+  productSearchKey,
+  useProductCount,
+  useProductFacet,
+  useProductSearch,
+} = await import('~/composables/use-products')
 const { useSuggestions } = await import('~/composables/use-suggestions')
 
 interface QueryOptions {
@@ -70,6 +77,70 @@ describe('useProductSearch', () => {
   })
 })
 
+describe('useProductCount', () => {
+  const query = ref(productQuerySchema.parse({ q: 'cocoa', sort: 'popularity' }))
+
+  it('keys the cache on the filters the count depends on', () => {
+    useProductCount(query, () => true)
+
+    expect(lastOptions().key()).toEqual(productCountKey(query.value))
+  })
+
+  it('counts only while its caller says so', () => {
+    let allowed = false
+    useProductCount(query, () => allowed)
+    expect(lastOptions().enabled?.()).toBe(false)
+
+    allowed = true
+
+    expect(lastOptions().enabled?.()).toBe(true)
+  })
+
+  it('fetches the count for the query it was keyed on', async () => {
+    useProductCount(query, () => true)
+
+    await lastOptions().query()
+
+    expect($fetch).toHaveBeenCalledWith('/api/products/count', { query: { q: 'cocoa' } })
+  })
+
+  it('holds the previous count while the next one loads, so the number does not blink', () => {
+    useProductCount(query, () => true)
+
+    expect(lastOptions().placeholderData?.({ totalCount: 12 })).toEqual({ totalCount: 12 })
+  })
+})
+
+describe('useProductFacet', () => {
+  const query = ref(productQuerySchema.parse({ q: 'chocolate' }))
+
+  it('keys the cache on the dimension and the search around it', () => {
+    useProductFacet('country', query, () => true)
+
+    expect(lastOptions().key()).toEqual(productFacetKey('country', query.value))
+  })
+
+  it('asks only while its caller says so, since facet reads are the scarce ones', () => {
+    let open = false
+    useProductFacet('brand', query, () => open)
+    expect(lastOptions().enabled?.()).toBe(false)
+
+    open = true
+
+    expect(lastOptions().enabled?.()).toBe(true)
+  })
+
+  it('fetches the facet it was keyed on', async () => {
+    useProductFacet('label', query, () => true)
+
+    await lastOptions().query()
+
+    expect($fetch).toHaveBeenCalledWith('/api/products/facets/label', {
+      query: { q: 'chocolate' },
+    })
+  })
+})
+
 describe('productDetailQuery', () => {
   it('keys on the barcode', () => {
     expect(productDetailQuery('3017620425035').key).toEqual(['product', '3017620425035'])
@@ -90,7 +161,23 @@ describe('useSuggestions', () => {
   it('keys on the trimmed, lowercased term', () => {
     useSuggestions(ref('  ChocoLate  '))
 
-    expect(lastOptions().key()).toEqual(['suggest', 'chocolate'])
+    expect(lastOptions().key()).toEqual(['suggest', 'category,brand', 'chocolate'])
+  })
+
+  it('keys a single taxonomy apart from the default mix', () => {
+    useSuggestions(ref('choc'), ['country'])
+
+    expect(lastOptions().key()).toEqual(['suggest', 'country', 'choc'])
+  })
+
+  it('asks only for the taxonomies it was given', async () => {
+    useSuggestions(ref('choc'), ['label'])
+
+    await lastOptions().query()
+
+    expect($fetch).toHaveBeenCalledWith('/api/suggest', {
+      query: expect.objectContaining({ q: 'choc', taxonomy: 'label' }),
+    })
   })
 
   it.each([

@@ -1,5 +1,10 @@
 <script setup lang="ts">
+import { FULL_DATASET_URL } from '#shared/domain/export'
+
 const { siteName } = useRuntimeConfig().public
+
+const LINK_CLASSES =
+  'text-ink-muted underline decoration-edge-strong underline-offset-2 hover:text-ink-accent hover:decoration-current'
 </script>
 
 <template>
@@ -14,11 +19,14 @@ const { siteName } = useRuntimeConfig().public
         href="https://world.openfoodfacts.org"
         target="_blank"
         rel="noopener noreferrer"
-        class="text-ink-muted underline decoration-edge-strong underline-offset-2 hover:text-ink-accent hover:decoration-current"
+        :class="LINK_CLASSES"
       >
         Open Food Facts
       </a>
       <span>under ODbL. Records are contributed by the public and may be incomplete.</span>
+      <a :href="FULL_DATASET_URL" target="_blank" rel="noopener noreferrer" :class="LINK_CLASSES">
+        Download the full dataset
+      </a>
     </div>
   </footer>
 </template>

@@ -8,7 +8,7 @@ definePageMeta({
 })
 
 const { query, setPage, clearFilters } = useProductQuery()
-const { state, asyncStatus, isPlaceholderData, refresh } = useProductSearch(query)
+const { state, asyncStatus, refresh } = useProductSearch(query)
 
 const result = computed(() => state.value.data)
 const isLoading = computed(() => asyncStatus.value === 'loading')
@@ -53,11 +53,7 @@ const totalLabel = computed(() => {
               <UiSkeleton v-else class="h-4 w-32" />
             </p>
 
-            <ProductExportLink
-              v-if="exportable"
-              :exact="result!.isTotalExact"
-              :pending="isPlaceholderData"
-            />
+            <ProductExport v-if="exportable" :facets="result?.facets ?? null" />
           </div>
 
           <div class="flex flex-1 flex-col gap-2 bg-surface p-2">

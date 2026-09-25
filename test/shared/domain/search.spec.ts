@@ -1,17 +1,22 @@
 import { describe, expect, it } from 'vitest'
 import {
   DEFAULT_PAGE_SIZE,
+  FACET_FIELDS,
+  FACET_FIELD_OF,
   FILTER_KEYS,
   MAX_TRACKED_HITS,
+  TAG_DIMENSIONS,
   activeFilterCount,
   catalogueSize,
   classifiedShare,
   clearedFilters,
   hasActiveFilters,
   gradedShare,
+  isTagDimension,
   maxPageFor,
   productQuerySchema,
   toQueryParams,
+  withoutDimension,
   type FilterKey,
   type NutriScoreDistribution,
 } from '#shared/domain/search'
@@ -313,5 +318,42 @@ describe('the catalogue figures', () => {
 
   it('takes the classified share from the count the facet cannot report', () => {
     expect(classifiedShare(catalogue, 263)).toBeCloseTo(26.3, 5)
+  })
+})
+
+describe('the tag dimensions', () => {
+  it('each read from one of the facets the search asks for', () => {
+    expect(TAG_DIMENSIONS.map((dimension) => FACET_FIELD_OF[dimension]).sort()).toEqual(
+      [...FACET_FIELDS].sort(),
+    )
+  })
+
+  it.each([
+    ['category', true],
+    ['label', true],
+    ['nutriScore', false],
+    ['', false],
+    [undefined, false],
+  ])('knows %o is a tag dimension: %s', (value, expected) => {
+    expect(isTagDimension(value)).toBe(expected)
+  })
+
+  it('drops one dimension and keeps every other filter', () => {
+    const query = productQuerySchema.parse({
+      q: 'chocolate',
+      country: ['en:brazil', 'en:canada'],
+      brand: ['lindt'],
+      nutriScore: ['a'],
+    })
+
+    expect(withoutDimension(query, 'country')).toEqual({ ...query, country: [] })
+  })
+
+  it('leaves the query it was given alone', () => {
+    const query = productQuerySchema.parse({ country: ['en:brazil'] })
+
+    withoutDimension(query, 'country')
+
+    expect(query.country).toEqual(['en:brazil'])
   })
 })

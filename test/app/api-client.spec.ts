@@ -4,8 +4,14 @@ import { productQuerySchema } from '#shared/domain/search'
 const $fetch = vi.fn().mockResolvedValue({})
 vi.stubGlobal('$fetch', $fetch)
 
-const { fetchProduct, fetchProducts, fetchSuggestions, productExportUrl } =
-  await import('~/api/products')
+const {
+  fetchProduct,
+  fetchProductCount,
+  fetchProductFacet,
+  fetchProducts,
+  fetchSuggestions,
+  productExportUrl,
+} = await import('~/api/products')
 
 beforeEach(() => {
   $fetch.mockClear()
@@ -41,6 +47,46 @@ describe('fetchProducts', () => {
     fetchProducts(productQuerySchema.parse({}))
 
     expect(lastCall().options.query).toEqual({})
+  })
+})
+
+describe('fetchProductCount', () => {
+  it('sends only the filters, since the sort and the page do not change how many match', () => {
+    fetchProductCount(
+      productQuerySchema.parse({
+        q: 'cocoa',
+        brand: ['nutella'],
+        sort: 'popularity',
+        page: '3',
+        pageSize: '48',
+      }),
+    )
+
+    expect(lastCall().path).toBe('/api/products/count')
+    expect(lastCall().options.query).toEqual({ q: 'cocoa', brand: ['nutella'] })
+  })
+
+  it('sends nothing when nothing is filtered', () => {
+    fetchProductCount(productQuerySchema.parse({}))
+
+    expect(lastCall().options.query).toEqual({})
+  })
+})
+
+describe('fetchProductFacet', () => {
+  it('addresses the dimension and sends only the filters around it', () => {
+    fetchProductFacet(
+      'country',
+      productQuerySchema.parse({
+        q: 'chocolate',
+        nutriScore: ['a'],
+        sort: 'popularity',
+        page: '2',
+      }),
+    )
+
+    expect(lastCall().path).toBe('/api/products/facets/country')
+    expect(lastCall().options.query).toEqual({ q: 'chocolate', nutriScore: ['a'] })
   })
 })
 

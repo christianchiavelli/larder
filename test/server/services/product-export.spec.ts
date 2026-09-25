@@ -250,13 +250,30 @@ describe('openProductExport', () => {
     expect(requestedPages(client)).toEqual([1, 2, 3])
   })
 
-  it('stops at the ceiling instead of asking for a page the upstream refuses', async () => {
-    const client = catalogue(50_000)
+  it('writes a result right at the ceiling in full, without asking for a page past it', async () => {
+    const client = catalogue(MAX_TRACKED_HITS)
 
     const { records } = await exported(client)
 
     expect(records).toHaveLength(MAX_TRACKED_HITS)
     expect(requestedPages(client)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+  })
+
+  it('refuses a result past the ceiling before a single row goes out', async () => {
+    const client = catalogue(50_000)
+
+    await expect(open(client)).rejects.toMatchObject({
+      statusCode: 422,
+      data: { reason: 'too_many_results', limit: MAX_TRACKED_HITS },
+    })
+    expect(requestedPages(client)).toEqual([1])
+  })
+
+  it('refuses an exact count past the ceiling too, should the upstream ever count that far', async () => {
+    const fullPage = Array.from({ length: EXPORT_PAGE_SIZE }, (_, index) => hit(String(index)))
+    const client = stubClient(response(fullPage, { count: 25_000, is_count_exact: true }))
+
+    await expect(open(client)).rejects.toMatchObject({ statusCode: 422 })
   })
 
   it('ends in an error rather than in silence when a later page fails', async () => {

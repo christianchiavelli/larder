@@ -330,6 +330,17 @@
   }
 }
 
+@utility anchored-below {
+  @supports (anchor-name: --anchor) {
+    inset: auto;
+    margin: 0.25rem 0 0;
+    top: anchor(bottom);
+    left: anchor(left);
+    width: anchor-size(width);
+    position-try-fallbacks: flip-block;
+  }
+}
+
 @utility skip-link {
   position: absolute;
   left: 0.5rem;

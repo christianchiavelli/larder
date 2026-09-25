@@ -37,7 +37,7 @@ GET /search?page_size=24&page=416    -> 200, 24 hits   (9,984 rows deep)
 GET /search?page_size=24&page=417    -> 400  Maximum number of returned results is 10 000
 ```
 
-Requested pages are clamped to that ceiling in the BFF, and the CSV export stops at it. `page_size` is accepted up to the same 10,000, so the whole window fits in one request, but that request takes about ten seconds and returns nothing until it is done. The export reads pages of 1,000 instead: the first rows reach the reader after one page, not after all ten.
+Requested pages are clamped to that ceiling in the BFF, and the CSV export refuses a search that runs past it rather than writing the first 10,000 rows. `page_size` is accepted up to the same 10,000, so the whole window fits in one request, but that request takes about ten seconds and returns nothing until it is done. The export reads pages of 1,000 instead: the first rows reach the reader after one page, not after all ten.
 
 ## Absence is signalled two ways
 

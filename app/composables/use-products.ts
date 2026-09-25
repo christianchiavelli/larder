@@ -1,11 +1,10 @@
 import { defineQueryOptions, useQuery } from '@pinia/colada'
 import type { Ref } from 'vue'
-import { fetchProduct, fetchProducts } from '~/api/products'
-import type { ProductQuery } from '#shared/domain/search'
+import { fetchProduct, fetchProductCount, fetchProductFacet, fetchProducts } from '~/api/products'
+import type { ProductQuery, TagDimension } from '#shared/domain/search'
 
-export function productSearchKey(query: ProductQuery) {
+function filterKeyParts(query: ProductQuery): string[] {
   return [
-    'products',
     query.q,
     [...query.category].sort().join(','),
     [...query.brand].sort().join(','),
@@ -13,10 +12,19 @@ export function productSearchKey(query: ProductQuery) {
     [...query.label].sort().join(','),
     [...query.nutriScore].sort().join(','),
     [...query.nova].sort().join(','),
-    query.sort,
-    query.page,
-    query.pageSize,
   ]
+}
+
+export function productSearchKey(query: ProductQuery) {
+  return ['products', ...filterKeyParts(query), query.sort, query.page, query.pageSize]
+}
+
+export function productCountKey(query: ProductQuery) {
+  return ['product-count', ...filterKeyParts(query)]
+}
+
+export function productFacetKey(dimension: TagDimension, query: ProductQuery) {
+  return ['product-facet', dimension, ...filterKeyParts(query)]
 }
 
 export function useProductSearch(query: Ref<ProductQuery>) {
@@ -25,6 +33,30 @@ export function useProductSearch(query: Ref<ProductQuery>) {
     query: () => fetchProducts(query.value),
 
     placeholderData: (previous) => previous,
+  })
+}
+
+export function useProductCount(query: Ref<ProductQuery>, enabled: () => boolean) {
+  return useQuery({
+    key: () => productCountKey(query.value),
+    query: () => fetchProductCount(query.value),
+    enabled,
+    staleTime: 1000 * 60 * 5,
+
+    placeholderData: (previous) => previous,
+  })
+}
+
+export function useProductFacet(
+  dimension: TagDimension,
+  query: Ref<ProductQuery>,
+  enabled: () => boolean,
+) {
+  return useQuery({
+    key: () => productFacetKey(dimension, query.value),
+    query: () => fetchProductFacet(dimension, query.value),
+    enabled,
+    staleTime: 1000 * 60 * 5,
   })
 }
 

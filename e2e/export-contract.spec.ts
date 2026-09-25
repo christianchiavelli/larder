@@ -56,22 +56,34 @@ test.describe('the CSV export', () => {
     expect(records.length).toBeGreaterThan(0)
   })
 
-  test('reads past the first upstream page without repeating a product', async ({ request }) => {
+  test('reads past the first upstream page, writing every product the count promised once', async ({
+    request,
+  }) => {
     test.setTimeout(90_000)
+
+    const counted = await request.get('/api/products/count?category=en:hazelnut-spreads')
+    const { totalCount, isTotalExact } = await counted.json()
+    expect(isTotalExact, 'the category no longer fits in one export').toBe(true)
 
     const { records } = await csv(request, '/api/products.csv?category=en:hazelnut-spreads')
     const barcodes = records.map((record) => record[0])
 
     expect(records.length, 'the result no longer spans two pages').toBeGreaterThan(1_000)
+    expect(records).toHaveLength(totalCount)
     expect(new Set(barcodes).size, 'a product appeared twice').toBe(barcodes.length)
   })
 
-  test('stops at the last row the upstream will page to, and not before', async ({ request }) => {
-    test.setTimeout(180_000)
+  test('refuses a search too big for one file before it sends a single row', async ({
+    request,
+  }) => {
+    const response = await request.get('/api/products.csv?nutriScore=a')
 
-    const { records } = await csv(request, '/api/products.csv?nutriScore=a')
-
-    expect(records).toHaveLength(10_000)
+    expect(response.status()).toBe(422)
+    expect(response.headers()['content-disposition']).toBeUndefined()
+    expect(await response.json()).toMatchObject({
+      statusCode: 422,
+      data: { reason: 'too_many_results', limit: 10_000 },
+    })
   })
 
   test('exports a search with no matches as a header and nothing else', async ({ request }) => {
@@ -79,5 +91,50 @@ test.describe('the CSV export', () => {
 
     expect(header).toEqual(HEADER)
     expect(records).toEqual([])
+  })
+})
+
+test.describe('the product count', () => {
+  test('is exact for a search that fits in one export', async ({ request }) => {
+    const response = await request.get('/api/products/count?brand=nutella')
+
+    expect(response.ok()).toBe(true)
+    const count = await response.json()
+    expect(count.isTotalExact).toBe(true)
+    expect(count.totalCount).toBeGreaterThan(0)
+    expect(count.totalCount).toBeLessThanOrEqual(10_000)
+  })
+
+  test('says so when the upstream stops counting', async ({ request }) => {
+    const response = await request.get('/api/products/count?nutriScore=a')
+
+    expect(await response.json()).toEqual({ totalCount: 10_000, isTotalExact: false })
+  })
+
+  test('counts nothing for a search with no matches', async ({ request }) => {
+    const response = await request.get('/api/products/count?q=qzxvqzxvqzxv')
+
+    expect(await response.json()).toEqual({ totalCount: 0, isTotalExact: true })
+  })
+})
+
+test.describe('the values of one dimension', () => {
+  test('are the ones the search holds, most products first', async ({ request }) => {
+    const response = await request.get('/api/products/facets/country?q=chocolate')
+
+    expect(response.ok()).toBe(true)
+    const values: { key: string; label: string; count: number }[] = await response.json()
+    expect(values.length).toBeGreaterThan(1)
+    expect(values.every((value) => value.key && value.label && value.count > 0)).toBe(true)
+    expect(values.map((value) => value.count)).toEqual(
+      [...values.map((value) => value.count)].sort((a, b) => b - a),
+    )
+    expect(values.some((value) => value.key.startsWith('--'))).toBe(false)
+  })
+
+  test('answer a dimension that does not exist with a 404', async ({ request }) => {
+    const response = await request.get('/api/products/facets/additive')
+
+    expect(response.status()).toBe(404)
   })
 })
