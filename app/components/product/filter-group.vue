@@ -35,7 +35,7 @@ const hiddenCount = computed(() => Math.max(0, props.items.length - props.limit)
   <fieldset class="border-0 p-0">
     <legend class="mb-2 text-overline text-ink-subtle uppercase">{{ title }}</legend>
 
-    <div v-if="loading" class="flex flex-col gap-2">
+    <div v-if="loading" class="reveal flex flex-col gap-2">
       <UiSkeleton v-for="index in 4" :key="index" class="h-5 w-full" />
     </div>
 

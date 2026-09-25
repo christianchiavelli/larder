@@ -1,6 +1,7 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
 import { transitionsSettled } from './support/motion'
+import { holdRequests } from './support/network'
 
 const NOTHING_MATCHES = '/products?q=qzxvqzxvqzxv'
 const TITLE = 'No products match these filters'
@@ -14,13 +15,23 @@ test.describe('when a search matches nothing', () => {
     await expect(status.getByTestId('empty-illustration')).toBeVisible()
   })
 
-  test('clearing the filters from there brings the products back', async ({ page }) => {
+  test('clearing the filters from there shows placeholders, then the products', async ({
+    page,
+  }) => {
     await page.goto(NOTHING_MATCHES)
+    const release = await holdRequests(page, '/api/products')
 
     await page.getByRole('button', { name: 'Clear all filters' }).click()
 
     await expect(page).not.toHaveURL(/q=/)
+    await expect(page.getByRole('heading', { name: TITLE })).toBeHidden()
+    await expect(page.getByTestId('product-row-skeleton').first()).toBeVisible()
+    await expect(page.getByText('No options for the current results')).toBeHidden()
+
+    release()
+
     await expect(page.getByTestId('product-row').first()).toBeVisible()
+    await expect(page.getByTestId('product-row-skeleton')).toHaveCount(0)
   })
 
   test('leaves out the paging, since there is nothing to page through', async ({ page }) => {

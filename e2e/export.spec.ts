@@ -3,6 +3,7 @@ import AxeBuilder from '@axe-core/playwright'
 import { expect, test, type Download, type Locator, type Page } from '@playwright/test'
 import { parse } from 'csv-parse/sync'
 import { transitionsSettled } from './support/motion'
+import { holdRequests } from './support/network'
 
 async function records(download: Download): Promise<Record<string, string>[]> {
   const text = await readFile(await download.path(), 'utf8')
@@ -257,21 +258,6 @@ test.describe('the pickers in the export dialog', () => {
 })
 
 test.describe('the export dialog while it works', () => {
-  function holdRequests(page: Page, pathname: string): Promise<() => void> {
-    let release!: () => void
-    const held = new Promise<void>((resolve) => (release = resolve))
-
-    return page
-      .route(
-        (url) => url.pathname === pathname,
-        async (route) => {
-          await held
-          await route.continue()
-        },
-      )
-      .then(() => release)
-  }
-
   test('spins inside the word field, and beside the count, until the count is back', async ({
     page,
   }) => {
