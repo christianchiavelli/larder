@@ -31,7 +31,7 @@ Nuxt 4, Vue 3.5, Tailwind 4, and a Nitro backend-for-frontend.
 
 ![The export dialog explaining the 10,000 product limit and linking to the full data set](docs/screenshots/export-too-many-dark.png)
 
-Regenerate with `pnpm run screenshots` against a production build.
+Regenerate with `pnpm run screenshots`, which builds the app, serves it to itself and captures every screen from the live catalogue.
 
 </details>
 

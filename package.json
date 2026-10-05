@@ -27,7 +27,7 @@
     "test:coverage": "vitest run --coverage",
     "e2e": "playwright test",
     "ci": "pnpm run format:check && pnpm run lint && pnpm run typecheck && pnpm run test:coverage",
-    "screenshots": "node scripts/capture-screenshots.mjs",
+    "screenshots": "nuxt build && node scripts/capture-screenshots.mjs",
     "country-names": "node scripts/generate-country-names.mjs"
   },
   "dependencies": {
