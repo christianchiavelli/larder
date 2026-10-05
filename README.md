@@ -39,22 +39,22 @@ Regenerate with `pnpm run screenshots` against a production build.
 
 ## Setup
 
-Node.js 18 or newer and pnpm. No API key or account.
+Node.js 22.13 or newer and pnpm. No API key or account.
 
 ```bash
 pnpm install
 pnpm dev
 ```
 
-The app itself runs on Node.js 24, pinned in `package.json` under `devEngines`. The first install downloads that exact version, checked against the hash in the lockfile, and every script runs on it, so the Node on the machine only has to start pnpm.
+The scripts run on Node.js 24, pinned in `package.json` under `devEngines` and downloaded on the first install.
 
 ---
 
 ## Why this data set
 
-Open Food Facts is community-edited, so records are incomplete, fields contradict each other across endpoints, and some entries are just wrong. That was the point of picking it. Most of what is interesting in this repository comes from handling that honestly instead of styling the happy path.
+Open Food Facts is community-edited, so records are incomplete, fields contradict each other across endpoints, and some entries are wrong. Most of what is interesting here comes from handling that honestly instead of styling the happy path.
 
-Two thirds of the catalogue has no Nutri-Score, for two different reasons. A beer is excluded by the scheme and never will have one; a yoghurt nobody has graded might have one tomorrow. They are separate values, separate badges, separate bars and separate filters here, because collapsing them would report a deliberate exclusion as missing data.
+Two thirds of the catalogue has no Nutri-Score, for two different reasons: a beer is excluded by the scheme, while a yoghurt nobody has graded might have one tomorrow. They stay separate values, badges and filters, because collapsing them would report a deliberate exclusion as missing data.
 
 ---
 
@@ -71,34 +71,31 @@ Two thirds of the catalogue has no Nutri-Score, for two different reasons. A bee
 
 ## How it is built
 
-- **A BFF, not a proxy.** Nitro routes talk to two upstream services with different engines and contradictory shapes, and hand the client one contract it can trust. Every response is parsed with Zod at the boundary.
-- **The domain comes first.** `shared/domain` owes nothing to the upstream shape. Nutri-Score and NOVA are defined by public health bodies, not by the API we happen to read them from.
-- **Filter state lives in the URL.** No store, no two-way watcher. Sharing, bookmarking and the back button work with nothing written for them.
-- **An export holds every match, or it does not happen.** The search index pages no further than 10,000 rows, so a file of the first 10,000 would be an arbitrary slice. Export opens a dialog that starts from the directory's search and narrows it by keyword, category, brand, country, label, Nutri-Score and NOVA group, counting as it goes; past 10,000 it asks for one more filter and points to the full Open Food Facts dataset instead. `/api/products.csv` refuses such a search with a 422 on its own, so a hand-built link cannot get round the rule, and the button is still a plain link before any JavaScript runs.
-- **The export streams, and cannot end quietly.** Rows are written as upstream pages arrive. A reader who cancels stops the upstream requests, and a failure halfway cuts the connection instead of closing the file, so a partial export cannot pass for a whole one.
-- **The dialog is the platform's own.** `UiModal` is a native `<dialog>`: the page behind is inert and holds still, Escape and a click outside close it, and focus moves in and comes back. The pickers inside are popovers placed with CSS anchor positioning, so a list can spill past the dialog's edge without being clipped. Neither needs a library.
-- **Missing data is a value, never a zero.** A nutrient nobody reported shows an em-dash; a product with no photograph gets a tile that says so.
-- **The design system is a Nuxt layer**, and the boundary is enforced rather than agreed: nothing under `layers/ui` imports from the domain or knows that food is being catalogued at all.
-- **One theme, read from tokens.** Components use semantic utilities and charts read the same custom properties at runtime, so a colour is never written twice. The handful of `dark:` variants left are for what a colour token cannot say: which of two icons is drawn, and how strong a decorative wash should be.
+- **A BFF, not a proxy.** Nitro routes read two upstream services with contradictory shapes and hand the client one contract, parsed with Zod at the boundary.
+- **The domain comes first.** `shared/domain` owes nothing to the upstream shape: Nutri-Score and NOVA follow the public health bodies that define them.
+- **Filter state lives in the URL.** No store and no watcher, so sharing, bookmarking and Back work for free.
+- **An export holds every match, or it does not happen.** The search index stops at 10,000 rows, so a larger search asks for one more filter instead of saving an arbitrary slice. The CSV streams as upstream pages arrive, and a failure halfway cuts the download, so a partial file never passes for a whole one.
+- **The dialog is the platform's own.** A native `<dialog>` keeps the page inert and returns focus, and its pickers are popovers placed with CSS anchor positioning, with no library for either.
+- **Missing data is a value, never a zero.** A nutrient nobody reported shows a dash, and a product with no photograph says so.
+- **The design system is a Nuxt layer**, and its boundary is enforced: nothing under `layers/ui` knows that food is being catalogued.
+- **One theme, read from tokens.** Components and charts read the same custom properties, so a colour is never written twice.
 
 ---
 
 ## Testing
 
 ```bash
-pnpm run ci    # format, lint, types, and the unit specs with coverage
-pnpm run e2e   # Playwright across two viewports, on a production build
+pnpm run ci    # format, lint, types, and unit tests with coverage
+pnpm run e2e   # Playwright on desktop and mobile, against a production build
 ```
 
-The suites divide by what they can see. Vitest covers the domain, services, mappers and URL state. Playwright owns what only a browser can answer: whether a Tailwind utility resolves, whether a chart's hover state renders, whether a tree hydrates cleanly. All three have broken here at some point, and a jsdom render sees none of them.
+Vitest covers the domain, services, mappers and URL state. Playwright covers what only a browser can: whether a Tailwind utility resolves, whether a chart renders its hover state, and whether the page hydrates cleanly.
 
 ---
 
 ## Reading further
 
-[docs/upstream-api.md](docs/upstream-api.md) compares the two upstream contracts, gathered by probing the live services, because the published documentation lags behind them and they disagree with each other.
-
-Everything else is documented where it applies: a trap is a comment on the line that works around it, and the reasoning behind a change is in the commit that made it.
+[docs/upstream-api.md](docs/upstream-api.md) compares the two upstream contracts, probed live, because the published documentation lags behind them. The reasoning behind each change is in the commit that made it.
 
 ---
 
