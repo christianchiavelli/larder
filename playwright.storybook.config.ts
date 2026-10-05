@@ -19,10 +19,10 @@ export default defineConfig({
   workers: process.env.CI ? 2 : undefined,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : [['list']],
 
+  // Motion stays on, as it is for most visitors: a play function has to wait out a fade, and
+  // Storybook lets whatever moves come to rest before axe runs.
   use: {
     baseURL: `http://localhost:${PORT}`,
-    // Reduced motion zeroes what slides or fades in, so axe never measures a colour mid-fade.
-    reducedMotion: 'reduce',
     trace: 'retain-on-failure',
   },
 
