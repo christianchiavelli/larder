@@ -1,8 +1,13 @@
 // @ts-check
 import withNuxt from './.nuxt/eslint.config.mjs'
 import prettier from 'eslint-config-prettier'
+import storybook from 'eslint-plugin-storybook'
 
 export default withNuxt(
+  {
+    name: 'larder/ignores',
+    ignores: ['storybook-static'],
+  },
   {
     name: 'larder/rules',
     rules: {
@@ -49,5 +54,6 @@ export default withNuxt(
       '@typescript-eslint/no-explicit-any': 'off',
     },
   },
+  ...storybook.configs['flat/recommended'],
   prettier,
 )

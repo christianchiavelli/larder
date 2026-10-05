@@ -10,6 +10,8 @@ export default defineNuxtConfig({
       prefix: 'Ui',
       pathPrefix: false,
       global: false,
+      // A story beside its component is not a component of its own.
+      ignore: ['**/*.stories.ts'],
     },
   ],
 

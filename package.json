@@ -28,7 +28,9 @@
     "e2e": "playwright test",
     "ci": "pnpm run format:check && pnpm run lint && pnpm run typecheck && pnpm run test:coverage",
     "screenshots": "nuxt build && node scripts/capture-screenshots.mjs",
-    "country-names": "node scripts/generate-country-names.mjs"
+    "country-names": "node scripts/generate-country-names.mjs",
+    "storybook": "storybook dev --port 6006",
+    "storybook:build": "storybook build"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.3.1",
@@ -56,11 +58,17 @@
     "@nuxt/fonts": "^0.14.0",
     "@nuxt/test-utils": "^4.3.2",
     "@playwright/test": "^1.63.0",
+    "@storybook-vue/nuxt": "10.0.0",
+    "@storybook/addon-a11y": "10.6.1",
+    "@storybook/addon-docs": "10.6.1",
+    "@storybook/addon-themes": "10.6.1",
     "@vitest/coverage-v8": "^5.0.0",
     "csv-parse": "^7.0.2",
     "eslint": "^10.10.0",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-storybook": "10.6.1",
     "prettier": "^3.9.6",
+    "storybook": "10.6.1",
     "typescript": "^6.0.3",
     "vitest": "^5.0.0",
     "vue-tsc": "^3.3.11"

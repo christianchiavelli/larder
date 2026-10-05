@@ -28,3 +28,6 @@ coverage
 playwright-report
 test-results
 .playwright
+
+# Storybook build
+storybook-static

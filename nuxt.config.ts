@@ -5,6 +5,11 @@ export default defineNuxtConfig({
 
   extends: ['./layers/ui'],
 
+  components: [
+    // A story beside its component is not a component of its own.
+    { path: '~/components', ignore: ['**/*.stories.ts'] },
+  ],
+
   modules: [
     '@pinia/nuxt',
     '@pinia/colada-nuxt',
