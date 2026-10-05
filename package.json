@@ -30,7 +30,8 @@
     "screenshots": "nuxt build && node scripts/capture-screenshots.mjs",
     "country-names": "node scripts/generate-country-names.mjs",
     "storybook": "storybook dev --port 6006",
-    "storybook:build": "storybook build"
+    "storybook:build": "storybook build",
+    "storybook:test": "storybook build && playwright test --config playwright.storybook.config.ts"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.3.1",

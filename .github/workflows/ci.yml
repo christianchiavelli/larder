@@ -101,3 +101,40 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  storybook:
+    name: Storybook
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # After the cheap checks, for the same reason as the end-to-end job.
+    needs: verify
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # The headless shell alone: stories are rendered and audited, never watched.
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps --only-shell chromium
+
+      # Builds the static Storybook, then renders every story in both themes:
+      # it must render, its play function must pass and axe must find nothing.
+      - name: Story checks
+        run: pnpm run storybook:test
+
+      - name: Upload report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: storybook-report
+          path: playwright-report/
+          retention-days: 7
