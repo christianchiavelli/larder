@@ -32,8 +32,9 @@ const formatted = computed(() =>
         <span data-numeric>{{ formatted }}</span>
         <span v-if="unit" class="text-label text-ink-muted">{{ unit }}</span>
       </template>
-      <span v-else class="text-ink-subtle" :aria-label="`${label} not reported`">
+      <span v-else class="text-ink-subtle">
         <span aria-hidden="true">&mdash;</span>
+        <span class="sr-only">Not reported</span>
       </span>
     </p>
 
