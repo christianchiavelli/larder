@@ -46,6 +46,8 @@ pnpm install
 pnpm dev
 ```
 
+`pnpm storybook` opens the design system on its own: the tokens, every component in the layer, and the badges, nutrient table and charts of a product, drawn from real catalogue figures in both themes.
+
 The scripts run on Node.js 24, pinned in `package.json` under `devEngines` and downloaded on the first install.
 
 ---
@@ -85,11 +87,12 @@ Two thirds of the catalogue has no Nutri-Score, for two different reasons: a bee
 ## Testing
 
 ```bash
-pnpm run ci    # format, lint, types, and unit tests with coverage
-pnpm run e2e   # Playwright on desktop and mobile, against a production build
+pnpm run ci               # format, lint, types, and unit tests with coverage
+pnpm run storybook:test   # every story in both themes, its interactions played and audited by axe
+pnpm run e2e              # Playwright on desktop and mobile, against a production build
 ```
 
-Vitest covers the domain, services, mappers and URL state. Playwright covers what only a browser can: whether a Tailwind utility resolves, whether a chart renders its hover state, and whether the page hydrates cleanly.
+Vitest covers the domain, services, mappers and URL state. Playwright covers what only a browser can: whether a Tailwind utility resolves, whether a chart renders its hover state, and whether the page hydrates cleanly. The story checks put each component on its own, so a contrast or labelling fault shows on the component that has it, not on whichever page happens to render it.
 
 ---
 
