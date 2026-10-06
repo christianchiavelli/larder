@@ -31,6 +31,13 @@ const SHOTS = [
   { name: 'overview-dark', path: '/overview', scheme: 'dark', fullPage: true },
   { name: 'directory-light', path: '/products', scheme: 'light', fullPage: false },
   { name: 'product-dark', path: '/products/3017620425035', scheme: 'dark', fullPage: false },
+  // A Brazilian product, so the record has a Portuguese name and ingredients to show.
+  {
+    name: 'product-pt-light',
+    path: '/pt/products/7891000100103',
+    scheme: 'light',
+    fullPage: false,
+  },
   {
     name: 'export-light',
     path: '/products?q=chocolate&brand=milka',

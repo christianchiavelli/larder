@@ -4,6 +4,8 @@ A food product analytics dashboard on top of [Open Food Facts](https://world.ope
 
 Filter the catalogue by category, brand, nutrition grade and processing level, then open any product for its nutrition profile against EU reference intakes, its additives, labels and provenance.
 
+In English, and in Brazilian Portuguese under `/pt`.
+
 Nuxt 4, Vue 3.5, Tailwind 4, and a Nitro backend-for-frontend.
 
 ![The product directory, with faceted filters and Nutri-Score grading](docs/screenshots/directory-light.png)
@@ -22,6 +24,10 @@ Nuxt 4, Vue 3.5, Tailwind 4, and a Nitro backend-for-frontend.
 **Product deep dive, dark theme**
 
 ![Nutrition profile against EU reference intakes, with additives and labels](docs/screenshots/product-dark.png)
+
+**The same page in Brazilian Portuguese**
+
+![A Brazilian condensed milk with its Portuguese name, ingredients and nutrient names](docs/screenshots/product-pt-light.png)
 
 **Export, narrowed from a dialog**
 
@@ -50,6 +56,8 @@ pnpm dev
 
 The scripts run on Node.js 24, pinned in `package.json` under `devEngines` and downloaded on the first install.
 
+Served from anywhere but `http://localhost:3000`, set `NUXT_PUBLIC_I18N_BASE_URL` to that address, so each page links its other language by a whole URL.
+
 ---
 
 ## Why this data set
@@ -69,6 +77,8 @@ Two thirds of the catalogue has no Nutri-Score, for two different reasons: a bee
 | `/products`          | The directory: facets, sort, page size, pagination                       |
 | `/products/:barcode` | One product: nutrition against EU reference intakes, composition, source |
 
+Each one is also under `/pt`, in Brazilian Portuguese.
+
 ---
 
 ## How it is built
@@ -78,6 +88,7 @@ Two thirds of the catalogue has no Nutri-Score, for two different reasons: a bee
 - **Filter state lives in the URL.** No store and no watcher, so sharing, bookmarking and Back work for free.
 - **An export holds every match, or it does not happen.** The search index stops at 10,000 rows, so a larger search asks for one more filter instead of saving an arbitrary slice. The CSV streams as upstream pages arrive, and a failure halfway cuts the download, so a partial file never passes for a whole one.
 - **The dialog is the platform's own.** A native `<dialog>` keeps the page inert and returns focus, and its pickers are popovers placed with CSS anchor positioning, with no library for either.
+- **Two languages, one address each.** Nothing redirects by the browser's language, so a shared link opens in the language it was sent in, and numbers and dates follow the page: 3,585,939 or 3.585.939. The catalogue's own Portuguese is European and uneven, so countries are named from CLDR, product names and ingredients are Portuguese only where a record has them, and categories, labels and additives keep their English names, which every Portuguese page says.
 - **Missing data is a value, never a zero.** A nutrient nobody reported shows a dash, and a product with no photograph says so.
 - **The design system is a Nuxt layer**, and its boundary is enforced: nothing under `layers/ui` knows that food is being catalogued.
 - **One theme, read from tokens.** Components and charts read the same custom properties, so a colour is never written twice.

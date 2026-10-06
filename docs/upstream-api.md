@@ -103,9 +103,25 @@ GET /search?q=chocolate&facets=countries_tags&langs=en
 
 `/autocomplete` names the same tags correctly ("France"), so a country picked from a suggestion and the same country in a facet list would read differently.
 
-Country labels therefore come from the taxonomy itself. `shared/domain/country-names.json` maps every country tag to its English name in [`countries.json`](https://static.openfoodfacts.org/data/taxonomies/countries.json), and facets, suggestions and product pages all read from it. A tag the file does not know yet falls back to whatever upstream sent. Regenerate it with `pnpm run country-names`.
+Country labels therefore come from the taxonomy itself. `shared/domain/country-names.json` maps every country tag to its English name in [`countries.json`](https://static.openfoodfacts.org/data/taxonomies/countries.json), and to a Brazilian Portuguese one (see below), and facets, suggestions and product pages all read from it. A tag the file does not know yet falls back to whatever upstream sent. Regenerate it with `pnpm run country-names`.
 
 A related trap was ours. A label that spells out its slug, "United Kingdom" for `en:united-kingdom`, was treated as an echo and sentence-cased into "United kingdom". An echo is now only replaced when it carries no casing of its own.
+
+## The Portuguese is European, and uneven
+
+The taxonomies carry Portuguese names, but they are European Portuguese, typos included. Breakfasts and spreads, two everyday categories, read "Pequenos alomoços" and "Produtos para barrar", which a Brazilian reader would know as café da manhã and produtos para passar, and the first is misspelt even in Portugal. So on a Portuguese page, categories, labels and additives keep their English names, and the footer says so.
+
+Product records are better off, where they have a Portuguese version at all: `product_name_pt` and `ingredients_text_pt` exist when a contributor entered them. The mappers read the Portuguese field, then the English one, then whatever was entered in the product's own language.
+
+Countries are named from CLDR instead, with `Intl.DisplayNames`, by the ISO code the taxonomy keeps in `country_code_2`. Three of those codes need care:
+
+- The United Kingdom is `UK`, a code ISO reserves for it. CLDR knows it as `GB`.
+- `en:world` is coded `world`, which is not a region at all. CLDR's code for the world is `001`.
+- `en:yugoslavia` keeps the retired `YU`, which CLDR folds into Serbia. Retired codes fall back to a name decided by hand.
+
+Sixteen tags have no code, from `en:european-union` to `en:soviet-union`. Three get the code CLDR knows them by, and the rest keep the taxonomy's own Portuguese, which reads the same in Brazil for nearly all of them. The names depend on the CLDR data in the Node.js that runs the script.
+
+Suggestions for countries are asked for in the reader's language, so "Alemanha" finds Germany. Upstream matches accents exactly, though: "França" finds France and "franca" finds nothing. The country filter folds accents when it narrows its own list, which covers the countries of the current search, but not the suggestions from the rest of the catalogue.
 
 ## The query parser fails silently
 
