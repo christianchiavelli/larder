@@ -138,6 +138,21 @@ test.describe('product directory', () => {
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   })
 
+  test("follows a product's category back to the directory, filtered by it", async ({ page }) => {
+    await page.goto('/products/3017620425035')
+
+    const chip = page.locator('main header').getByRole('link').first()
+    const href = await chip.getAttribute('href')
+    expect(href).toMatch(/^\/products\?category=/)
+
+    await chip.click()
+
+    await expect(page).toHaveURL(
+      (url) => decodeURIComponent(url.pathname + url.search) === decodeURIComponent(href!),
+    )
+    await expect(page.getByTestId('product-row').first()).toBeVisible()
+  })
+
   test('reports a barcode that does not exist without breaking the page', async ({ page }) => {
     const response = await page.goto('/products/00000000000001')
 
