@@ -21,7 +21,10 @@ export default defineVitestConfig({
         '**/*.d.ts',
         '**/types.ts',
         'layers/ui/app/utils/icons.ts',
+        // Thin wrappers over Nuxt's request and head, which only a rendered page exercises:
+        // the end-to-end tests check the status codes, languages and head they produce.
         'app/composables/use-error-status.ts',
+        'app/composables/use-app-head.ts',
       ],
       thresholds: {
         statements: 95,

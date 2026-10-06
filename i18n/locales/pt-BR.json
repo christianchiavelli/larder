@@ -18,7 +18,17 @@
     "languageNote": "Categorias, selos e aditivos aparecem com os nomes do catálogo, em inglês. Nomes e ingredientes de produtos vêm em português quando o registro tem essa versão."
   },
   "errors": {
-    "sourceUnavailable": "O Open Food Facts não respondeu desta vez. Espere um pouco e tente de novo."
+    "sourceUnavailable": "O Open Food Facts não respondeu desta vez. Espere um pouco e tente de novo.",
+    "notFound": {
+      "title": "Esta página não está na prateleira",
+      "description": "Não encontramos nada em {path}. O link pode estar quebrado ou o endereço pode ter mudado.",
+      "search": "Buscar no catálogo"
+    },
+    "failed": {
+      "title": "Algo deu errado do nosso lado",
+      "description": "A página não pôde ser montada agora. Tente de novo em instantes, e se continuar, volte pelo início."
+    },
+    "home": "Ir para o início"
   },
   "home": {
     "exampleCount": "{count} produto | {count} produtos",

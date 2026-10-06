@@ -8,6 +8,7 @@
  */
 const { locale, locales, t } = useI18n()
 const switchLocalePath = useSwitchLocalePath()
+const localePath = useLocalePath()
 
 const languages = computed(() =>
   locales.value.map((entry) => ({
@@ -16,7 +17,8 @@ const languages = computed(() =>
     name: entry.name ?? entry.code,
     language: entry.language,
     current: entry.code === locale.value,
-    to: switchLocalePath(entry.code),
+    // An address no route answers has no twin in the other language, so its front page stands in.
+    to: switchLocalePath(entry.code) || localePath('/', entry.code),
   })),
 )
 

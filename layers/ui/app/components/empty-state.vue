@@ -20,6 +20,10 @@ withDefaults(
       <UiIllustrationNoResults class="w-44 sm:w-60" data-testid="empty-illustration" />
     </template>
 
+    <template v-if="$slots.description" #description>
+      <slot name="description" />
+    </template>
+
     <slot />
   </UiIllustratedMessage>
 </template>

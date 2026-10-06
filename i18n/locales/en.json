@@ -18,7 +18,17 @@
     "languageNote": "Category, label and additive names are the catalogue's own, in English. Product names and ingredients are in this language where a record has them."
   },
   "errors": {
-    "sourceUnavailable": "Open Food Facts didn't answer this time. Give it a moment and try again."
+    "sourceUnavailable": "Open Food Facts didn't answer this time. Give it a moment and try again.",
+    "notFound": {
+      "title": "This page isn't on the shelf",
+      "description": "There's nothing at {path}. The link may be broken, or the address may have changed.",
+      "search": "Search the catalogue"
+    },
+    "failed": {
+      "title": "Something went wrong on our side",
+      "description": "This page couldn't be put together just now. Try again in a moment, and if it keeps failing, start from the front page."
+    },
+    "home": "Go to the front page"
   },
   "home": {
     "exampleCount": "{count} product | {count} products",

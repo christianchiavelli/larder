@@ -14,7 +14,8 @@ const { t } = useI18n()
     <ChromeRail />
 
     <div class="ml-rail flex min-w-0 flex-1 flex-col overflow-hidden rounded-tl-shell bg-surface">
-      <main id="main" class="flex-1">
+      <!-- A column, so a page shorter than the screen can stretch and centre what it holds. -->
+      <main id="main" class="flex flex-1 flex-col">
         <slot />
         <UiSeeMoreFab />
       </main>

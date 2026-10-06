@@ -11,6 +11,8 @@ const PAGES = [
   ['a product', '/products/3017620425035'],
   ['the directory in Portuguese', '/pt/products'],
   ['a product in Portuguese', '/pt/products/7891000100103'],
+  ['the not-found page', '/no-such-page'],
+  ['the not-found page in Portuguese', '/pt/pagina-que-nao-existe'],
 ] as const
 
 const WCAG_AA = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']

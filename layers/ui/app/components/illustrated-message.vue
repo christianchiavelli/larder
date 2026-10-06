@@ -15,7 +15,10 @@ withDefaults(
 
     <div class="flex flex-col items-center gap-1.5">
       <component :is="`h${headingLevel}`" class="text-heading text-ink">{{ title }}</component>
-      <p v-if="description" class="max-w-md text-body text-ink-muted">{{ description }}</p>
+      <!-- The description slot takes markup the prop cannot, such as an address set in code. -->
+      <p v-if="description || $slots.description" class="max-w-md text-body text-ink-muted">
+        <slot name="description">{{ description }}</slot>
+      </p>
     </div>
 
     <slot />
