@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { hasActiveFilters } from '#shared/domain/search'
+import { MAX_TRACKED_HITS, hasActiveFilters } from '#shared/domain/search'
 
-useHead({ title: 'Products' })
+const { t } = useI18n()
+const format = useFormat()
+
+useHead(() => ({ title: t('products.title') }))
 
 definePageMeta({
   viewTransition: true,
@@ -23,7 +26,7 @@ useErrorStatus(error, refresh)
 
 const totalLabel = computed(() => {
   if (!result.value) return null
-  const formatted = formatCount(result.value.totalCount)
+  const formatted = format.count(result.value.totalCount)
   return result.value.isTotalExact ? formatted : `${formatted}+`
 })
 </script>
@@ -31,10 +34,7 @@ const totalLabel = computed(() => {
 <template>
   <UiPageContainer>
     <div>
-      <UiPageHeader
-        title="Products"
-        description="Search a public catalogue of packaged food by category, brand, nutrition grade and processing level."
-      />
+      <UiPageHeader :title="t('products.title')" :description="t('products.description')" />
 
       <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
         <ProductFilterPanel :facets="result?.facets ?? null" :loading="showsSkeleton && !error" />
@@ -50,11 +50,17 @@ const totalLabel = computed(() => {
           >
             <p class="text-caption text-ink-muted" aria-live="polite" data-testid="result-summary">
               <template v-if="totalLabel && !showsSkeleton">
-                <span data-numeric>{{ totalLabel }}</span>
-                {{ result!.totalCount === 1 ? 'product' : 'products' }}
-                <span v-if="!result!.isTotalExact" class="text-ink-subtle">
-                  (upstream stops counting at 10,000)
-                </span>
+                <i18n-t keypath="products.count" :plural="result!.totalCount" scope="global">
+                  <template #count>
+                    <span data-numeric>{{ totalLabel }}</span>
+                  </template>
+                </i18n-t>
+                <template v-if="!result!.isTotalExact">
+                  {{ ' ' }}
+                  <span class="text-ink-subtle">
+                    {{ t('products.capped', { limit: format.count(MAX_TRACKED_HITS) }) }}
+                  </span>
+                </template>
               </template>
               <UiSkeleton v-else class="h-4 w-32" />
             </p>
@@ -65,16 +71,16 @@ const totalLabel = computed(() => {
           <div class="flex flex-1 flex-col gap-2 bg-surface p-2">
             <UiErrorState
               v-if="error"
-              title="We couldn't load the products"
-              :description="SOURCE_UNAVAILABLE"
+              :title="t('products.loadFailed')"
+              :description="t('errors.sourceUnavailable')"
               :retrying="isLoading"
               @retry="refresh()"
             />
 
             <UiEmptyState
               v-else-if="result && result.items.length === 0 && !isLoading"
-              title="No products match these filters"
-              description="Try removing a filter or searching for a broader term."
+              :title="t('products.noMatch')"
+              :description="t('products.noMatchHint')"
             >
               <button
                 v-if="showingFilters"
@@ -82,7 +88,7 @@ const totalLabel = computed(() => {
                 class="inline-flex h-9 items-center justify-center rounded-control bg-accent px-4 text-label text-ink-on-accent transition-colors hover:bg-accent-hover"
                 @click="clearFilters()"
               >
-                Clear all filters
+                {{ t('products.clearFilters') }}
               </button>
             </UiEmptyState>
 

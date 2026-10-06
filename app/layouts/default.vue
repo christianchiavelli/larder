@@ -1,10 +1,14 @@
+<script setup lang="ts">
+const { t } = useI18n()
+</script>
+
 <template>
   <div class="flex min-h-dvh bg-chrome">
     <a
       href="#main"
       class="skip-link rounded-control bg-accent px-3 py-2 text-label text-ink-on-accent"
     >
-      Skip to content
+      {{ t('chrome.skipToContent') }}
     </a>
 
     <ChromeRail />

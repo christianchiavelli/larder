@@ -10,6 +10,8 @@ withDefaults(
 )
 
 defineEmits<{ retry: [] }>()
+
+const { t } = useI18n()
 </script>
 
 <template>
@@ -31,7 +33,7 @@ defineEmits<{ retry: [] }>()
     >
       <UiSpinner v-if="retrying" class="size-3.5" />
       <UiIcon v-else name="arrow-rotate-right" class="size-3.5" />
-      Try again
+      {{ t('ui.errorState.retry') }}
     </button>
   </UiIllustratedMessage>
 </template>

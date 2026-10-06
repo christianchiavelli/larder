@@ -34,17 +34,15 @@ describe('normaliseBrands', () => {
 })
 
 describe('productDisplayName', () => {
+  const unnamed = 'Unnamed product 3017620425035'
+
   it('uses the name when there is one', () => {
-    expect(productDisplayName({ code: '1', name: 'Nutella' })).toBe('Nutella')
+    expect(productDisplayName({ name: ' Nutella ' }, unnamed)).toBe('Nutella')
   })
 
-  it('falls back to the barcode rather than rendering an empty heading', () => {
-    expect(productDisplayName({ code: '3017620425035', name: '' })).toBe(
-      'Unnamed product 3017620425035',
-    )
-    expect(productDisplayName({ code: '3017620425035', name: '   ' })).toBe(
-      'Unnamed product 3017620425035',
-    )
+  it('falls back to what the page calls an unnamed product rather than an empty heading', () => {
+    expect(productDisplayName({ name: '' }, unnamed)).toBe(unnamed)
+    expect(productDisplayName({ name: '   ' }, unnamed)).toBe(unnamed)
   })
 })
 

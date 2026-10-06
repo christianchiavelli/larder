@@ -145,6 +145,27 @@ describe('suggestTaxonomy', () => {
     expect(suggestions[0]!.label).toBe('United States')
   })
 
+  it('matches countries in the language of the page, and names them from the table', async () => {
+    const get = vi.fn(async (_path: string, query?: Record<string, unknown>) => ({
+      options:
+        query?.taxonomy_names === 'country'
+          ? [{ id: 'en:germany', text: 'Alemanha', taxonomy_name: 'country' }]
+          : [],
+    }))
+
+    const suggestions = await suggestTaxonomy(
+      { get } as UpstreamClient,
+      { q: 'alem', taxonomy: 'country,category' },
+      'pt',
+    )
+
+    expect(get.mock.calls.map((call) => [call[1]?.taxonomy_names, call[1]?.lang])).toEqual([
+      ['country', 'pt'],
+      ['category', 'en'],
+    ])
+    expect(suggestions).toEqual([{ id: 'en:germany', label: 'Alemanha', taxonomy: 'country' }])
+  })
+
   it('surfaces a transport failure, unlike a shape mismatch', async () => {
     const get = vi
       .fn()

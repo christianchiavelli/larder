@@ -11,6 +11,8 @@ const props = withDefaults(
 
 const emit = defineEmits<{ change: [page: number] }>()
 
+const { t } = useI18n()
+
 type PageEntry = { type: 'page'; value: number } | { type: 'gap'; key: string }
 
 const entries = computed<PageEntry[]>(() => {
@@ -48,14 +50,14 @@ function go(page: number) {
 <template>
   <nav
     v-if="entries.length > 0"
-    aria-label="Pagination"
+    :aria-label="t('ui.pagination.label')"
     class="flex items-center justify-center gap-1"
   >
     <button
       type="button"
       class="rounded-control border border-edge-subtle px-2.5 py-1.5 text-label text-ink-muted transition-colors hover:bg-surface-hover hover:text-ink disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
       :disabled="disabled || page <= 1"
-      aria-label="Previous page"
+      :aria-label="t('ui.pagination.previous')"
       @click="go(page - 1)"
     >
       &larr;
@@ -76,7 +78,7 @@ function go(page: number) {
             : 'border-edge-subtle text-ink-muted hover:bg-surface-hover hover:text-ink'
         "
         :aria-current="entry.value === page ? 'page' : undefined"
-        :aria-label="`Page ${entry.value}`"
+        :aria-label="t('ui.pagination.page', { page: entry.value })"
         :disabled="disabled"
         @click="go(entry.value)"
       >
@@ -88,7 +90,7 @@ function go(page: number) {
       type="button"
       class="rounded-control border border-edge-subtle px-2.5 py-1.5 text-label text-ink-muted transition-colors hover:bg-surface-hover hover:text-ink disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
       :disabled="disabled || page >= pageCount"
-      aria-label="Next page"
+      :aria-label="t('ui.pagination.next')"
       @click="go(page + 1)"
     >
       &rarr;

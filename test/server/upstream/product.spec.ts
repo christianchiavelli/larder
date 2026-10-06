@@ -23,9 +23,9 @@ const RAW_NUTELLA = {
   last_modified_t: 1757793319,
 }
 
-function parse(raw: Record<string, unknown>) {
+function parse(raw: Record<string, unknown>, language: 'en' | 'pt' = 'en') {
   const result = upstreamProductResponseSchema.parse({ status: 1, product: raw })
-  return mapProductDetail(result.product!, PRODUCT_BASE)
+  return mapProductDetail(result.product!, PRODUCT_BASE, language)
 }
 
 describe('mapProductDetail', () => {
@@ -100,6 +100,29 @@ describe('mapProductDetail', () => {
       ingredients_text_en: 'Sugar, palm oil',
     })
 
+    expect(product.ingredientsText).toBe('Sugar, palm oil')
+  })
+
+  it('reads the Portuguese name, ingredients and countries on a Portuguese page', () => {
+    const product = parse(
+      {
+        ...RAW_NUTELLA,
+        product_name_pt: 'Nutella creme de avelã',
+        ingredients_text_en: 'Sugar, palm oil',
+        ingredients_text_pt: 'Açúcar, óleo de palma',
+      },
+      'pt',
+    )
+
+    expect(product.name).toBe('Nutella creme de avelã')
+    expect(product.ingredientsText).toBe('Açúcar, óleo de palma')
+    expect(product.countries).toEqual([{ id: 'en:france', label: 'França' }])
+  })
+
+  it('falls back to the English text on a Portuguese page with no Portuguese of its own', () => {
+    const product = parse({ ...RAW_NUTELLA, ingredients_text_en: 'Sugar, palm oil' }, 'pt')
+
+    expect(product.name).toBe('Nutella')
     expect(product.ingredientsText).toBe('Sugar, palm oil')
   })
 

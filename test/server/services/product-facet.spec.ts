@@ -40,6 +40,12 @@ describe('topFacetValues', () => {
     ])
   })
 
+  it('names the countries in Portuguese for a Portuguese page', async () => {
+    const values = await topFacetValues(stubClient(COUNTRIES), query(), 'country', 'pt')
+
+    expect(values.map((value) => value.label)).toEqual(['Brasil', 'Canadá'])
+  })
+
   it('asks for that one facet and a single row', async () => {
     const client = stubClient(COUNTRIES)
 

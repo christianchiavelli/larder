@@ -21,6 +21,18 @@ describe('getProductDetail', () => {
     expect(product.sourceUrl).toBe(`${PRODUCT_BASE}/product/3017620425035`)
   })
 
+  it('asks for the Portuguese fields and reads them on a Portuguese page', async () => {
+    const client = stubClient({
+      status: 1,
+      product: { ...FOUND.product, product_name_pt: 'Nutella creme de avelã' },
+    })
+
+    const product = await getProductDetail(client, '3017620425035', PRODUCT_BASE, 'pt')
+
+    expect(product.name).toBe('Nutella creme de avelã')
+    expect(String(client.get.mock.calls[0]?.[1]?.fields)).toContain('product_name_pt')
+  })
+
   it.each([
     ['letters', 'abc'],
     ['a traversal attempt', '../../etc/passwd'],

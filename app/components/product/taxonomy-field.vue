@@ -9,16 +9,13 @@ const props = defineProps<{
 
 const selected = defineModel<{ value: string; label: string }[]>({ required: true })
 
-const NOUNS: Record<TagDimension, { singular: string; plural: string }> = {
-  category: { singular: 'Category', plural: 'categories' },
-  brand: { singular: 'Brand', plural: 'brands' },
-  country: { singular: 'Country', plural: 'countries' },
-  label: { singular: 'Label', plural: 'labels' },
-}
-
 const MIN_SEARCH_LENGTH = 2
 
-const noun = NOUNS[props.taxonomy]
+const { t } = useI18n()
+// Whole sentences per dimension, never a noun dropped into one: "Todas as marcas", "Todos os países".
+const words = (
+  key: 'all' | 'allIncluded' | 'failed' | 'loading' | 'name' | 'noMatch' | 'none' | 'search',
+) => t(`dimensions.${props.taxonomy}.${key}`)
 const search = ref('')
 const isOpen = ref(false)
 
@@ -26,7 +23,8 @@ const scopeWithoutSelf = computed(() => withoutDimension(props.scope, props.taxo
 const facet = useProductFacet(props.taxonomy, scopeWithoutSelf, () => isOpen.value)
 const suggestions = useSuggestions(search, [props.taxonomy])
 
-const term = computed(() => search.value.trim().toLowerCase())
+// Folded, so a country typed without its accents still matches: "franca" finds "França".
+const term = computed(() => foldForSearch(search.value.trim()))
 
 const inThisSearch = computed(() =>
   (facet.state.value.data ?? []).map((item) => ({
@@ -40,7 +38,7 @@ const options = computed(() => {
   if (!term.value) return inThisSearch.value
 
   const matching = inThisSearch.value.filter((option) =>
-    option.label.toLowerCase().includes(term.value),
+    foldForSearch(option.label).includes(term.value),
   )
   if (term.value.length < MIN_SEARCH_LENGTH) return matching
 
@@ -63,11 +61,10 @@ const loading = computed(() =>
 
 const status = computed(() => {
   if (options.value.length > 0) return null
-  if (loading.value) return term.value ? 'Searching…' : `Loading ${noun.plural}…`
-  if (term.value) return `No ${noun.plural} match`
-  if (facet.state.value.status === 'error')
-    return `Could not list the ${noun.plural}. Type to search.`
-  return `No ${noun.plural} in this search`
+  if (loading.value) return term.value ? t('export.searching') : words('loading')
+  if (term.value) return words('noMatch')
+  if (facet.state.value.status === 'error') return words('failed')
+  return words('none')
 })
 </script>
 
@@ -76,10 +73,10 @@ const status = computed(() => {
     v-model="selected"
     v-model:search="search"
     v-model:open="isOpen"
-    :label="noun.singular"
-    :placeholder="`All ${noun.plural}`"
-    :all-label="`All ${noun.plural} included`"
-    :search-label="`Search ${noun.plural}`"
+    :label="words('name')"
+    :placeholder="words('all')"
+    :all-label="words('allIncluded')"
+    :search-label="words('search')"
     :options="options"
     :status="status"
     :loading="loading"

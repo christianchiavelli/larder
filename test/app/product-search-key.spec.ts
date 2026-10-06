@@ -11,8 +11,8 @@ const query = (input: Record<string, unknown>) => productQuerySchema.parse(input
 
 describe('productSearchKey', () => {
   it('is stable regardless of the order filters were selected in', () => {
-    expect(productSearchKey(query({ category: ['en:snacks', 'en:drinks'] }))).toEqual(
-      productSearchKey(query({ category: ['en:drinks', 'en:snacks'] })),
+    expect(productSearchKey(query({ category: ['en:snacks', 'en:drinks'] }), 'en')).toEqual(
+      productSearchKey(query({ category: ['en:drinks', 'en:snacks'] }), 'en'),
     )
   })
 
@@ -28,18 +28,22 @@ describe('productSearchKey', () => {
     ['the page', { page: '2' }],
     ['the page size', { pageSize: '48' }],
   ])('changes when %s changes', (_, patch) => {
-    expect(productSearchKey(query(patch))).not.toEqual(productSearchKey(query({})))
+    expect(productSearchKey(query(patch), 'en')).not.toEqual(productSearchKey(query({}), 'en'))
+  })
+
+  it('keeps one language apart from another', () => {
+    expect(productSearchKey(query({}), 'pt')).not.toEqual(productSearchKey(query({}), 'en'))
   })
 
   it('does not confuse one dimension for another', () => {
-    expect(productSearchKey(query({ brand: ['lu'] }))).not.toEqual(
-      productSearchKey(query({ label: ['lu'] })),
+    expect(productSearchKey(query({ brand: ['lu'] }), 'en')).not.toEqual(
+      productSearchKey(query({ label: ['lu'] }), 'en'),
     )
   })
 
   it('is serialisable, because a cache key that holds objects compares by identity', () => {
     expect(() =>
-      structuredClone(productSearchKey(query({ category: ['en:snacks'] }))),
+      structuredClone(productSearchKey(query({ category: ['en:snacks'] }), 'en')),
     ).not.toThrow()
   })
 })
@@ -56,31 +60,50 @@ describe('productCountKey', () => {
   })
 
   it('never collides with a search key for the same filters', () => {
-    expect(productCountKey(query({}))[0]).not.toBe(productSearchKey(query({}))[0])
+    expect(productCountKey(query({}))[0]).not.toBe(productSearchKey(query({}), 'en')[0])
   })
 })
 
 describe('productFacetKey', () => {
   it('tells one dimension from another over the same search', () => {
-    expect(productFacetKey('country', query({}))).not.toEqual(productFacetKey('brand', query({})))
+    expect(productFacetKey('country', query({}), 'en')).not.toEqual(
+      productFacetKey('brand', query({}), 'en'),
+    )
+  })
+
+  it('keeps one language apart from another, since country names differ', () => {
+    expect(productFacetKey('country', query({}), 'pt')).not.toEqual(
+      productFacetKey('country', query({}), 'en'),
+    )
   })
 
   it('follows the search it lists the values of', () => {
-    expect(productFacetKey('country', query({ q: 'chocolate' }))).not.toEqual(
-      productFacetKey('country', query({})),
+    expect(productFacetKey('country', query({ q: 'chocolate' }), 'en')).not.toEqual(
+      productFacetKey('country', query({}), 'en'),
     )
   })
 })
 
 describe('productDetailQuery', () => {
-  it('keys a product by its barcode', () => {
-    expect(productDetailQuery('3017620425035').key).toEqual(['product', '3017620425035'])
+  it('keys a product by its language and barcode', () => {
+    expect(productDetailQuery({ code: '3017620425035', language: 'en' }).key).toEqual([
+      'product',
+      'en',
+      '3017620425035',
+    ])
   })
 
   it('gives two callers the same key for the same product', () => {
-    expect(productDetailQuery('3017620425035').key).toEqual(productDetailQuery('3017620425035').key)
-    expect(productDetailQuery('3017620425035').key).not.toEqual(
-      productDetailQuery('3274080005003').key,
+    const nutella = { code: '3017620425035', language: 'en' } as const
+    expect(productDetailQuery(nutella).key).toEqual(productDetailQuery({ ...nutella }).key)
+    expect(productDetailQuery(nutella).key).not.toEqual(
+      productDetailQuery({ ...nutella, code: '3274080005003' }).key,
+    )
+  })
+
+  it('keeps one language apart from another, since the names differ', () => {
+    expect(productDetailQuery({ code: '3017620425035', language: 'en' }).key).not.toEqual(
+      productDetailQuery({ code: '3017620425035', language: 'pt' }).key,
     )
   })
 })

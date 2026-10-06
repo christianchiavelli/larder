@@ -5,14 +5,22 @@ import { mostSpecificTag } from '#shared/domain/taxonomy'
 
 const props = defineProps<{ product: ProductSummary }>()
 
-const name = computed(() => productDisplayName(props.product))
+const { t } = useI18n()
+const localePath = useLocalePath()
+const language = useLanguage()
+
+const name = computed(() =>
+  productDisplayName(props.product, t('product.unnamed', { code: props.product.code })),
+)
 const category = computed(() => mostSpecificTag(props.product.categories))
 const brand = computed(() => props.product.brands[0] ?? null)
 
 const queryCache = useQueryCache()
 
 function prefetch() {
-  const entry = queryCache.ensure(productDetailQuery(props.product.code))
+  const entry = queryCache.ensure(
+    productDetailQuery({ code: props.product.code, language: language.value }),
+  )
   queryCache.refresh(entry).catch(() => {})
 }
 </script>
@@ -54,7 +62,7 @@ function prefetch() {
       <div class="flex items-start justify-between gap-2">
         <h3 class="min-w-0 text-subheading text-ink">
           <NuxtLink
-            :to="`/products/${product.code}`"
+            :to="localePath(`/products/${product.code}`)"
             class="line-clamp-2 after:absolute after:inset-0 group-hover:text-ink-accent"
           >
             {{ name }}

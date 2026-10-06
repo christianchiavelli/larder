@@ -14,6 +14,9 @@ const props = withDefaults(
 
 defineEmits<{ toggle: [key: string] }>()
 
+const { t } = useI18n()
+const format = useFormat()
+
 const expanded = ref(false)
 
 const visible = computed(() => {
@@ -40,7 +43,7 @@ const hiddenCount = computed(() => Math.max(0, props.items.length - props.limit)
     </div>
 
     <p v-else-if="items.length === 0 && selected.length === 0" class="text-caption text-ink-subtle">
-      No options for the current results
+      {{ t('filters.noOptions') }}
     </p>
 
     <ul v-else class="reveal flex flex-col gap-1">
@@ -52,10 +55,10 @@ const hiddenCount = computed(() => Math.max(0, props.items.length - props.limit)
           <span
             v-if="item.count > 0"
             class="shrink-0 text-caption text-ink-subtle tabular-nums"
-            :title="`${formatCount(item.count)} products`"
+            :title="t('filters.countTitle', { count: format.count(item.count) }, item.count)"
             data-numeric
           >
-            {{ formatCountCompact(item.count) }}
+            {{ format.countCompact(item.count) }}
           </span>
         </UiCheckboxRow>
       </li>
@@ -68,7 +71,7 @@ const hiddenCount = computed(() => Math.max(0, props.items.length - props.limit)
       :aria-expanded="expanded"
       @click="expanded = !expanded"
     >
-      {{ expanded ? 'Show fewer' : `Show ${hiddenCount} more` }}
+      {{ expanded ? t('filters.showFewer') : t('filters.showMore', { count: hiddenCount }) }}
     </button>
   </fieldset>
 </template>

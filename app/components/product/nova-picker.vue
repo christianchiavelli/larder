@@ -1,13 +1,10 @@
 <script setup lang="ts">
-import {
-  NOVA_FILTER_LABELS,
-  NOVA_FILTER_VALUES,
-  NOVA_UNGROUPED,
-  type NovaFilterValue,
-} from '#shared/domain/nutrition'
+import { NOVA_FILTER_VALUES, NOVA_UNGROUPED, type NovaFilterValue } from '#shared/domain/nutrition'
 
 defineProps<{ selected: readonly NovaFilterValue[] }>()
 defineEmits<{ toggle: [group: NovaFilterValue] }>()
+
+const { t } = useI18n()
 </script>
 
 <template>
@@ -23,8 +20,8 @@ defineEmits<{ toggle: [group: NovaFilterValue] }>()
           : 'border-transparent hover:bg-surface-hover'
       "
       :aria-pressed="selected.includes(group)"
-      :aria-label="NOVA_FILTER_LABELS[group]"
-      :title="NOVA_FILTER_LABELS[group]"
+      :aria-label="t(`nova.short.${group}`)"
+      :title="t(`nova.short.${group}`)"
       @click="$emit('toggle', group)"
     >
       <ProductNovaBadge :group="group === NOVA_UNGROUPED ? null : group" />

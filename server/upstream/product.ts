@@ -1,10 +1,11 @@
 import { z } from 'zod'
+import { DEFAULT_LANGUAGE, type Language } from '#shared/domain/language'
 import { normaliseBrands, type ProductDetail } from '#shared/domain/product'
 import { toCountryTag } from '#shared/domain/country'
 import { toTaxonomyTag } from '#shared/domain/taxonomy'
 import { looseNumber, looseString } from './coerce'
 import { mapProductImage, upstreamImageFields } from './image'
-import { mapNovaGroup, mapNutriments, mapNutriScore } from './search'
+import { mapNovaGroup, mapNutriments, mapNutriScore, textInLanguage } from './search'
 
 const looseTagArray = z
   .union([z.array(z.union([z.string(), z.number()])), z.null()])
@@ -19,6 +20,7 @@ const upstreamProductSchema = z.looseObject({
   code: z.union([z.string(), z.number()]).transform(String),
   product_name: looseString,
   product_name_en: looseString,
+  product_name_pt: looseString,
   brands: looseString,
   categories_tags: looseTagArray,
   countries_tags: looseTagArray,
@@ -33,6 +35,7 @@ const upstreamProductSchema = z.looseObject({
   serving_size: looseString,
   ingredients_text: looseString,
   ingredients_text_en: looseString,
+  ingredients_text_pt: looseString,
   ingredients_n: looseNumber,
   last_modified_t: looseNumber,
 })
@@ -49,6 +52,7 @@ export const PRODUCT_FIELDS = [
   'code',
   'product_name',
   'product_name_en',
+  'product_name_pt',
   'brands',
   'categories_tags',
   'countries_tags',
@@ -67,6 +71,7 @@ export const PRODUCT_FIELDS = [
   'serving_size',
   'ingredients_text',
   'ingredients_text_en',
+  'ingredients_text_pt',
   'ingredients_n',
   'last_modified_t',
 ].join(',')
@@ -84,13 +89,19 @@ function toIsoOrNull(unixSeconds: number | null): string | null {
 export function mapProductDetail(
   raw: z.infer<typeof upstreamProductSchema>,
   productBase: string,
+  language: Language = DEFAULT_LANGUAGE,
 ): ProductDetail {
   return {
     code: raw.code,
-    name: raw.product_name_en ?? raw.product_name ?? '',
+    name:
+      textInLanguage(
+        language,
+        { en: raw.product_name_en, pt: raw.product_name_pt },
+        raw.product_name,
+      ) ?? '',
     brands: normaliseBrands(raw.brands),
     categories: raw.categories_tags.map((id) => toTaxonomyTag(id)),
-    countries: raw.countries_tags.map((id) => toCountryTag(id)),
+    countries: raw.countries_tags.map((id) => toCountryTag(id, null, language)),
     labels: raw.labels_tags.map((id) => toTaxonomyTag(id)),
     additives: raw.additives_tags.map((id) => toTaxonomyTag(id)),
     nutriScore: mapNutriScore(raw.nutriscore_grade),
@@ -99,7 +110,11 @@ export function mapProductDetail(
     nutrients: mapNutriments(raw.nutriments),
     quantity: raw.quantity,
     servingSize: raw.serving_size,
-    ingredientsText: raw.ingredients_text_en ?? raw.ingredients_text,
+    ingredientsText: textInLanguage(
+      language,
+      { en: raw.ingredients_text_en, pt: raw.ingredients_text_pt },
+      raw.ingredients_text,
+    ),
     ingredientCount: raw.ingredients_n === null ? null : Math.max(0, Math.round(raw.ingredients_n)),
     sourceUrl: productSourceUrl(productBase, raw.code),
     lastModified: toIsoOrNull(raw.last_modified_t),

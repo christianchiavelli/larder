@@ -4,6 +4,17 @@ import { join } from 'node:path'
 const layerDir = fileURLToPath(new URL('.', import.meta.url))
 
 export default defineNuxtConfig({
+  modules: ['@nuxtjs/i18n'],
+
+  // The layer's own words, a pagination's or a dialog's, merged into the app's. None of them
+  // is about food, so the boundary holds in every language.
+  i18n: {
+    locales: [
+      { code: 'en', file: 'en.json' },
+      { code: 'pt', file: 'pt-BR.json' },
+    ],
+  },
+
   components: [
     {
       path: join(layerDir, 'app/components'),

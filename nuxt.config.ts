@@ -35,6 +35,9 @@ export default defineNuxtConfig({
     exportConcurrency: 2,
     public: {
       siteName: 'Larder',
+      // Where the app is served, so each page links its other language by a whole URL, as
+      // search engines read them. NUXT_PUBLIC_I18N_BASE_URL points them anywhere else.
+      i18n: { baseUrl: 'http://localhost:3000' },
     },
   },
 
@@ -51,6 +54,20 @@ export default defineNuxtConfig({
     },
   },
 
+  // English at the root, Brazilian Portuguese under /pt. Each page has one address per
+  // language and nothing redirects by the browser's, so a shared link opens in the language its
+  // sender read, and the cached front page is the same for everyone who asks for it.
+  i18n: {
+    locales: [
+      { code: 'en', language: 'en', name: 'English', file: 'en.json' },
+      { code: 'pt', language: 'pt-BR', name: 'Português', file: 'pt-BR.json' },
+    ],
+    defaultLocale: 'en',
+    strategy: 'prefix_except_default',
+    detectBrowserLanguage: false,
+    experimental: { typedOptionsAndMessages: 'default' },
+  },
+
   eslint: {
     config: {
       stylistic: false,
@@ -64,6 +81,7 @@ export default defineNuxtConfig({
 
   routeRules: {
     '/': { swr: 3600 },
+    '/pt': { swr: 3600 },
   },
 
   experimental: {

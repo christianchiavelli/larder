@@ -2,6 +2,7 @@
 import { FULL_DATASET_URL } from '#shared/domain/export'
 
 const { siteName } = useRuntimeConfig().public
+const { t, locale, defaultLocale } = useI18n()
 
 const LINK_CLASSES =
   'text-ink-muted underline decoration-edge-strong underline-offset-2 hover:text-ink-accent hover:decoration-current'
@@ -14,19 +15,29 @@ const LINK_CLASSES =
     >
       <span class="font-serif text-label font-semibold text-ink-muted">{{ siteName }}</span>
       <span aria-hidden="true">·</span>
-      <span>Data from</span>
-      <a
-        href="https://world.openfoodfacts.org"
-        target="_blank"
-        rel="noopener noreferrer"
-        :class="LINK_CLASSES"
-      >
-        Open Food Facts
-      </a>
-      <span>under ODbL. Records are contributed by the public and may be incomplete.</span>
+      <i18n-t keypath="footer.attribution" tag="span" scope="global">
+        <template #source>
+          <a
+            href="https://world.openfoodfacts.org"
+            target="_blank"
+            rel="noopener noreferrer"
+            :class="LINK_CLASSES"
+            >Open Food Facts</a
+          >
+        </template>
+      </i18n-t>
       <a :href="FULL_DATASET_URL" target="_blank" rel="noopener noreferrer" :class="LINK_CLASSES">
-        Download the full dataset
+        {{ t('footer.fullDataset') }}
       </a>
     </div>
+
+    <!-- Only where the interface speaks another language than the catalogue's names. -->
+    <p
+      v-if="locale !== defaultLocale"
+      class="mx-auto mt-2 max-w-[86rem] text-caption text-ink-muted"
+      data-testid="language-note"
+    >
+      {{ t('footer.languageNote') }}
+    </p>
   </footer>
 </template>

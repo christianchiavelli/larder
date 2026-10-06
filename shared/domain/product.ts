@@ -39,9 +39,10 @@ export const productDetailSchema = productSummarySchema.extend({
 
 export type ProductDetail = z.infer<typeof productDetailSchema>
 
-export function productDisplayName(product: Pick<ProductSummary, 'code' | 'name'>): string {
+/** A product's name, or what the page calls a product nobody named, in its language. */
+export function productDisplayName(product: Pick<ProductSummary, 'name'>, unnamed: string): string {
   const trimmed = product.name.trim()
-  return trimmed.length > 0 ? trimmed : `Unnamed product ${product.code}`
+  return trimmed.length > 0 ? trimmed : unnamed
 }
 
 export function normaliseBrands(raw: string | readonly string[] | null | undefined): string[] {

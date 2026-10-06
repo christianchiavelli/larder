@@ -1,0 +1,270 @@
+{
+  "site": {
+    "description": "Explore nutrition, processing and labelling across a public catalogue of packaged food products."
+  },
+  "chrome": {
+    "home": "{site}, home",
+    "language": "Language",
+    "overview": "Overview",
+    "primary": "Primary",
+    "products": "Products",
+    "skipToContent": "Skip to content",
+    "toDarkTheme": "Switch to dark theme",
+    "toLightTheme": "Switch to light theme"
+  },
+  "footer": {
+    "attribution": "Data from {source} under ODbL. Records are contributed by the public and may be incomplete.",
+    "fullDataset": "Download the full dataset",
+    "languageNote": "Category, label and additive names are the catalogue's own, in English. Product names and ingredients are in this language where a record has them."
+  },
+  "errors": {
+    "sourceUnavailable": "Open Food Facts didn't answer this time. Give it a moment and try again."
+  },
+  "home": {
+    "exampleCount": "{count} product | {count} products",
+    "examples": {
+      "gradedA": {
+        "detail": "The best grade the scheme gives",
+        "dimension": "Nutri-Score",
+        "label": "Graded A"
+      },
+      "ultraProcessed": {
+        "detail": "NOVA group 4, the most processed",
+        "dimension": "Processing",
+        "label": "Ultra-processed"
+      },
+      "ungraded": {
+        "detail": "The largest group in the catalogue",
+        "dimension": "Nutri-Score",
+        "label": "No grade on record"
+      }
+    },
+    "headline": "Every packaged food, measured the same way",
+    "lead": "Nutrition, processing and labelling across a public catalogue of {count} products.",
+    "leadApproximate": "Nutrition, processing and labelling across a public catalogue of {count} products.",
+    "leadApproximateCount": "3.5 million",
+    "mostScanned": "Most scanned",
+    "search": "Search",
+    "searchLabel": "Search the catalogue",
+    "searchPlaceholder": "Search a product, brand or category",
+    "seeAll": "See all"
+  },
+  "overview": {
+    "brandsCaption": "Brand names are contributed as free text, so spellings of the same brand can appear separately.",
+    "brandsTitle": "Most represented brands",
+    "browseAction": "Open the directory",
+    "browseText": "Filter by category, brand, nutrition grade and processing level.",
+    "browseTitle": "Browse the catalogue",
+    "categoriesCaption": "By number of products across the catalogue.",
+    "categoriesTitle": "Largest categories",
+    "classified": "Carry a NOVA group",
+    "classifiedCaption": "The rest are not classified for processing",
+    "description": "Nutrition, processing and labelling across a public catalogue of packaged food.",
+    "graded": "Carry a Nutri-Score",
+    "gradedCaption": "The rest have no grade on record",
+    "heading": "Catalogue overview",
+    "loadFailed": "We couldn't load the overview",
+    "nutriScoreCaption": "Products with no grade are shown, not excluded.",
+    "nutriScoreTitle": "Nutri-Score distribution",
+    "size": "Products in catalogue",
+    "sizeCaption": "Across the whole catalogue",
+    "title": "Overview"
+  },
+  "products": {
+    "capped": "(upstream stops counting at {limit})",
+    "clearFilters": "Clear all filters",
+    "count": "{count} product | {count} products",
+    "description": "Search a public catalogue of packaged food by category, brand, nutrition grade and processing level.",
+    "loadFailed": "We couldn't load the products",
+    "noMatch": "No products match these filters",
+    "noMatchHint": "Try removing a filter or searching for a broader term.",
+    "title": "Products"
+  },
+  "product": {
+    "additives": "Additives",
+    "browse": "Browse products",
+    "composition": "Composition",
+    "contributed": "Contributed to Open Food Facts by the public.",
+    "fallbackTitle": "Product",
+    "imageAlt": "Packaging of {name}",
+    "ingredients": "Ingredients",
+    "ingredientsList": "Ingredients list",
+    "labels": "Labels",
+    "lastEdited": "Last edited {date}.",
+    "loadFailed": "We couldn't load this product",
+    "noImage": "No photograph of {name} on record",
+    "noneListed": "None listed",
+    "notFound": "No product under that barcode",
+    "notFoundHint": "Nothing in the catalogue is registered as {code}. It may not have been contributed yet.",
+    "notReported": "Not reported",
+    "nutrition": "Nutrition",
+    "source": "Source",
+    "unnamed": "Unnamed product {code}",
+    "viewOriginal": "View the original record"
+  },
+  "filters": {
+    "clearAll": "Clear all",
+    "countTitle": "{count} product | {count} products",
+    "noOptions": "No options for the current results",
+    "processing": "Processing (NOVA)",
+    "showFewer": "Show fewer",
+    "showMore": "Show {count} more",
+    "title": "Filters"
+  },
+  "dimensions": {
+    "brand": {
+      "all": "All brands",
+      "allIncluded": "All brands included",
+      "failed": "Could not list the brands. Type to search.",
+      "loading": "Loading brands…",
+      "name": "Brand",
+      "noMatch": "No brands match",
+      "none": "No brands in this search",
+      "search": "Search brands"
+    },
+    "category": {
+      "all": "All categories",
+      "allIncluded": "All categories included",
+      "failed": "Could not list the categories. Type to search.",
+      "loading": "Loading categories…",
+      "name": "Category",
+      "noMatch": "No categories match",
+      "none": "No categories in this search",
+      "search": "Search categories"
+    },
+    "country": {
+      "all": "All countries",
+      "allIncluded": "All countries included",
+      "failed": "Could not list the countries. Type to search.",
+      "loading": "Loading countries…",
+      "name": "Country",
+      "noMatch": "No countries match",
+      "none": "No countries in this search",
+      "search": "Search countries"
+    },
+    "label": {
+      "all": "All labels",
+      "allIncluded": "All labels included",
+      "failed": "Could not list the labels. Type to search.",
+      "loading": "Loading labels…",
+      "name": "Label",
+      "noMatch": "No labels match",
+      "none": "No labels in this search",
+      "search": "Search labels"
+    }
+  },
+  "search": {
+    "label": "Search products",
+    "perPage": "Per page",
+    "placeholder": "Search by name, brand or ingredient",
+    "sort": "Sort",
+    "suggestions": "Filter suggestions"
+  },
+  "sort": {
+    "nutriscore": "Nutri-Score, best first",
+    "popularity": "Most scanned",
+    "relevance": "Relevance"
+  },
+  "export": {
+    "cancel": "Cancel",
+    "countFailed": "Could not count the products",
+    "counting": "Counting products",
+    "countingHint": "This takes a moment",
+    "description": "Choose the products that go in the file. It starts from the search you were looking at.",
+    "download": "Download CSV",
+    "empty": "No products match",
+    "emptyHint": "Remove a filter to widen the search",
+    "fullDataset": "Get the full Open Food Facts dataset (about 1.3 GB)",
+    "needEverything": "Need everything?",
+    "ready": "{count} product | {count} products",
+    "readyHint": "Every one of them, one row each",
+    "retry": "Try again",
+    "searching": "Searching…",
+    "term": "Contains the word",
+    "termPlaceholder": "Any word in the name, brand or ingredients",
+    "title": "Export to CSV",
+    "tooMany": "{limit}+ products",
+    "tooManyHint": "A file holds up to {limit}",
+    "tooManyLead": "More than {limit} products match.",
+    "tooManyText": "Add a filter to bring it under the limit, and every one of them goes in the file.",
+    "trigger": "Export CSV"
+  },
+  "nutriScore": {
+    "described": "Nutri-Score {grade}, on a scale from A, best, to E, worst",
+    "grade": {
+      "a": "Grade A",
+      "b": "Grade B",
+      "c": "Grade C",
+      "d": "Grade D",
+      "e": "Grade E",
+      "notApplicable": "Not applicable",
+      "unknown": "Not reported"
+    },
+    "notApplicable": "Nutri-Score not applicable",
+    "short": {
+      "a": "A",
+      "b": "B",
+      "c": "C",
+      "d": "D",
+      "e": "E",
+      "notApplicable": "N/A",
+      "unknown": "?"
+    },
+    "unknown": "Nutri-Score not reported"
+  },
+  "nova": {
+    "described": "NOVA group {group}, {name}",
+    "group": {
+      "1": "Unprocessed or minimally processed",
+      "2": "Processed culinary ingredient",
+      "3": "Processed food",
+      "4": "Ultra-processed food"
+    },
+    "short": {
+      "1": "Unprocessed",
+      "2": "Culinary ingredient",
+      "3": "Processed",
+      "4": "Ultra-processed",
+      "none": "Not classified"
+    },
+    "unknown": "NOVA processing group not available",
+    "unknownShort": "Unknown"
+  },
+  "nutrients": {
+    "carbohydrates": "Carbohydrates",
+    "energyKcal": "Energy",
+    "fat": "Fat",
+    "fiber": "Fibre",
+    "proteins": "Protein",
+    "salt": "Salt",
+    "saturatedFat": "Saturated fat",
+    "sodium": "Sodium",
+    "sugars": "Sugars"
+  },
+  "nutrientTable": {
+    "caption": "Nutrition per 100 grams or millilitres, with the share of an adult daily reference intake",
+    "fewReported": "Only {count} of {total} nutrients are reported for this product.",
+    "noData": "This product has no nutrition data. Most of the catalogue is contributed by the public, and many entries are incomplete.",
+    "noReference": "No reference value",
+    "notReported": "Not reported by the manufacturer",
+    "nutrient": "Nutrient",
+    "per100": "Per 100 g/ml",
+    "reference": "% RI",
+    "referenceLong": "Share of daily reference intake",
+    "rowNotReported": "{nutrient} not reported"
+  },
+  "charts": {
+    "brands": "Brands",
+    "categories": "Categories",
+    "facetTitle": "Top {facet} by number of products",
+    "nutriScoreTitle": "Products by Nutri-Score grade",
+    "products": "{count} product | {count} products",
+    "productsColumn": "Products",
+    "shareColumn": "Share"
+  },
+  "productRow": {
+    "energyKcal": "Energy",
+    "salt": "Salt",
+    "sugars": "Sugars"
+  }
+}

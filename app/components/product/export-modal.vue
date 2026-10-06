@@ -25,6 +25,8 @@ const props = defineProps<{
 
 const open = defineModel<boolean>('open', { required: true })
 
+const { t } = useI18n()
+const format = useFormat()
 const { query } = useProductQuery()
 
 const termId = useId()
@@ -120,19 +122,21 @@ const STATUS_ICONS = {
   empty: { name: 'circle-info', tone: 'text-ink-subtle' },
 } as const satisfies Record<ExportVerdict, { name: IconName; tone: string }>
 
+const limit = computed(() => format.count(MAX_TRACKED_HITS))
+
 const headline = computed(() => {
   const current = count.value
-  if (!current) return 'Counting products'
-  if (verdict.value === 'too-many') return `${formatCount(MAX_TRACKED_HITS)}+ products`
-  if (verdict.value === 'empty') return 'No products match'
-  return `${formatCount(current.totalCount)} ${current.totalCount === 1 ? 'product' : 'products'}`
+  if (!current) return t('export.counting')
+  if (verdict.value === 'too-many') return t('export.tooMany', { limit: limit.value })
+  if (verdict.value === 'empty') return t('export.empty')
+  return t('export.ready', { count: format.count(current.totalCount) }, current.totalCount)
 })
 
 const caption = computed(() => {
-  if (!count.value) return 'This takes a moment'
-  if (verdict.value === 'too-many') return `A file holds up to ${formatCount(MAX_TRACKED_HITS)}`
-  if (verdict.value === 'empty') return 'Remove a filter to widen the search'
-  return 'Every one of them, one row each'
+  if (!count.value) return t('export.countingHint')
+  if (verdict.value === 'too-many') return t('export.tooManyHint', { limit: limit.value })
+  if (verdict.value === 'empty') return t('export.emptyHint')
+  return t('export.readyHint')
 })
 
 const isDownloadable = computed(
@@ -151,16 +155,12 @@ function onDownload(event: MouseEvent) {
 </script>
 
 <template>
-  <UiModal
-    v-model:open="open"
-    title="Export to CSV"
-    description="Choose the products that go in the file. It starts from the search you were looking at."
-  >
+  <UiModal v-model:open="open" :title="t('export.title')" :description="t('export.description')">
     <div class="flex flex-col gap-5">
       <div class="flex flex-col gap-2">
-        <label :for="termId" class="text-overline text-ink-subtle uppercase"
-          >Contains the word</label
-        >
+        <label :for="termId" class="text-overline text-ink-subtle uppercase">{{
+          t('export.term')
+        }}</label>
         <div
           class="flex h-10 items-center gap-2.5 rounded-control border border-edge bg-surface-raised px-3 transition-colors focus-within:border-edge-accent hover:border-edge-strong"
           data-testid="export-term-field"
@@ -172,7 +172,7 @@ function onDownload(event: MouseEvent) {
             type="text"
             maxlength="120"
             autocomplete="off"
-            placeholder="Any word in the name, brand or ingredients"
+            :placeholder="t('export.termPlaceholder')"
             class="min-w-0 flex-1 bg-transparent text-body text-ink placeholder:text-ink-subtle focus:outline-none"
           />
           <UiSpinner v-if="isTermPending" class="reveal size-3.5 shrink-0 text-ink-accent" />
@@ -197,7 +197,9 @@ function onDownload(event: MouseEvent) {
         </fieldset>
 
         <fieldset class="border-0 p-0">
-          <legend class="mb-2 text-overline text-ink-subtle uppercase">Processing (NOVA)</legend>
+          <legend class="mb-2 text-overline text-ink-subtle uppercase">
+            {{ t('filters.processing') }}
+          </legend>
           <ProductNovaPicker :selected="nova" @toggle="nova = toggled(nova, $event)" />
         </fieldset>
       </div>
@@ -210,20 +212,18 @@ function onDownload(event: MouseEvent) {
         <UiIcon name="circle-info" class="mt-0.5 size-4 shrink-0 text-ink-accent" />
         <div class="flex flex-col gap-1.5">
           <p>
-            <strong class="font-semibold">
-              More than {{ formatCount(MAX_TRACKED_HITS) }} products match.
-            </strong>
-            Add a filter to bring it under the limit, and every one of them goes in the file.
+            <strong class="font-semibold">{{ t('export.tooManyLead', { limit }) }}</strong>
+            {{ t('export.tooManyText') }}
           </p>
           <p class="text-ink-muted">
-            Need everything?
+            {{ t('export.needEverything') }}
             <a
               :href="FULL_DATASET_URL"
               target="_blank"
               rel="noopener noreferrer"
               class="inline-flex items-center gap-1 font-semibold text-ink-accent underline underline-offset-2"
             >
-              Get the full Open Food Facts dataset (about 1.3 GB)
+              {{ t('export.fullDataset') }}
               <UiIcon name="arrow-up-right-from-square" class="size-2.5" />
             </a>
           </p>
@@ -240,13 +240,13 @@ function onDownload(event: MouseEvent) {
         >
           <template v-if="hasFailed">
             <UiIcon name="circle-info" class="size-3.5 text-danger" />
-            <p class="text-subheading text-danger">Could not count the products</p>
+            <p class="text-subheading text-danger">{{ t('export.countFailed') }}</p>
             <button
               type="button"
               class="col-start-2 justify-self-start text-caption text-ink-accent underline underline-offset-2"
               @click="refetch()"
             >
-              Try again
+              {{ t('export.retry') }}
             </button>
           </template>
 
@@ -278,7 +278,7 @@ function onDownload(event: MouseEvent) {
             class="inline-flex h-9 items-center justify-center rounded-control border border-edge-strong bg-surface-raised px-4 text-label text-ink transition-colors hover:bg-surface-hover max-sm:h-11 max-sm:flex-1"
             @click="open = false"
           >
-            Cancel
+            {{ t('export.cancel') }}
           </button>
           <a
             :href="isDownloadable ? href : undefined"
@@ -289,7 +289,7 @@ function onDownload(event: MouseEvent) {
             @click="onDownload"
           >
             <UiIcon name="download" class="size-3.5" />
-            Download CSV
+            {{ t('export.download') }}
           </a>
         </div>
       </div>

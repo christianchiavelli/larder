@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NOVA_FILTER_LABELS, NOVA_FILTER_VALUES, NOVA_UNGROUPED } from '#shared/domain/nutrition'
+import { NOVA_FILTER_VALUES, NOVA_UNGROUPED } from '#shared/domain/nutrition'
 import { activeFilterCount, hasActiveFilters } from '#shared/domain/search'
 import type { ProductSearchResult } from '#shared/domain/search'
 
@@ -8,6 +8,7 @@ defineProps<{
   loading?: boolean
 }>()
 
+const { t } = useI18n()
 const { query, toggleTag, toggleNutriScore, toggleNova, clearFilters } = useProductQuery()
 
 const filterCount = computed(() => activeFilterCount(query.value))
@@ -15,10 +16,10 @@ const showingFilters = computed(() => hasActiveFilters(query.value))
 </script>
 
 <template>
-  <aside class="flex shrink-0 flex-col gap-5 lg:w-[17rem]" aria-label="Filters">
+  <aside class="flex shrink-0 flex-col gap-5 lg:w-[17rem]" :aria-label="t('filters.title')">
     <div class="flex items-center justify-between gap-2">
       <h2 class="text-subheading text-ink">
-        Filters
+        {{ t('filters.title') }}
         <span v-if="filterCount > 0" class="text-label text-ink-subtle" data-numeric>
           ({{ filterCount }})
         </span>
@@ -29,7 +30,7 @@ const showingFilters = computed(() => hasActiveFilters(query.value))
         class="text-caption text-ink-accent underline underline-offset-2"
         @click="clearFilters()"
       >
-        Clear all
+        {{ t('filters.clearAll') }}
       </button>
     </div>
 
@@ -39,7 +40,9 @@ const showingFilters = computed(() => hasActiveFilters(query.value))
     </fieldset>
 
     <fieldset class="border-0 p-0">
-      <legend class="mb-2 text-overline text-ink-subtle uppercase">Processing (NOVA)</legend>
+      <legend class="mb-2 text-overline text-ink-subtle uppercase">
+        {{ t('filters.processing') }}
+      </legend>
       <div class="flex flex-col gap-1">
         <UiCheckboxRow
           v-for="group in NOVA_FILTER_VALUES"
@@ -48,14 +51,14 @@ const showingFilters = computed(() => hasActiveFilters(query.value))
           @toggle="toggleNova(group)"
         >
           <ProductNovaBadge :group="group === NOVA_UNGROUPED ? null : group" />
-          <span class="text-label text-ink">{{ NOVA_FILTER_LABELS[group] }}</span>
+          <span class="text-label text-ink">{{ t(`nova.short.${group}`) }}</span>
         </UiCheckboxRow>
       </div>
     </fieldset>
 
     <template v-if="facets || loading">
       <ProductFilterGroup
-        title="Category"
+        :title="t('dimensions.category.name')"
         :items="facets?.categories_tags ?? []"
         :selected="query.category"
         :loading="loading"
@@ -63,7 +66,7 @@ const showingFilters = computed(() => hasActiveFilters(query.value))
       />
 
       <ProductFilterGroup
-        title="Brand"
+        :title="t('dimensions.brand.name')"
         :items="facets?.brands_tags ?? []"
         :selected="query.brand"
         :loading="loading"
@@ -71,7 +74,7 @@ const showingFilters = computed(() => hasActiveFilters(query.value))
       />
 
       <ProductFilterGroup
-        title="Country"
+        :title="t('dimensions.country.name')"
         :items="facets?.countries_tags ?? []"
         :selected="query.country"
         :loading="loading"

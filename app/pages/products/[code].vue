@@ -6,10 +6,18 @@ definePageMeta({
   viewTransition: true,
 })
 
-const route = useRoute('products-code')
+const { t } = useI18n()
+const format = useFormat()
+const localePath = useLocalePath()
+const language = useLanguage()
+
+// Not by name: each language has a route of its own here, whose name ends in the language.
+const route = useRoute()
 const code = computed(() => String(route.params.code))
 
-const { state, asyncStatus, refresh } = useQuery(() => productDetailQuery(code.value))
+const { state, asyncStatus, refresh } = useQuery(() =>
+  productDetailQuery({ code: code.value, language: language.value }),
+)
 
 const product = computed(() => state.value.data)
 const error = computed(() => state.value.error)
@@ -17,16 +25,17 @@ const isLoading = computed(() => asyncStatus.value === 'loading' && !product.val
 
 useErrorStatus(error, refresh)
 
-const title = computed(() => (product.value ? productDisplayName(product.value) : 'Product'))
+const title = computed(() =>
+  product.value
+    ? productDisplayName(product.value, t('product.unnamed', { code: product.value.code }))
+    : t('product.fallbackTitle'),
+)
 
 useHead(() => ({ title: title.value }))
 
-const modifiedLabel = computed(() => {
-  if (!product.value?.lastModified) return null
-  return new Intl.DateTimeFormat('en', { dateStyle: 'medium' }).format(
-    new Date(product.value.lastModified),
-  )
-})
+const modifiedLabel = computed(() =>
+  product.value?.lastModified ? format.date(product.value.lastModified) : null,
+)
 
 const isNotFound = computed(
   () => (error.value as { statusCode?: number } | null)?.statusCode === 404,
@@ -36,27 +45,29 @@ const isNotFound = computed(
 <template>
   <UiPageContainer>
     <div class="flex flex-col gap-6">
-      <UiBreadcrumbs :items="[{ text: 'Products', to: '/products' }, { text: title }]" />
+      <UiBreadcrumbs
+        :items="[{ text: t('products.title'), to: localePath('/products') }, { text: title }]"
+      />
 
       <UiEmptyState
         v-if="isNotFound"
         :heading-level="1"
-        title="No product under that barcode"
-        :description="`Nothing in the catalogue is registered as ${code}. It may not have been contributed yet.`"
+        :title="t('product.notFound')"
+        :description="t('product.notFoundHint', { code })"
       >
         <NuxtLink
-          to="/products"
+          :to="localePath('/products')"
           class="inline-flex h-9 items-center justify-center rounded-control bg-accent px-4 text-label text-ink-on-accent transition-colors hover:bg-accent-hover"
         >
-          Browse products
+          {{ t('product.browse') }}
         </NuxtLink>
       </UiEmptyState>
 
       <UiErrorState
         v-else-if="error"
         :heading-level="1"
-        title="We couldn't load this product"
-        :description="SOURCE_UNAVAILABLE"
+        :title="t('product.loadFailed')"
+        :description="t('errors.sourceUnavailable')"
         :retrying="isLoading"
         @retry="refresh()"
       />
@@ -78,13 +89,13 @@ const isNotFound = computed(
                 ])
               "
               sizes="112px"
-              :alt="`Packaging of ${title}`"
+              :alt="t('product.imageAlt', { name: title })"
               width="112"
               height="112"
               decoding="async"
               class="size-full object-contain"
             />
-            <UiImageFallback v-else size="lg" :label="`No photograph of ${title} on record`" />
+            <UiImageFallback v-else size="lg" :label="t('product.noImage', { name: title })" />
           </div>
 
           <div class="flex min-w-0 flex-1 flex-col gap-1">
@@ -103,7 +114,7 @@ const isNotFound = computed(
               <li v-for="category in product.categories.slice(-4)" :key="category.id">
                 <UiChip
                   tone="neutral"
-                  :to="`/products?category=${encodeURIComponent(category.id)}`"
+                  :to="localePath({ path: '/products', query: { category: category.id } })"
                 >
                   {{ category.label }}
                 </UiChip>
@@ -125,7 +136,7 @@ const isNotFound = computed(
 
         <div data-scroll-section class="grid scroll-mt-6 gap-4 lg:grid-cols-3">
           <UiSurfaceCard class="lg:col-span-2">
-            <h2 class="mb-3 text-heading text-ink">Nutrition</h2>
+            <h2 class="mb-3 text-heading text-ink">{{ t('product.nutrition') }}</h2>
 
             <div v-if="isLoading" class="flex flex-col gap-2">
               <UiSkeleton v-for="index in 6" :key="index" class="h-6 w-full" />
@@ -136,11 +147,13 @@ const isNotFound = computed(
 
           <div class="flex flex-col gap-4">
             <UiSurfaceCard class="flex-1">
-              <h2 class="mb-3 text-heading text-ink">Composition</h2>
+              <h2 class="mb-3 text-heading text-ink">{{ t('product.composition') }}</h2>
 
               <dl class="flex flex-col gap-3 text-label">
                 <div>
-                  <dt class="text-overline text-ink-subtle uppercase">Ingredients</dt>
+                  <dt class="text-overline text-ink-subtle uppercase">
+                    {{ t('product.ingredients') }}
+                  </dt>
                   <dd class="text-ink">
                     <span
                       v-if="
@@ -150,24 +163,26 @@ const isNotFound = computed(
                     >
                       {{ product.ingredientCount }}
                     </span>
-                    <span v-else class="text-ink-subtle">Not reported</span>
+                    <span v-else class="text-ink-subtle">{{ t('product.notReported') }}</span>
                   </dd>
                 </div>
 
                 <div>
-                  <dt class="text-overline text-ink-subtle uppercase">Additives</dt>
+                  <dt class="text-overline text-ink-subtle uppercase">
+                    {{ t('product.additives') }}
+                  </dt>
                   <dd>
                     <ul v-if="product?.additives.length" class="mt-1 flex flex-wrap gap-1">
                       <li v-for="additive in product.additives" :key="additive.id">
                         <UiChip tone="muted">{{ additive.label }}</UiChip>
                       </li>
                     </ul>
-                    <span v-else class="text-ink-subtle">None listed</span>
+                    <span v-else class="text-ink-subtle">{{ t('product.noneListed') }}</span>
                   </dd>
                 </div>
 
                 <div v-if="product?.labels.length">
-                  <dt class="text-overline text-ink-subtle uppercase">Labels</dt>
+                  <dt class="text-overline text-ink-subtle uppercase">{{ t('product.labels') }}</dt>
                   <dd>
                     <ul class="mt-1 flex flex-wrap gap-1">
                       <li v-for="label in product.labels" :key="label.id">
@@ -180,10 +195,12 @@ const isNotFound = computed(
             </UiSurfaceCard>
 
             <UiSurfaceCard v-if="product" class="flex-1">
-              <h2 class="mb-2 text-heading text-ink">Source</h2>
+              <h2 class="mb-2 text-heading text-ink">{{ t('product.source') }}</h2>
               <p class="text-caption text-ink-muted">
-                Contributed to Open Food Facts by the public.
-                <template v-if="modifiedLabel"> Last edited {{ modifiedLabel }}.</template>
+                {{ t('product.contributed') }}
+                <template v-if="modifiedLabel">
+                  {{ t('product.lastEdited', { date: modifiedLabel }) }}</template
+                >
               </p>
               <a
                 :href="product.sourceUrl"
@@ -191,14 +208,14 @@ const isNotFound = computed(
                 rel="noopener noreferrer"
                 class="mt-2 inline-block text-caption text-ink-accent underline underline-offset-2"
               >
-                View the original record
+                {{ t('product.viewOriginal') }}
               </a>
             </UiSurfaceCard>
           </div>
         </div>
 
         <UiSurfaceCard v-if="product?.ingredientsText" data-scroll-section class="scroll-mt-6">
-          <h2 class="mb-2 text-heading text-ink">Ingredients list</h2>
+          <h2 class="mb-2 text-heading text-ink">{{ t('product.ingredientsList') }}</h2>
           <p class="text-body text-ink-muted">{{ product.ingredientsText }}</p>
         </UiSurfaceCard>
       </template>

@@ -5,10 +5,12 @@ export type BreadcrumbItem = {
 }
 
 defineProps<{ items: BreadcrumbItem[] }>()
+
+const { t } = useI18n()
 </script>
 
 <template>
-  <nav aria-label="Breadcrumb" class="min-w-0 text-label">
+  <nav :aria-label="t('ui.breadcrumb')" class="min-w-0 text-label">
     <ol class="flex min-w-0 flex-wrap items-center gap-1.5">
       <li v-for="(item, index) in items" :key="index" class="flex min-w-0 items-center gap-1.5">
         <NuxtLink

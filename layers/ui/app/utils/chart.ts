@@ -1,6 +1,8 @@
 import type { BarSeriesOption, EChartsOption } from 'echarts'
-import { formatCompact } from './format'
 import type { ChartTheme } from '../composables/use-chart-theme'
+
+/** Writes a number short enough for an axis tick or a bar's end, in the page's language. */
+type CompactFormat = (value: number) => string
 
 export const CHART_ARIA = { enabled: false } as const
 
@@ -20,12 +22,12 @@ export const NARROW_CATEGORY_LABELS = {
   option: { yAxis: { axisLabel: { width: 112, overflow: 'truncate' } } },
 } as const satisfies NonNullable<EChartsOption['media']>[number]
 
-export function valueAxis(theme: ChartTheme): EChartsOption['xAxis'] {
+export function valueAxis(theme: ChartTheme, compact: CompactFormat): EChartsOption['xAxis'] {
   return {
     type: 'value',
     axisLabel: {
       color: theme.inkMuted,
-      formatter: (value: number) => formatCompact(value),
+      formatter: (value: number) => compact(value),
       hideOverlap: true,
     },
     splitLine: { lineStyle: { color: theme.grid, type: 'dashed' } },
@@ -63,13 +65,13 @@ export function itemTooltip(
   }
 }
 
-export function barValueLabel(theme: ChartTheme): BarSeriesOption['label'] {
+export function barValueLabel(theme: ChartTheme, compact: CompactFormat): BarSeriesOption['label'] {
   return {
     show: true,
     position: 'right',
     color: theme.inkMuted,
     fontSize: 11,
-    formatter: (params) => formatCompact(Number(params.value ?? 0)),
+    formatter: (params) => compact(Number(params.value ?? 0)),
   }
 }
 

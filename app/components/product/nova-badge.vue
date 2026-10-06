@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NOVA_LABELS, NOVA_SHORT_LABELS, type NovaGroup } from '#shared/domain/nutrition'
+import type { NovaGroup } from '#shared/domain/nutrition'
 
 withDefaults(
   defineProps<{
@@ -16,6 +16,8 @@ const GROUP_CLASSES: Record<NovaGroup, string> = {
   3: 'bg-nova-3 text-nova-3-ink',
   4: 'bg-nova-4 text-nova-4-ink',
 }
+
+const { t } = useI18n()
 
 const SIZE_CLASSES = {
   sm: 'size-5 text-caption',
@@ -34,14 +36,14 @@ const SIZE_CLASSES = {
       role="img"
       :aria-label="
         group === null
-          ? 'NOVA processing group not available'
-          : `NOVA group ${group}, ${NOVA_LABELS[group]}`
+          ? t('nova.unknown')
+          : t('nova.described', { group, name: t(`nova.group.${group}`) })
       "
     >
       <span aria-hidden="true">{{ group ?? '?' }}</span>
     </span>
     <span v-if="withLabel" class="text-label text-ink-muted" aria-hidden="true">
-      {{ group === null ? 'Unknown' : NOVA_SHORT_LABELS[group] }}
+      {{ group === null ? t('nova.unknownShort') : t(`nova.short.${group}`) }}
     </span>
   </span>
 </template>

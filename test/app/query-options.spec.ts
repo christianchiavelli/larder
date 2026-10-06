@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick, ref } from 'vue'
+import type { Language } from '#shared/domain/language'
 import { productQuerySchema } from '#shared/domain/search'
+
+const language = ref<Language>('en')
+vi.mock('~/composables/use-language', () => ({ useLanguage: () => language }))
 
 const useQuery = vi.fn()
 vi.mock('@pinia/colada', async (importOriginal) => ({
@@ -39,6 +43,7 @@ function lastOptions(): QueryOptions {
 beforeEach(() => {
   useQuery.mockClear()
   $fetch.mockClear()
+  language.value = 'en'
 })
 
 describe('useProductSearch', () => {
@@ -47,7 +52,28 @@ describe('useProductSearch', () => {
   it('keys the cache on the query rather than on the ref', () => {
     useProductSearch(query)
 
-    expect(lastOptions().key()).toEqual(productSearchKey(query.value))
+    expect(lastOptions().key()).toEqual(productSearchKey(query.value, 'en'))
+  })
+
+  it('keys each language apart, since the names in the results differ', () => {
+    useProductSearch(query)
+    const before = lastOptions().key()
+
+    language.value = 'pt'
+
+    expect(lastOptions().key()).not.toEqual(before)
+  })
+
+  it('asks for the results in the language of the page', async () => {
+    language.value = 'pt'
+    useProductSearch(query)
+
+    await lastOptions().query()
+
+    expect($fetch).toHaveBeenCalledWith(
+      '/api/products',
+      expect.objectContaining({ query: expect.objectContaining({ lang: 'pt' }) }),
+    )
   })
 
   it('re-reads the query when it changes', () => {
@@ -121,7 +147,7 @@ describe('useProductFacet', () => {
   it('keys the cache on the dimension and the search around it', () => {
     useProductFacet('country', query, () => true)
 
-    expect(lastOptions().key()).toEqual(productFacetKey('country', query.value))
+    expect(lastOptions().key()).toEqual(productFacetKey('country', query.value, 'en'))
   })
 
   it('asks only while its caller says so, since facet reads are the scarce ones', () => {
@@ -144,21 +170,48 @@ describe('useProductFacet', () => {
       expect.objectContaining({ query: { q: 'chocolate' } }),
     )
   })
+
+  it('names the values in the language of the page', async () => {
+    language.value = 'pt'
+    useProductFacet('country', query, () => true)
+
+    await lastOptions().query()
+
+    expect(lastOptions().key()).toEqual(productFacetKey('country', query.value, 'pt'))
+    expect($fetch).toHaveBeenCalledWith(
+      '/api/products/facets/country',
+      expect.objectContaining({ query: { q: 'chocolate', lang: 'pt' } }),
+    )
+  })
 })
 
 describe('productDetailQuery', () => {
-  it('keys on the barcode', () => {
-    expect(productDetailQuery('3017620425035').key).toEqual(['product', '3017620425035'])
+  const nutella = { code: '3017620425035', language: 'en' } as const
+
+  it('keys on the language and the barcode', () => {
+    expect(productDetailQuery(nutella).key).toEqual(['product', 'en', '3017620425035'])
   })
 
   it('builds the same options for the same barcode', () => {
-    expect(productDetailQuery('3017620425035').key).toEqual(productDetailQuery('3017620425035').key)
+    expect(productDetailQuery(nutella).key).toEqual(productDetailQuery({ ...nutella }).key)
   })
 
-  it('fetches the product it was keyed on', async () => {
-    await productDetailQuery('3017620425035').query()
+  it('fetches the product it was keyed on, in English without saying so', async () => {
+    await productDetailQuery(nutella).query()
 
-    expect($fetch).toHaveBeenCalledWith('/api/products/3017620425035', expect.anything())
+    expect($fetch).toHaveBeenCalledWith(
+      '/api/products/3017620425035',
+      expect.objectContaining({ query: undefined }),
+    )
+  })
+
+  it('fetches the product in Portuguese when asked', async () => {
+    await productDetailQuery({ ...nutella, language: 'pt' }).query()
+
+    expect($fetch).toHaveBeenCalledWith(
+      '/api/products/3017620425035',
+      expect.objectContaining({ query: { lang: 'pt' } }),
+    )
   })
 })
 
@@ -175,13 +228,26 @@ describe('useSuggestions', () => {
   it('keys on the trimmed, lowercased term', () => {
     useSuggestions(ref('  ChocoLate  '))
 
-    expect(lastOptions().key()).toEqual(['suggest', 'category,brand', 'chocolate'])
+    expect(lastOptions().key()).toEqual(['suggest', 'en', 'category,brand', 'chocolate'])
+  })
+
+  it('keys and asks in the language of the page', async () => {
+    language.value = 'pt'
+    useSuggestions(ref('alem'), ['country'])
+
+    await lastOptions().query()
+
+    expect(lastOptions().key()).toEqual(['suggest', 'pt', 'country', 'alem'])
+    expect($fetch).toHaveBeenCalledWith(
+      '/api/suggest',
+      expect.objectContaining({ query: expect.objectContaining({ q: 'alem', lang: 'pt' }) }),
+    )
   })
 
   it('keys a single taxonomy apart from the default mix', () => {
     useSuggestions(ref('choc'), ['country'])
 
-    expect(lastOptions().key()).toEqual(['suggest', 'country', 'choc'])
+    expect(lastOptions().key()).toEqual(['suggest', 'en', 'country', 'choc'])
   })
 
   it('asks only for the taxonomies it was given', async () => {
@@ -229,10 +295,10 @@ describe('useSuggestions', () => {
       await type(term, text)
       vi.advanceTimersByTime(60)
     }
-    expect(lastOptions().key()).toEqual(['suggest', 'category,brand', 'pi'])
+    expect(lastOptions().key()).toEqual(['suggest', 'en', 'category,brand', 'pi'])
 
     vi.advanceTimersByTime(200)
-    expect(lastOptions().key()).toEqual(['suggest', 'category,brand', 'pizza'])
+    expect(lastOptions().key()).toEqual(['suggest', 'en', 'category,brand', 'pizza'])
   })
 
   it('says it is waiting while the person is still typing', async () => {

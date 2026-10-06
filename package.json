@@ -37,6 +37,7 @@
     "@fortawesome/fontawesome-svg-core": "^7.3.1",
     "@fortawesome/free-solid-svg-icons": "^7.3.1",
     "@fortawesome/vue-fontawesome": "^3.3.3",
+    "@nuxtjs/i18n": "^10.6.0",
     "@pinia/colada": "^1.4.4",
     "@pinia/colada-nuxt": "^1.1.0",
     "@pinia/nuxt": "^1.0.2",

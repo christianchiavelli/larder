@@ -1,11 +1,15 @@
 import { getQuery } from 'h3'
+import { languageSchema } from '#shared/domain/language'
 import type { Suggestion } from '#shared/domain/search'
 import { suggestTaxonomy } from '~~/server/services/suggest'
 import { useSearchClient } from '~~/server/utils/upstream-client'
 import { upstreamCache } from '~~/server/utils/cache-policy'
 
 export default defineCachedEventHandler(
-  async (event): Promise<Suggestion[]> => suggestTaxonomy(useSearchClient(), getQuery(event)),
+  async (event): Promise<Suggestion[]> => {
+    const query = getQuery(event)
+    return suggestTaxonomy(useSearchClient(), query, languageSchema.parse(query.lang))
+  },
   upstreamCache({
     name: 'taxonomy-suggest',
     maxAge: 60 * 60 * 24,
@@ -21,7 +25,11 @@ export default defineCachedEventHandler(
         .sort()
         .join('-')
       const limit = String(query.limit ?? 8)
-      return `${taxonomy || 'default'}__${limit}__${term}`.replace(/[^a-z0-9_-]/gi, '_')
+      const language = languageSchema.parse(query.lang)
+      return `${language}__${taxonomy || 'default'}__${limit}__${term}`.replace(
+        /[^a-z0-9_-]/gi,
+        '_',
+      )
     },
   }),
 )

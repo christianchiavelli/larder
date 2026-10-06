@@ -12,8 +12,11 @@ const props = withDefaults(
   { precision: 0, size: 'md', loading: false },
 )
 
+const { t } = useI18n()
+const format = useFormat()
+
 const formatted = computed(() =>
-  props.value === null ? null : formatMeasure(props.value, props.precision),
+  props.value === null ? null : format.measure(props.value, props.precision),
 )
 </script>
 
@@ -34,7 +37,7 @@ const formatted = computed(() =>
       </template>
       <span v-else class="text-ink-subtle">
         <span aria-hidden="true">&mdash;</span>
-        <span class="sr-only">Not reported</span>
+        <span class="sr-only">{{ t('ui.statTile.notReported') }}</span>
       </span>
     </p>
 

@@ -11,26 +11,6 @@ export const NUTRI_SCORE_VALUES = [...NUTRI_SCORE_GRADES, ...UNGRADED_REASONS] a
 export const nutriScoreSchema = z.enum(NUTRI_SCORE_VALUES)
 export type NutriScore = z.infer<typeof nutriScoreSchema>
 
-export const NUTRI_SCORE_SHORT_LABELS: Record<NutriScore, string> = {
-  a: 'A',
-  b: 'B',
-  c: 'C',
-  d: 'D',
-  e: 'E',
-  unknown: '?',
-  'not-applicable': 'N/A',
-}
-
-export const NUTRI_SCORE_LABELS: Record<NutriScore, string> = {
-  a: 'Grade A',
-  b: 'Grade B',
-  c: 'Grade C',
-  d: 'Grade D',
-  e: 'Grade E',
-  unknown: 'Not reported',
-  'not-applicable': 'Not applicable',
-}
-
 export function isUngraded(value: NutriScore): value is UngradedReason {
   return (UNGRADED_REASONS as readonly string[]).includes(value)
 }
@@ -48,25 +28,6 @@ export type NovaFilterValue = (typeof NOVA_FILTER_VALUES)[number]
 
 export const novaFilterValueSchema = z.union([novaGroupSchema, z.literal(NOVA_UNGROUPED)])
 
-export const NOVA_LABELS: Record<NovaGroup, string> = {
-  1: 'Unprocessed or minimally processed',
-  2: 'Processed culinary ingredient',
-  3: 'Processed food',
-  4: 'Ultra-processed food',
-}
-
-export const NOVA_SHORT_LABELS: Record<NovaGroup, string> = {
-  1: 'Unprocessed',
-  2: 'Culinary ingredient',
-  3: 'Processed',
-  4: 'Ultra-processed',
-}
-
-export const NOVA_FILTER_LABELS: Record<NovaFilterValue, string> = {
-  ...NOVA_SHORT_LABELS,
-  [NOVA_UNGROUPED]: 'Not classified',
-}
-
 export const NUTRIENT_KEYS = [
   'energyKcal',
   'fat',
@@ -83,6 +44,7 @@ export type NutrientKey = (typeof NUTRIENT_KEYS)[number]
 
 export interface NutrientDescriptor {
   key: NutrientKey
+  /** The name the CSV export heads its column with, in English whatever the page's language. */
   label: string
   unit: 'kcal' | 'g'
   precision: number

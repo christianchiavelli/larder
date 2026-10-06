@@ -45,6 +45,16 @@ describe('searchProducts', () => {
     expect(result.isTotalExact).toBe(true)
   })
 
+  it('names the products in Portuguese for a Portuguese page', async () => {
+    const client = stubClient(
+      upstreamResponse({ hits: [{ ...HIT, product_name_pt: 'Produto de teste' }] }),
+    )
+
+    const result = await searchProducts(client, query(), 'pt')
+
+    expect(result.items[0]!.name).toBe('Produto de teste')
+  })
+
   it('requests only the fields the summary needs, not the full record', async () => {
     const client = stubClient(upstreamResponse())
 

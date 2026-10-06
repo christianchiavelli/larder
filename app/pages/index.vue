@@ -12,6 +12,10 @@ definePageMeta({
   viewTransition: true,
 })
 
+const { t } = useI18n()
+const format = useFormat()
+const localePath = useLocalePath()
+
 const query = computed(() => ({ ...EMPTY_PRODUCT_QUERY, sort: 'popularity' as const }))
 const { state, asyncStatus } = useProductSearch(query)
 
@@ -39,32 +43,26 @@ const term = ref('')
 
 function search() {
   const q = term.value.trim()
-  return navigateTo({ path: '/products', query: q ? { q } : {} })
+  return navigateTo(localePath({ path: '/products', query: q ? { q } : {} }))
 }
 
 const EXAMPLES = [
   {
-    dimension: 'Nutri-Score',
-    label: 'Graded A',
-    detail: 'The best grade the scheme gives',
+    key: 'gradedA',
     query: { nutriScore: 'a' satisfies NutriScore },
     count: () => distribution.value.a,
   },
   {
-    dimension: 'Processing',
-    label: 'Ultra-processed',
-    detail: 'NOVA group 4, the most processed',
+    key: 'ultraProcessed',
     query: { nova: String(4 satisfies NovaGroup) },
     count: () => result.value?.novaDistribution[4],
   },
   {
-    dimension: 'Nutri-Score',
-    label: 'No grade on record',
-    detail: 'The largest group in the catalogue',
+    key: 'ungraded',
     query: { nutriScore: 'unknown' satisfies NutriScore },
     count: () => distribution.value.unknown,
   },
-]
+] as const
 </script>
 
 <template>
@@ -73,23 +71,28 @@ const EXAMPLES = [
       <h1
         class="max-w-3xl font-serif text-[2rem] leading-[1.15] font-semibold text-ink sm:text-[2.75rem] sm:leading-[1.1] lg:text-[3.25rem]"
       >
-        Every packaged food, measured the same way
+        {{ t('home.headline') }}
       </h1>
 
-      <p class="mt-4 max-w-xl text-lead text-ink-muted">
-        Nutrition, processing and labelling across a public catalogue of
-        <span data-numeric class="text-ink">{{
-          figures ? formatCount(figures.total) : '3.5 million'
-        }}</span>
-        products.
-      </p>
+      <i18n-t
+        :keypath="figures ? 'home.lead' : 'home.leadApproximate'"
+        tag="p"
+        scope="global"
+        class="mt-4 max-w-xl text-lead text-ink-muted"
+      >
+        <template #count>
+          <span data-numeric class="text-ink">{{
+            figures ? format.count(figures.total) : t('home.leadApproximateCount')
+          }}</span>
+        </template>
+      </i18n-t>
 
       <form
         class="mt-8 flex w-full max-w-2xl flex-col gap-2 sm:flex-row"
         role="search"
         @submit.prevent="search"
       >
-        <label for="hero-search" class="sr-only">Search the catalogue</label>
+        <label for="hero-search" class="sr-only">{{ t('home.searchLabel') }}</label>
         <div class="relative min-w-0 flex-1">
           <UiIcon
             name="search"
@@ -99,7 +102,7 @@ const EXAMPLES = [
             id="hero-search"
             v-model="term"
             type="search"
-            placeholder="Search a product, brand or category"
+            :placeholder="t('home.searchPlaceholder')"
             class="w-full rounded-control border border-edge bg-surface-raised py-3.5 pr-4 pl-11 text-body text-ink shadow-raised placeholder:text-ink-subtle focus-visible:border-edge-accent focus-visible:outline-none"
           />
         </div>
@@ -107,26 +110,36 @@ const EXAMPLES = [
           type="submit"
           class="shrink-0 rounded-control bg-accent px-6 py-3 text-label text-ink-on-accent shadow-raised transition-colors hover:bg-accent-hover sm:py-0"
         >
-          Search
+          {{ t('home.search') }}
         </button>
       </form>
 
       <ul class="mt-8 grid w-full max-w-4xl gap-3 sm:grid-cols-3">
-        <li v-for="example in EXAMPLES" :key="example.label">
+        <li v-for="example in EXAMPLES" :key="example.key">
           <NuxtLink
-            :to="{ path: '/products', query: example.query }"
+            :to="localePath({ path: '/products', query: example.query })"
             class="group flex h-full flex-col gap-1 rounded-card border border-edge-subtle bg-surface-raised/80 p-4 text-left backdrop-blur-sm transition-colors hover:border-edge-accent"
           >
-            <span class="text-overline text-ink-subtle">{{ example.dimension }}</span>
-            <span class="text-subheading text-ink group-hover:text-ink-accent">
-              {{ example.label }}
+            <span class="text-overline text-ink-subtle">
+              {{ t(`home.examples.${example.key}.dimension`) }}
             </span>
-            <span class="text-caption text-ink-muted">{{ example.detail }}</span>
+            <span class="text-subheading text-ink group-hover:text-ink-accent">
+              {{ t(`home.examples.${example.key}.label`) }}
+            </span>
+            <span class="text-caption text-ink-muted">
+              {{ t(`home.examples.${example.key}.detail`) }}
+            </span>
             <span class="mt-1 min-h-4 text-caption text-ink-subtle">
-              <template v-if="example.count() !== undefined">
-                <span data-numeric>{{ formatCountCompact(example.count()!) }}</span>
-                products
-              </template>
+              <i18n-t
+                v-if="example.count() !== undefined"
+                keypath="home.exampleCount"
+                :plural="example.count()!"
+                scope="global"
+              >
+                <template #count>
+                  <span data-numeric>{{ format.countCompact(example.count()!) }}</span>
+                </template>
+              </i18n-t>
             </span>
           </NuxtLink>
         </li>
@@ -136,12 +149,12 @@ const EXAMPLES = [
     <UiPageContainer>
       <section data-scroll-section class="flex scroll-mt-6 flex-col gap-3">
         <div class="flex items-baseline justify-between gap-4">
-          <h2 class="text-heading text-ink">Most scanned</h2>
+          <h2 class="text-heading text-ink">{{ t('home.mostScanned') }}</h2>
           <NuxtLink
-            to="/products?sort=popularity"
+            :to="localePath({ path: '/products', query: { sort: 'popularity' } })"
             class="inline-flex items-center gap-1.5 text-label text-ink-muted hover:text-ink-accent"
           >
-            See all
+            {{ t('home.seeAll') }}
             <UiIcon name="chevron-right" class="size-2.5" />
           </NuxtLink>
         </div>

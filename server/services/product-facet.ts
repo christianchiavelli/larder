@@ -1,3 +1,4 @@
+import { DEFAULT_LANGUAGE, type Language } from '#shared/domain/language'
 import {
   FACET_FIELD_OF,
   type FacetItem,
@@ -13,6 +14,7 @@ export async function topFacetValues(
   client: UpstreamClient,
   query: ProductQuery,
   dimension: TagDimension,
+  language: Language = DEFAULT_LANGUAGE,
 ): Promise<FacetItem[]> {
   const field = FACET_FIELD_OF[dimension]
 
@@ -25,5 +27,5 @@ export async function topFacetValues(
   })
 
   const facet = response.facets?.[field]
-  return facet ? mapFacet(field, facet.items) : []
+  return facet ? mapFacet(field, facet.items, language) : []
 }

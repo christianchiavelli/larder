@@ -4,6 +4,7 @@ import { useScrollSections } from '../composables/use-scroll-sections'
 
 const sentinel = ref<HTMLElement | null>(null)
 const { hasNext, goToNext } = useScrollSections(sentinel)
+const { t } = useI18n()
 </script>
 
 <template>
@@ -22,7 +23,7 @@ const { hasNext, goToNext } = useScrollSections(sentinel)
       @click="goToNext"
     >
       <UiIcon name="arrow-down" class="size-4" />
-      <span class="sr-only">Skip to the next section</span>
+      <span class="sr-only">{{ t('ui.seeMore') }}</span>
     </button>
   </Transition>
 </template>

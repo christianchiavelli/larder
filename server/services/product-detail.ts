@@ -1,5 +1,6 @@
 import { createError } from 'h3'
 import { ZodError, z } from 'zod'
+import { DEFAULT_LANGUAGE, type Language } from '#shared/domain/language'
 import type { ProductDetail } from '#shared/domain/product'
 import {
   PRODUCT_FIELDS,
@@ -15,6 +16,7 @@ export async function getProductDetail(
   client: UpstreamClient,
   rawCode: string | undefined,
   productBase: string,
+  language: Language = DEFAULT_LANGUAGE,
 ): Promise<ProductDetail> {
   const parsed = barcodeSchema.safeParse(rawCode)
 
@@ -52,5 +54,5 @@ export async function getProductDetail(
     })
   }
 
-  return mapProductDetail(response.product, productBase)
+  return mapProductDetail(response.product, productBase, language)
 }

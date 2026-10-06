@@ -1,4 +1,5 @@
 import { ZodError } from 'zod'
+import { DEFAULT_LANGUAGE, type Language } from '#shared/domain/language'
 import type { ProductSummary } from '#shared/domain/product'
 import {
   FACET_FIELDS,
@@ -36,6 +37,7 @@ export async function fetchSearchPage(
   client: UpstreamClient,
   params: Record<string, unknown>,
   options?: UpstreamRequestOptions,
+  language: Language = DEFAULT_LANGUAGE,
 ): Promise<SearchPage> {
   let raw: unknown
   try {
@@ -52,7 +54,7 @@ export async function fetchSearchPage(
     throw error
   }
 
-  const { items, rejected } = mapSearchHits(response.hits)
+  const { items, rejected } = mapSearchHits(response.hits, language)
 
   if (rejected > 0) {
     console.warn('[search] dropped unparseable hits', { rejected, total: response.hits.length })
@@ -64,21 +66,27 @@ export async function fetchSearchPage(
 export async function searchProducts(
   client: UpstreamClient,
   query: ProductQuery,
+  language: Language = DEFAULT_LANGUAGE,
 ): Promise<ProductSearchResult> {
   const page = Math.min(query.page, maxPageFor(query.pageSize))
 
-  const { response, items } = await fetchSearchPage(client, {
-    ...buildProductQuery(query),
-    page,
-    page_size: query.pageSize,
-    fields: REQUESTED_FIELDS,
-    facets: REQUESTED_FACETS,
-  })
+  const { response, items } = await fetchSearchPage(
+    client,
+    {
+      ...buildProductQuery(query),
+      page,
+      page_size: query.pageSize,
+      fields: REQUESTED_FIELDS,
+      facets: REQUESTED_FACETS,
+    },
+    undefined,
+    language,
+  )
 
   const facets: Record<string, ReturnType<typeof mapFacet>> = {}
   for (const field of FACET_FIELDS) {
     const facet = response.facets?.[field]
-    if (facet) facets[field] = mapFacet(field, facet.items)
+    if (facet) facets[field] = mapFacet(field, facet.items, language)
   }
 
   const distribution: Partial<Record<NutriScore, number>> = {}

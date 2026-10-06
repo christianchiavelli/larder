@@ -6,6 +6,7 @@ defineProps<{
   facets: ProductSearchResult['facets'] | null
 }>()
 
+const { t } = useI18n()
 const { query } = useProductQuery()
 
 const open = ref(false)
@@ -19,13 +20,13 @@ const TRIGGER_CLASSES =
   <ClientOnly>
     <button type="button" aria-haspopup="dialog" :class="TRIGGER_CLASSES" @click="open = true">
       <UiIcon name="download" class="size-3" />
-      Export CSV
+      {{ t('export.trigger') }}
     </button>
 
     <template #fallback>
       <a :href="href" download :class="TRIGGER_CLASSES">
         <UiIcon name="download" class="size-3" />
-        Export CSV
+        {{ t('export.trigger') }}
       </a>
     </template>
   </ClientOnly>

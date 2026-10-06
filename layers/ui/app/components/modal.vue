@@ -6,6 +6,8 @@ defineProps<{
 
 const open = defineModel<boolean>('open', { required: true })
 
+const { t } = useI18n()
+
 const dialog = useTemplateRef<HTMLDialogElement>('dialog')
 const titleId = useId()
 const descriptionId = useId()
@@ -107,7 +109,7 @@ function onClick(event: MouseEvent) {
         <button
           type="button"
           class="-mt-1 -mr-2 inline-flex size-8 shrink-0 items-center justify-center rounded-control text-ink-muted transition-colors hover:bg-surface-hover hover:text-ink"
-          aria-label="Close"
+          :aria-label="t('ui.modal.close')"
           @click="open = false"
         >
           <UiIcon name="xmark" class="size-4" />

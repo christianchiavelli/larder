@@ -17,13 +17,9 @@ export const MAX_TRACKED_HITS = 10_000
 export const PAGE_SIZES = [24, 48, 96] as const
 export const DEFAULT_PAGE_SIZE = 24
 
-export const SORT_OPTIONS = [
-  { value: 'relevance', label: 'Relevance' },
-  { value: 'nutriscore', label: 'Nutri-Score, best first' },
-  { value: 'popularity', label: 'Most scanned' },
-] as const
+export const SORT_OPTIONS = ['relevance', 'nutriscore', 'popularity'] as const
 
-export type SortOption = (typeof SORT_OPTIONS)[number]['value']
+export type SortOption = (typeof SORT_OPTIONS)[number]
 
 export const UPSTREAM_SORT_FIELDS: Record<SortOption, string | null> = {
   nutriscore: 'nutriscore_score',
@@ -31,7 +27,7 @@ export const UPSTREAM_SORT_FIELDS: Record<SortOption, string | null> = {
   relevance: null,
 }
 
-export const sortSchema = z.enum(SORT_OPTIONS.map((option) => option.value))
+export const sortSchema = z.enum(SORT_OPTIONS)
 
 const tagList = z
   .preprocess(

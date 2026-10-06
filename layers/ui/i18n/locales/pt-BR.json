@@ -1,0 +1,27 @@
+{
+  "ui": {
+    "breadcrumb": "Trilha de navegação",
+    "combobox": {
+      "clear": "Limpar",
+      "optionCount": "{option}, {count}",
+      "remove": "Remover {option}",
+      "selected": "{count} selecionado | {count} selecionados"
+    },
+    "errorState": {
+      "retry": "Tentar de novo"
+    },
+    "modal": {
+      "close": "Fechar"
+    },
+    "pagination": {
+      "label": "Paginação",
+      "next": "Próxima página",
+      "page": "Página {page}",
+      "previous": "Página anterior"
+    },
+    "seeMore": "Pular para a próxima seção",
+    "statTile": {
+      "notReported": "Não informado"
+    }
+  }
+}

@@ -22,6 +22,9 @@ const selected = defineModel<Option[]>({ required: true })
 const search = defineModel<string>('search', { required: true })
 const isOpen = defineModel<boolean>('open', { default: false })
 
+const { t } = useI18n()
+const format = useFormat()
+
 const id = useId()
 const labelId = `${id}-label`
 const valueId = `${id}-value`
@@ -158,7 +161,7 @@ function onToggle() {
           <button
             type="button"
             class="pointer-events-auto inline-flex size-4 shrink-0 items-center justify-center rounded-pill text-ink-subtle transition-colors hover:bg-surface-selected hover:text-ink"
-            :aria-label="`Remove ${option.label}`"
+            :aria-label="t('ui.combobox.remove', { option: option.label })"
             @click="remove(option)"
           >
             <UiIcon name="xmark" class="size-2.5" />
@@ -214,13 +217,15 @@ function onToggle() {
       >
         <span v-if="selected.length === 0" class="reveal text-ink-subtle">{{ allLabel }}</span>
         <template v-else>
-          <span class="reveal text-ink-muted" data-numeric>{{ selected.length }} selected</span>
+          <span class="reveal text-ink-muted" data-numeric>{{
+            t('ui.combobox.selected', { count: selected.length }, selected.length)
+          }}</span>
           <button
             type="button"
             class="reveal rounded-control px-1 text-ink-accent underline underline-offset-2 transition-colors hover:text-accent-hover"
             @click="clear"
           >
-            Clear
+            {{ t('ui.combobox.clear') }}
           </button>
         </template>
       </div>
@@ -240,7 +245,12 @@ function onToggle() {
           role="option"
           :aria-selected="isChecked(entry)"
           :aria-label="
-            entry.count === undefined ? undefined : `${entry.label}, ${formatCount(entry.count)}`
+            entry.count === undefined
+              ? undefined
+              : t('ui.combobox.optionCount', {
+                  option: entry.label,
+                  count: format.count(entry.count),
+                })
           "
           class="reveal flex cursor-pointer items-center gap-2.5 rounded-control px-2 py-1.5 text-label"
           :class="index === activeIndex ? 'bg-surface-hover text-ink-accent' : 'text-ink'"
@@ -264,11 +274,11 @@ function onToggle() {
             v-if="entry.count !== undefined"
             class="shrink-0 text-caption font-normal tabular-nums"
             :class="index === activeIndex ? 'text-ink-muted' : 'text-ink-subtle'"
-            :title="formatCount(entry.count)"
+            :title="format.count(entry.count)"
             aria-hidden="true"
             data-numeric
           >
-            {{ formatCountCompact(entry.count) }}
+            {{ format.countCompact(entry.count) }}
           </span>
         </li>
       </ul>

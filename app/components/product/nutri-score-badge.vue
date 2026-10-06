@@ -1,10 +1,5 @@
 <script setup lang="ts">
-import {
-  NUTRI_SCORE_LABELS,
-  NUTRI_SCORE_SHORT_LABELS,
-  isUngraded,
-  type NutriScore,
-} from '#shared/domain/nutrition'
+import { isUngraded, type NutriScore } from '#shared/domain/nutrition'
 
 const props = withDefaults(
   defineProps<{
@@ -30,12 +25,14 @@ const SIZE_CLASSES = {
   lg: 'h-10 min-w-10 text-heading',
 } as const
 
-const display = computed(() => NUTRI_SCORE_SHORT_LABELS[props.grade])
+const { t } = useI18n()
+
+const display = computed(() => t(`nutriScore.short.${nutriScoreKey(props.grade)}`))
 
 const label = computed(() =>
   isUngraded(props.grade)
-    ? `Nutri-Score ${NUTRI_SCORE_LABELS[props.grade].toLowerCase()}`
-    : `Nutri-Score ${props.grade.toUpperCase()}, on a scale from A, best, to E, worst`,
+    ? t(`nutriScore.${nutriScoreKey(props.grade)}`)
+    : t('nutriScore.described', { grade: props.grade.toUpperCase() }),
 )
 </script>
 

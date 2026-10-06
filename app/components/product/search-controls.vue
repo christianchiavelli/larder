@@ -3,6 +3,7 @@ import { watchDebounced } from '@vueuse/core'
 import { SORT_OPTIONS, type ProductQuery, type SortOption } from '#shared/domain/search'
 import type { TaxonomyName } from '#shared/domain/taxonomy'
 
+const { t } = useI18n()
 const { query, apply, setSearchTerm, setSort } = useProductQuery()
 
 const term = ref(query.value.q)
@@ -117,22 +118,22 @@ function onKeydown(event: KeyboardEvent) {
   }
 }
 
-function labelFor(taxonomy: FilterableTaxonomy): string {
-  return { category: 'Category', brand: 'Brand', country: 'Country', label: 'Label' }[taxonomy]
-}
+const sortOptions = computed(() =>
+  SORT_OPTIONS.map((value) => ({ value, label: t(`sort.${value}`) })),
+)
 </script>
 
 <template>
   <div class="flex flex-col gap-3 border-b border-edge-subtle p-3 sm:flex-row sm:items-center">
     <div class="relative flex-1">
-      <label for="product-search" class="sr-only">Search products</label>
+      <label for="product-search" class="sr-only">{{ t('search.label') }}</label>
 
       <input
         id="product-search"
         v-model="term"
         type="search"
         role="combobox"
-        placeholder="Search by name, brand or ingredient"
+        :placeholder="t('search.placeholder')"
         autocomplete="off"
         aria-autocomplete="list"
         :aria-expanded="isExpanded"
@@ -148,7 +149,7 @@ function labelFor(taxonomy: FilterableTaxonomy): string {
         v-show="isExpanded"
         :id="listboxId"
         role="listbox"
-        aria-label="Filter suggestions"
+        :aria-label="t('search.suggestions')"
         class="absolute top-full right-0 left-0 z-30 mt-1 overflow-hidden rounded-card border border-edge bg-surface-overlay py-1 shadow-overlay"
       >
         <li
@@ -164,12 +165,12 @@ function labelFor(taxonomy: FilterableTaxonomy): string {
         >
           <span class="truncate text-label">{{ suggestion.label }}</span>
           <span class="ml-auto shrink-0 text-caption text-ink-subtle">
-            {{ labelFor(suggestion.taxonomy as FilterableTaxonomy) }}
+            {{ t(`dimensions.${suggestion.taxonomy as FilterableTaxonomy}.name`) }}
           </span>
         </li>
       </ul>
     </div>
 
-    <UiSelectField v-model="sortValue" label="Sort" :options="SORT_OPTIONS" />
+    <UiSelectField v-model="sortValue" :label="t('search.sort')" :options="sortOptions" />
   </div>
 </template>

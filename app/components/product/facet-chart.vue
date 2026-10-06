@@ -12,6 +12,8 @@ const props = withDefaults(
   { limit: 8, loading: false },
 )
 
+const { t, localeProperties } = useI18n()
+const format = useFormat()
 const theme = useChartTheme()
 const top = computed(() => [...props.items].sort((a, b) => b.count - a.count).slice(0, props.limit))
 
@@ -22,14 +24,16 @@ function truncate(label: string, max = 28): string {
 const option = computed<EChartsOption>(() => ({
   aria: CHART_ARIA,
   grid: CHART_GRID,
-  xAxis: valueAxis(theme.value),
+  xAxis: valueAxis(theme.value, format.compact),
   yAxis: categoryAxis(
     theme.value,
     top.value.map((item) => truncate(item.label)),
   ),
   tooltip: itemTooltip(theme.value, (index) => {
     const item = top.value[index]
-    return item ? `${item.label}<br>${formatCount(item.count)} products` : ''
+    return item
+      ? `${item.label}<br>${t('charts.products', { count: format.count(item.count) }, item.count)}`
+      : ''
   }),
   series: [
     {
@@ -37,23 +41,29 @@ const option = computed<EChartsOption>(() => ({
       data: top.value.map((item) => item.count),
       itemStyle: { color: theme.value.series[0], borderRadius: BAR_RADIUS },
       barMaxWidth: 20,
-      label: barValueLabel(theme.value),
+      label: barValueLabel(theme.value, format.compact),
     },
   ],
   media: [NARROW_CATEGORY_LABELS],
 }))
 
 const dataTable = computed(() => ({
-  columns: [props.title, 'Products'],
-  rows: top.value.map((item) => [item.label, formatCount(item.count)]),
+  columns: [props.title, t('charts.productsColumn')],
+  rows: top.value.map((item) => [item.label, format.count(item.count)]),
 }))
+
+const chartTitle = computed(() =>
+  t('charts.facetTitle', {
+    facet: props.title.toLocaleLowerCase(localeProperties.value.language),
+  }),
+)
 </script>
 
 <template>
   <UiChart
     :option="option"
     :loading="loading"
-    :title="`Top ${title.toLowerCase()} by number of products`"
+    :title="chartTitle"
     height="18rem"
     :data-table="dataTable"
   />

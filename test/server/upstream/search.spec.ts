@@ -5,6 +5,7 @@ import {
   mapNutriScore,
   mapNutriments,
   mapSearchHits,
+  textInLanguage,
 } from '~~/server/upstream/search'
 import { EMPTY_NUTRIENT_PROFILE } from '#shared/domain/nutrition'
 
@@ -47,7 +48,35 @@ const RICH_HIT = {
   },
 }
 
+describe('textInLanguage', () => {
+  const both = { en: 'Hazelnut spread', pt: 'Creme de avelã' }
+
+  it('reads the Portuguese text on a Portuguese page', () => {
+    expect(textInLanguage('pt', both, 'Pâte à tartiner')).toBe('Creme de avelã')
+  })
+
+  it('falls back to the English text, then to the one entered, when there is no Portuguese', () => {
+    expect(textInLanguage('pt', { en: 'Hazelnut spread', pt: null }, 'Pâte')).toBe(
+      'Hazelnut spread',
+    )
+    expect(textInLanguage('pt', { en: null, pt: null }, 'Pâte')).toBe('Pâte')
+  })
+
+  it('never reads the Portuguese text on an English page', () => {
+    expect(textInLanguage('en', both, 'Pâte')).toBe('Hazelnut spread')
+    expect(textInLanguage('en', { en: null, pt: 'Creme de avelã' }, 'Pâte')).toBe('Pâte')
+  })
+})
+
 describe('mapSearchHits', () => {
+  it('names a product in Portuguese when the page asks for it', () => {
+    const hit = { ...RICH_HIT, product_name_pt: 'Nutella creme de avelã' }
+
+    expect(mapSearchHits([hit], 'pt').items[0]!.name).toBe('Nutella creme de avelã')
+    expect(mapSearchHits([hit]).items[0]!.name).toBe('Nutella')
+    expect(mapSearchHits([RICH_HIT], 'pt').items[0]!.name).toBe('Nutella')
+  })
+
   it('maps a hit that omits every optional field', () => {
     const { items, rejected } = mapSearchHits([MINIMAL_HIT])
 
@@ -272,6 +301,19 @@ describe('mapFacet', () => {
       'Switzerland',
       'Canada',
     ])
+  })
+
+  it('names a country in Portuguese for a Portuguese page', () => {
+    const facets = mapFacet(
+      'countries_tags',
+      [
+        { key: 'en:france', name: 'FRA', count: 37_646 },
+        { key: 'en:poland', name: 'Poland', count: 1_204 },
+      ],
+      'pt',
+    )
+
+    expect(facets.map((facet) => facet.label)).toEqual(['França', 'Polônia'])
   })
 
   it('leaves the names of every other dimension to upstream', () => {

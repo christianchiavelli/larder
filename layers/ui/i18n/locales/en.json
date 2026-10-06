@@ -1,0 +1,27 @@
+{
+  "ui": {
+    "breadcrumb": "Breadcrumb",
+    "combobox": {
+      "clear": "Clear",
+      "optionCount": "{option}, {count}",
+      "remove": "Remove {option}",
+      "selected": "{count} selected"
+    },
+    "errorState": {
+      "retry": "Try again"
+    },
+    "modal": {
+      "close": "Close"
+    },
+    "pagination": {
+      "label": "Pagination",
+      "next": "Next page",
+      "page": "Page {page}",
+      "previous": "Previous page"
+    },
+    "seeMore": "Skip to the next section",
+    "statTile": {
+      "notReported": "Not reported"
+    }
+  }
+}

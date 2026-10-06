@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook-vue/nuxt'
 import type { EChartsOption } from 'echarts'
 import { computed } from 'vue'
 import { useChartTheme } from '../composables/use-chart-theme'
+import { useFormat } from '../composables/use-format'
 import {
   BAR_RADIUS,
   CHART_ARIA,
@@ -42,10 +43,11 @@ const meta = {
     components: { UiChart },
     setup() {
       const theme = useChartTheme()
+      const format = useFormat()
       const option = computed<EChartsOption>(() => ({
         aria: CHART_ARIA,
         grid: CHART_GRID,
-        xAxis: valueAxis(theme.value),
+        xAxis: valueAxis(theme.value, format.compact),
         yAxis: categoryAxis(
           theme.value,
           ROWS.map(([label]) => label),
@@ -56,7 +58,7 @@ const meta = {
             data: ROWS.map(([, count]) => count),
             itemStyle: { color: theme.value.series[0], borderRadius: BAR_RADIUS },
             barMaxWidth: 20,
-            label: barValueLabel(theme.value),
+            label: barValueLabel(theme.value, format.compact),
           },
         ],
       }))

@@ -6,6 +6,7 @@ import {
   type NutrientProfile,
   type NutriScore,
 } from '#shared/domain/nutrition'
+import { DEFAULT_LANGUAGE, type Language } from '#shared/domain/language'
 import { normaliseBrands, type ProductSummary } from '#shared/domain/product'
 import { toCountryTag } from '#shared/domain/country'
 import { toTaxonomyTag } from '#shared/domain/taxonomy'
@@ -30,6 +31,7 @@ export const SUMMARY_FIELDS = [
   'code',
   'product_name',
   'product_name_en',
+  'product_name_pt',
   'brands',
   'categories_tags',
   'nutriscore_grade',
@@ -41,6 +43,7 @@ const upstreamHitSchema = z.looseObject({
   code: z.union([z.string(), z.number()]).transform(String),
   product_name: looseString,
   product_name_en: looseString,
+  product_name_pt: looseString,
   brands: looseStringArray,
   categories_tags: looseStringArray,
   nutriscore_grade: looseString,
@@ -125,10 +128,27 @@ export function mapNovaGroup(
   return rounded === 1 || rounded === 2 || rounded === 3 || rounded === 4 ? rounded : null
 }
 
-function mapHit(hit: UpstreamHit): ProductSummary {
+/**
+ * A record's text in the reader's language when it has it, then in English,
+ * then as it was entered: contributors write in whatever language they speak.
+ */
+export function textInLanguage(
+  language: Language,
+  translations: { en: string | null; pt: string | null },
+  entered: string | null,
+): string | null {
+  return (language === 'pt' ? translations.pt : null) ?? translations.en ?? entered
+}
+
+function mapHit(hit: UpstreamHit, language: Language): ProductSummary {
   return {
     code: hit.code,
-    name: hit.product_name_en ?? hit.product_name ?? '',
+    name:
+      textInLanguage(
+        language,
+        { en: hit.product_name_en, pt: hit.product_name_pt },
+        hit.product_name,
+      ) ?? '',
     brands: normaliseBrands(hit.brands),
     categories: hit.categories_tags.map((id) => toTaxonomyTag(id)),
     nutriScore: mapNutriScore(hit.nutriscore_grade),
@@ -143,7 +163,10 @@ export interface MappedHits {
   rejected: number
 }
 
-export function mapSearchHits(hits: readonly unknown[]): MappedHits {
+export function mapSearchHits(
+  hits: readonly unknown[],
+  language: Language = DEFAULT_LANGUAGE,
+): MappedHits {
   const items: ProductSummary[] = []
   let rejected = 0
 
@@ -153,7 +176,7 @@ export function mapSearchHits(hits: readonly unknown[]): MappedHits {
       rejected++
       continue
     }
-    items.push(mapHit(parsed.data))
+    items.push(mapHit(parsed.data, language))
   }
 
   return { items, rejected }
@@ -164,8 +187,10 @@ const SENTINEL_FACET_KEYS = new Set(['unknown', '--other--', 'not-applicable', '
 export function mapFacet(
   field: FacetField,
   items: readonly z.infer<typeof upstreamFacetItemSchema>[],
+  language: Language = DEFAULT_LANGUAGE,
 ): FacetItem[] {
-  const toTag = field === 'countries_tags' ? toCountryTag : toTaxonomyTag
+  const toTag = (id: string, name: string | null) =>
+    field === 'countries_tags' ? toCountryTag(id, name, language) : toTaxonomyTag(id, name)
 
   return items
     .filter((item) => !SENTINEL_FACET_KEYS.has(item.key))

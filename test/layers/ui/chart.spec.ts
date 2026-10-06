@@ -8,6 +8,7 @@ import {
   itemTooltip,
   valueAxis,
 } from '~~/layers/ui/app/utils/chart'
+import { formatCompact } from '~~/layers/ui/app/utils/format'
 import type { ChartTheme } from '~~/layers/ui/app/composables/use-chart-theme'
 
 const theme: ChartTheme = {
@@ -22,17 +23,20 @@ const theme: ChartTheme = {
   edge: '#cfd3db',
 }
 
+const compact = (value: number) => formatCompact(value, 'en')
+
 function axisLabelFormatter(axis: unknown): (value: number) => string {
   return (axis as { axisLabel: { formatter: (value: number) => string } }).axisLabel.formatter
 }
 
 describe('valueAxis', () => {
-  it('compacts the tick labels', () => {
-    expect(axisLabelFormatter(valueAxis(theme))(2_400_000)).toBe('2.4M')
+  it('compacts the tick labels with the formatter it was given', () => {
+    expect(axisLabelFormatter(valueAxis(theme, compact))(2_400_000)).toBe('2.4M')
+    expect(axisLabelFormatter(valueAxis(theme, (value) => `${value}!`))(7)).toBe('7!')
   })
 
   it('takes its colours from the theme rather than declaring them', () => {
-    const axis = valueAxis(theme) as unknown as {
+    const axis = valueAxis(theme, compact) as unknown as {
       axisLabel: { color: string }
       splitLine: { lineStyle: { color: string; type: string } }
     }
@@ -42,7 +46,7 @@ describe('valueAxis', () => {
   })
 
   it('drops a tick label that would run into its neighbour on a narrow chart', () => {
-    const axis = valueAxis(theme) as unknown as { axisLabel: { hideOverlap: boolean } }
+    const axis = valueAxis(theme, compact) as unknown as { axisLabel: { hideOverlap: boolean } }
 
     expect(axis.axisLabel.hideOverlap).toBe(true)
   })
@@ -97,11 +101,11 @@ describe('barValueLabel', () => {
     (label as { formatter: (params: { value?: unknown }) => string }).formatter
 
   it('compacts the value drawn beside the bar', () => {
-    expect(formatter(barValueLabel(theme))({ value: 2400000 })).toBe('2.4M')
+    expect(formatter(barValueLabel(theme, compact))({ value: 2400000 })).toBe('2.4M')
   })
 
   it('draws a zero rather than NaN when the value is missing', () => {
-    expect(formatter(barValueLabel(theme))({})).toBe('0')
+    expect(formatter(barValueLabel(theme, compact))({})).toBe('0')
   })
 })
 

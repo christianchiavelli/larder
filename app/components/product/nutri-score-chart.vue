@@ -1,17 +1,14 @@
 <script setup lang="ts">
 import type { EChartsOption } from 'echarts'
-import {
-  NUTRI_SCORE_LABELS,
-  NUTRI_SCORE_SHORT_LABELS,
-  NUTRI_SCORE_VALUES,
-  type NutriScore,
-} from '#shared/domain/nutrition'
+import { NUTRI_SCORE_VALUES, type NutriScore } from '#shared/domain/nutrition'
 
 const props = defineProps<{
   distribution: Partial<Record<NutriScore, number>>
   loading?: boolean
 }>()
 
+const { t } = useI18n()
+const format = useFormat()
 const theme = useChartTheme()
 const grades = useNutriScorePalette()
 
@@ -21,21 +18,22 @@ const entries = computed(() =>
 
 const total = computed(() => entries.value.reduce((sum, entry) => sum + entry.count, 0))
 
-const share = (count: number) => formatShare(count, total.value)
+const share = (count: number) => format.share(count, total.value)
+const gradeName = (grade: NutriScore) => t(`nutriScore.grade.${nutriScoreKey(grade)}`)
 
 const option = computed<EChartsOption>(() => ({
   aria: CHART_ARIA,
   grid: CHART_GRID,
-  xAxis: valueAxis(theme.value),
+  xAxis: valueAxis(theme.value, format.compact),
   yAxis: categoryAxis(
     theme.value,
-    entries.value.map((entry) => NUTRI_SCORE_SHORT_LABELS[entry.grade]),
+    entries.value.map((entry) => t(`nutriScore.short.${nutriScoreKey(entry.grade)}`)),
     { fontWeight: 600 },
   ),
   tooltip: itemTooltip(theme.value, (index) => {
     const entry = entries.value[index]
     if (!entry) return ''
-    return `${NUTRI_SCORE_LABELS[entry.grade]}<br>${formatCount(entry.count)} (${share(entry.count)})`
+    return `${gradeName(entry.grade)}<br>${format.count(entry.count)} (${share(entry.count)})`
   }),
   series: [
     {
@@ -45,16 +43,16 @@ const option = computed<EChartsOption>(() => ({
         itemStyle: { color: grades.value[entry.grade], borderRadius: BAR_RADIUS },
       })),
       barMaxWidth: 28,
-      label: barValueLabel(theme.value),
+      label: barValueLabel(theme.value, format.compact),
     },
   ],
 }))
 
 const dataTable = computed(() => ({
-  columns: ['Nutri-Score', 'Products', 'Share'],
+  columns: ['Nutri-Score', t('charts.productsColumn'), t('charts.shareColumn')],
   rows: entries.value.map((entry) => [
-    NUTRI_SCORE_LABELS[entry.grade],
-    formatCount(entry.count),
+    gradeName(entry.grade),
+    format.count(entry.count),
     share(entry.count),
   ]),
 }))
@@ -64,7 +62,7 @@ const dataTable = computed(() => ({
   <UiChart
     :option="option"
     :loading="loading"
-    title="Products by Nutri-Score grade"
+    :title="t('charts.nutriScoreTitle')"
     height="16rem"
     :data-table="dataTable"
   />

@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { toCountryTag } from '#shared/domain/country'
+import { DEFAULT_LANGUAGE, type Language } from '#shared/domain/language'
 import { TAXONOMIES, toTaxonomyTag, type TaxonomyName } from '#shared/domain/taxonomy'
 import type { Suggestion } from '#shared/domain/search'
 import { toUpstreamError } from '~~/server/utils/upstream-error'
@@ -38,6 +39,7 @@ const upstreamSuggestSchema = z.looseObject({
 export async function suggestTaxonomy(
   client: UpstreamClient,
   rawQuery: unknown,
+  language: Language = DEFAULT_LANGUAGE,
 ): Promise<Suggestion[]> {
   const parsed = suggestQuerySchema.safeParse(rawQuery)
 
@@ -46,7 +48,7 @@ export async function suggestTaxonomy(
   const { q, taxonomy, limit } = parsed.data
 
   const lists = await Promise.all(
-    taxonomy.map((name) => suggestOne(client, q, name, quotaFor(limit, taxonomy.length))),
+    taxonomy.map((name) => suggestOne(client, q, name, quotaFor(limit, taxonomy.length), language)),
   )
 
   return interleave(lists).slice(0, limit)
@@ -57,13 +59,16 @@ async function suggestOne(
   q: string,
   taxonomy: TaxonomyName,
   size: number,
+  language: Language,
 ): Promise<Suggestion[]> {
   let raw: unknown
   try {
     raw = await client.get('/autocomplete', {
       q,
       taxonomy_names: taxonomy,
-      lang: 'en',
+      // Countries are named in the reader's language, so they are matched in it too; the
+      // catalogue's other names stay English, and so does what they are matched against.
+      lang: taxonomy === 'country' ? language : 'en',
       size,
       fuzziness: 1,
     })
@@ -77,11 +82,14 @@ async function suggestOne(
 
   return response.data.options.map((option): Suggestion => {
     const taxonomyName = option.taxonomy_name ?? taxonomy
-    const toTag = taxonomyName === 'country' ? toCountryTag : toTaxonomyTag
+    const tag =
+      taxonomyName === 'country'
+        ? toCountryTag(option.id, option.text, language)
+        : toTaxonomyTag(option.id, option.text)
 
     return {
       id: option.id,
-      label: toTag(option.id, option.text).label,
+      label: tag.label,
       taxonomy: taxonomyName,
     }
   })

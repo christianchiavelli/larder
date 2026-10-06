@@ -6,14 +6,24 @@ import { NUTRIENTS } from '#shared/domain/nutrition'
 
 const props = defineProps<{ product: ProductSummary }>()
 
-const name = computed(() => productDisplayName(props.product))
+const { t } = useI18n()
+const format = useFormat()
+const localePath = useLocalePath()
+const language = useLanguage()
+
+const name = computed(() =>
+  productDisplayName(props.product, t('product.unnamed', { code: props.product.code })),
+)
 const category = computed(() => mostSpecificTag(props.product.categories))
 const brand = computed(() => props.product.brands[0] ?? null)
 
 const queryCache = useQueryCache()
 
 function prefetch() {
-  queryCache.refresh(queryCache.ensure(productDetailQuery(props.product.code))).catch(() => {})
+  const entry = queryCache.ensure(
+    productDetailQuery({ code: props.product.code, language: language.value }),
+  )
+  queryCache.refresh(entry).catch(() => {})
 }
 
 const COLUMNS = ['energyKcal', 'sugars', 'salt'] as const
@@ -21,7 +31,7 @@ const COLUMNS = ['energyKcal', 'sugars', 'salt'] as const
 const nutrients = computed(() =>
   COLUMNS.map((key) => ({
     key,
-    label: NUTRIENTS[key].label,
+    label: t(`productRow.${key}`),
     unit: NUTRIENTS[key].unit,
     precision: NUTRIENTS[key].precision,
     value: props.product.nutrients[key],
@@ -63,7 +73,7 @@ const nutrients = computed(() =>
     <div class="flex min-w-0 flex-1 flex-col gap-0.5">
       <h3 class="truncate text-subheading text-ink">
         <NuxtLink
-          :to="`/products/${product.code}`"
+          :to="localePath(`/products/${product.code}`)"
           class="after:absolute after:inset-0 group-hover:text-ink-accent"
         >
           {{ name }}
@@ -81,10 +91,15 @@ const nutrients = computed(() =>
         <dt class="text-overline text-ink-subtle">{{ item.label }}</dt>
         <dd class="text-label text-ink">
           <template v-if="item.value !== null">
-            <span data-numeric>{{ item.value.toFixed(item.precision) }}</span>
+            <span data-numeric>{{ format.measure(item.value, item.precision) }}</span>
             <span class="text-ink-subtle">{{ item.unit }}</span>
           </template>
-          <span v-else class="text-ink-subtle" :title="`${item.label} not reported`">&mdash;</span>
+          <span
+            v-else
+            class="text-ink-subtle"
+            :title="t('nutrientTable.rowNotReported', { nutrient: item.label })"
+            >&mdash;</span
+          >
         </dd>
       </div>
     </dl>
