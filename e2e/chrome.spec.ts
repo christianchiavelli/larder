@@ -78,6 +78,8 @@ test.describe('theme', () => {
 test.describe('select', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/products')
+    // A choice made before the page hydrates goes nowhere, and under load that came first.
+    await page.waitForLoadState('networkidle')
   })
 
   test('is a real select, operable by keyboard', async ({ page }) => {
