@@ -103,7 +103,7 @@ pnpm run storybook:test   # every story in both themes, its interactions played 
 pnpm run e2e              # Playwright on desktop and mobile, against a production build
 ```
 
-Vitest covers the domain, services, mappers and URL state. Playwright covers what only a browser can: whether a Tailwind utility resolves, whether a chart renders its hover state, and whether the page hydrates cleanly. The story checks put each component on its own, so a contrast or labelling fault shows on the component that has it, not on whichever page happens to render it.
+Vitest covers the domain, services, mappers and URL state. Playwright covers what only a browser can: whether a Tailwind utility resolves, whether a chart renders its hover state, whether the page hydrates cleanly, and whether every page, whole, passes axe in both themes. The story checks put each component on its own, so a contrast or labelling fault shows on the component that has it, not on whichever page happens to render it.
 
 ---
 
