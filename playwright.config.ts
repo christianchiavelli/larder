@@ -4,6 +4,7 @@ import {
   FAILING_UPSTREAM_PORT,
   PORT,
   RUNS_LOCALLY,
+  SOURCE_DOWN_BASE_URL,
   SOURCE_DOWN_PORT,
 } from './e2e/support/servers'
 
@@ -40,7 +41,12 @@ export default defineConfig({
 
           reuseExistingServer: false,
           timeout: 120_000,
-          env: { PORT: String(PORT), NITRO_PORT: String(PORT), NUXT_EXPORT_CONCURRENCY: '16' },
+          env: {
+            PORT: String(PORT),
+            NITRO_PORT: String(PORT),
+            NUXT_EXPORT_CONCURRENCY: '16',
+            NUXT_PUBLIC_I18N_BASE_URL: BASE_URL,
+          },
         },
         {
           command: 'node e2e/support/failing-upstream.mjs',
@@ -56,6 +62,7 @@ export default defineConfig({
           env: {
             PORT: String(SOURCE_DOWN_PORT),
             NITRO_PORT: String(SOURCE_DOWN_PORT),
+            NUXT_PUBLIC_I18N_BASE_URL: SOURCE_DOWN_BASE_URL,
             NUXT_OPEN_FOOD_FACTS_SEARCH_BASE: FAILING_UPSTREAM,
             NUXT_OPEN_FOOD_FACTS_PRODUCT_BASE: FAILING_UPSTREAM,
           },
