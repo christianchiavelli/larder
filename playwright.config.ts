@@ -12,6 +12,8 @@ const FAILING_UPSTREAM = `http://localhost:${FAILING_UPSTREAM_PORT}`
 
 export default defineConfig({
   testDir: './e2e',
+  // The Web Vitals have a config of their own (playwright.vitals.config.ts).
+  testIgnore: 'vitals/**',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -29,7 +31,8 @@ export default defineConfig({
     {
       name: 'mobile',
       use: { ...devices['Pixel 7'] },
-      testIgnore: /(filter-round-trip|export-contract)\.spec\.ts/,
+      // A project's own list replaces the one above, so the Web Vitals are left out here too.
+      testIgnore: ['vitals/**', /(filter-round-trip|export-contract)\.spec\.ts/],
     },
   ],
 

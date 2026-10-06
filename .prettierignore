@@ -10,3 +10,5 @@ playwright-report
 test-results
 docs/screenshots
 storybook-static
+# A recording, one answer a line, kept as the stub writes it.
+e2e/vitals/catalogue.json

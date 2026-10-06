@@ -138,3 +138,40 @@ jobs:
           name: storybook-report
           path: playwright-report/
           retention-days: 7
+
+  vitals:
+    name: Web Vitals
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # After the cheap checks, for the same reason as the end-to-end job.
+    needs: verify
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # Chrome itself, not the headless shell: it paints the way Chrome does.
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      # Fails when a page measures worse than its baseline; the table lands in the run's summary.
+      - name: Build and measure
+        run: pnpm run vitals
+
+      # What `pnpm vitals:accept` takes as the next baseline.
+      - name: Upload the measurement
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-vitals
+          path: vitals-report/
+          retention-days: 90
