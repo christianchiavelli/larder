@@ -31,6 +31,7 @@
   --primitive-yellow-300: #d48013;
 
   --primitive-grey-175: #8890a3; /* grey-200 -> grey-150, 40% */
+  --primitive-grey-225: #646b7e; /* grey-200 -> black,     9% */
 
   --primitive-cool-450: #1f2b46; /* cool-500 -> cool-400, 62% */
   --primitive-cool-475: #1b263f; /* cool-500 -> cool-400, 46% */
@@ -63,7 +64,7 @@
 
   --content-primary: var(--primitive-blue-500);
   --content-secondary: var(--primitive-grey-300);
-  --content-tertiary: var(--primitive-grey-200);
+  --content-tertiary: var(--primitive-grey-225);
   --content-accent: var(--primitive-blue-300);
   --content-on-accent: var(--primitive-white);
 

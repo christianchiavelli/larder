@@ -81,9 +81,8 @@ const SWATCHES = `
 
 /**
  * What each colour is for. The dark theme redefines these under `.dark`, and
- * nothing else changes. In the light theme tertiary content reaches 4.5:1 on
- * the raised white alone, so it is for text on a card or a dialog, never on
- * the page's base.
+ * nothing else changes. Tertiary content, the faintest text, still reaches
+ * 4.5:1 on every surface it sits on: the page's base, a card, a sunken well.
  */
 export const Colour: Story = {
   render: () => ({ setup: () => ({ groups: SEMANTIC }), template: SWATCHES }),
