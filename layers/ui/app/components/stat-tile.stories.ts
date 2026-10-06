@@ -14,7 +14,7 @@ const meta = {
     size: 'lg',
   },
   argTypes: { size: { control: 'inline-radio', options: ['md', 'lg'] } },
-  // On a card, as on the overview: its quieter text is set for the card's white.
+  // On a card, as on the overview.
   decorators: [
     () => ({
       components: { UiSurfaceCard },

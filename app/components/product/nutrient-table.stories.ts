@@ -25,7 +25,7 @@ const meta = {
     },
   },
   argTypes: { nutrients: { control: 'object' } },
-  // On a card, as on the product page: its quieter text is set for the card's white.
+  // On a card, as on the product page.
   decorators: [
     () => ({
       components: { UiSurfaceCard },
