@@ -15,6 +15,8 @@ const config: StorybookConfig = {
     options: { docgen: { plugin: 'vue-component-meta', tsconfig: '.nuxt/tsconfig.app.json' } },
   },
   core: { disableTelemetry: true },
+  // The app's own public folder, so the tab shows its favicon rather than Storybook's.
+  staticDirs: ['../public'],
 }
 
 export default config
