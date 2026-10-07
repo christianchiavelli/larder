@@ -127,12 +127,7 @@ const classified = computed(() =>
                 {{ t('overview.browseText') }}
               </p>
             </div>
-            <NuxtLink
-              :to="localePath('/products')"
-              class="rounded-control bg-accent px-4 py-2 text-label text-ink-on-accent transition-colors hover:bg-accent-hover"
-            >
-              {{ t('overview.browseAction') }}
-            </NuxtLink>
+            <UiButton :to="localePath('/products')">{{ t('overview.browseAction') }}</UiButton>
           </div>
         </UiSurfaceCard>
       </template>
