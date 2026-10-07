@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const { t } = useI18n()
+const route = useRoute()
 </script>
 
 <template>
@@ -20,7 +21,12 @@ const { t } = useI18n()
         <UiSeeMoreFab />
       </main>
 
-      <ChromeFooter />
+      <!--
+        Each page brings a footer of its own. A shared one would be the only thing on screen to
+        move when a page opens, and a product page opens once its record is here, often more than
+        half a second after the tap: past that, the browser counts the move as a layout shift.
+      -->
+      <ChromeFooter :key="route.path" />
     </div>
   </div>
 </template>

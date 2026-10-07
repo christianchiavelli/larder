@@ -321,7 +321,7 @@ test.describe('the directory while its search loads', () => {
   })
 })
 
-test.describe('a product page while its record loads', () => {
+test.describe('opening a product from the list', () => {
   /** A record of the usual shape: a name on one line, a brand, a quantity and four categories. */
   const usualRecord = (code: string) => ({
     code,
@@ -358,22 +358,75 @@ test.describe('a product page while its record loads', () => {
     lastModified: null,
   })
 
-  /** Answers every product record the browser asks for with the usual one, once released. */
-  async function holdProductRecords(page: Page) {
+  /** The same record under a name that takes two lines on a desktop and three on a phone. */
+  const longNamedRecord = (code: string) => ({
+    ...usualRecord(code),
+    name: 'Organic hazelnut and cocoa spread with roasted almonds',
+  })
+
+  /** Answers every product record the browser asks for with the given one, once released. */
+  async function holdProductRecords(page: Page, record = usualRecord) {
     let release!: () => void
     const released = new Promise<void>((resolve) => (release = resolve))
     await page.route(/\/api\/products\/\d+(\?.*)?$/, async (route) => {
       await released
       const code = new URL(route.request().url()).pathname.split('/').pop()!
-      await route.fulfill({ json: usualRecord(code) })
+      await route.fulfill({ json: record(code) })
     })
     return release
+  }
+
+  /** Adds up every layout shift from here on, and reads the sum back. */
+  async function watchLayoutShifts(page: Page) {
+    type Scope = Window & { layoutShift?: number }
+    await page.evaluate(() => {
+      const scope = window as Scope
+      scope.layoutShift = 0
+      new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          scope.layoutShift =
+            (scope.layoutShift ?? 0) + (entry as unknown as { value: number }).value
+        }
+      }).observe({ type: 'layout-shift' })
+    })
+    return () => page.evaluate(() => (window as Scope).layoutShift ?? 0)
   }
 
   const topOf = (locator: Locator) =>
     locator.evaluate((element) => element.getBoundingClientRect().top + window.scrollY)
 
-  test('holds the shape the record will take, and claims nothing before it lands', async ({
+  for (const [language, directory] of [
+    ['English', '/products'],
+    ['Portuguese', '/pt/products'],
+  ] as const) {
+    test(`keeps the list until the record is here, then opens whole, in ${language}`, async ({
+      page,
+    }) => {
+      await page.goto(directory)
+      await hydrated(page)
+      const release = await holdProductRecords(page, longNamedRecord)
+
+      // A row well down, so the page opens from a scrolled list, as it usually does.
+      const row = page.getByTestId('product-row').nth(7)
+      await row.locator('h3 a').click()
+
+      // The bar shows once the wait outlasts a glance, and the list is still there under it.
+      await expect(page.locator('.nuxt-loading-indicator')).toHaveCSS('opacity', '1')
+      await expect(page).toHaveURL(new RegExp(`${directory}$`))
+      await expect(row).toBeVisible()
+      const shifted = await watchLayoutShifts(page)
+
+      // The tap is more than half a second old by now, so a move would count against the page.
+      release()
+      const heading = page.getByRole('heading', { level: 1, name: longNamedRecord('').name })
+      await expect(heading).toBeVisible()
+
+      // A name of two or three lines arrives with the page, and so does its footer.
+      expect(await shifted()).toBe(0)
+    })
+  }
+
+  test('opens on the shape a late record will take, and claims nothing before it lands', async ({
     page,
   }) => {
     await page.goto('/products')
@@ -382,8 +435,9 @@ test.describe('a product page while its record loads', () => {
 
     await page.getByTestId('product-row').first().locator('h3 a').click()
 
+    // Past the wait the page opens anyway, on a skeleton, rather than keep the reader on the list.
     const nutrition = page.getByRole('heading', { name: 'Nutrition' })
-    await expect(nutrition).toBeVisible()
+    await expect(nutrition).toBeVisible({ timeout: 10_000 })
     // What only the record can tell waits for it, instead of saying there is none.
     await expect(page.getByText('Not reported')).toHaveCount(0)
     await expect(page.getByText('None listed')).toHaveCount(0)

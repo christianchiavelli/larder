@@ -97,7 +97,9 @@ GET /search?sort_by=-last_modified_t&fields=code,last_modified_t,last_indexed_da
 
 So the directory reads the catalogue as it stood then, and the product page reads it as it stands now. Of sixteen products from four directory searches, fourteen differed between the two in something the product page's header shows, six of them in the Nutri-Score.
 
-That is why a product page does not open with the copy its list already holds, the usual way to skip a loading state: on most products it would show one version and then swap in another, grades included. It holds a skeleton shaped like a usual header instead, so the record lands without moving anything below it.
+That is why a product page does not open with the copy its list already holds, the usual way to skip a loading state: on most products it would show one version and then swap in another, grades included. The names disagree by more than a word, so the list cannot even say how long the title will be: the list's "Gerblé - Sesame Cookie, 230g (8.2oz)" is the record's "Biscuit Sesame", and on a phone the two names took the same number of lines for only three of six products from the directory's first page.
+
+So the page waits for the record instead, keeping the list on screen under a progress bar, and opens whole. Only a record more than three seconds late opens on a skeleton shaped like a usual header.
 
 ## Country facets are named by synonym
 

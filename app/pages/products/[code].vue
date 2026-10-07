@@ -5,6 +5,7 @@ import { productDisplayName } from '#shared/domain/product'
 
 definePageMeta({
   viewTransition: true,
+  middleware: 'product-record',
 })
 
 const { t } = useI18n()
@@ -118,10 +119,11 @@ const isNotFound = computed(
           </div>
 
           <!--
-            A usual header, line for line in the same type, so what sits below it is already where
-            the record will leave it. Opening with the list's copy of the product instead would
-            show one version and then another: the search index and the record disagree on most
-            products (docs/upstream-api.md).
+            Only for a record that is late, since the page otherwise waits for it before opening
+            (middleware/product-record.ts). A usual header, line for line in the same type, so what
+            sits below it is already where a usual record will leave it. Opening with the list's
+            copy of the product instead would show one version and then another: the search index
+            and the record disagree on most products (docs/upstream-api.md).
           -->
           <div v-else class="flex min-w-0 flex-1 flex-col gap-1" aria-hidden="true">
             <UiSkeleton class="h-[1lh] w-2/3 text-title" />
