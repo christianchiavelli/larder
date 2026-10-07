@@ -32,7 +32,10 @@ export default defineConfig({
       name: 'mobile',
       use: { ...devices['Pixel 7'] },
       // A project's own list replaces the one above, so the Web Vitals are left out here too.
-      testIgnore: ['vitals/**', /(filter-round-trip|export-contract|compression)\.spec\.ts/],
+      testIgnore: [
+        'vitals/**',
+        /(filter-round-trip|export-contract|compression|security-headers)\.spec\.ts/,
+      ],
     },
   ],
 

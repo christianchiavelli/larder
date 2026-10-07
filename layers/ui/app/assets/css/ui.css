@@ -474,6 +474,16 @@
   animation-duration: 250ms;
 }
 
+/* Set while the theme switches, so every colour changes at once rather than each easing. */
+.theme-switching {
+  &,
+  & *,
+  & *::before,
+  & *::after {
+    transition: none !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

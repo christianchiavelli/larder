@@ -1,3 +1,4 @@
+import './zod-config'
 import { z } from 'zod'
 
 export const TAXONOMIES = ['category', 'brand', 'label', 'country', 'additive'] as const

@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { THEME_BOOTSTRAP_SCRIPT, THEME_STORAGE_KEY } from '~/composables/use-theme'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { THEME_BOOTSTRAP_SCRIPT, THEME_STORAGE_KEY, switchAtOnce } from '~/composables/use-theme'
 
 interface FakeWindow {
   stored: string | null
@@ -65,5 +65,28 @@ describe('the theme bootstrap script', () => {
   it('stays on one line and free of dependencies', () => {
     expect(THEME_BOOTSTRAP_SCRIPT).not.toContain('\n')
     expect(THEME_BOOTSTRAP_SCRIPT.length).toBeLessThan(300)
+  })
+})
+
+describe('switchAtOnce', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('holds every transition back while the theme changes, and lets them back after', () => {
+    const steps: string[] = []
+    const classList = {
+      add: (name: string) => steps.push(`add ${name}`),
+      remove: (name: string) => steps.push(`remove ${name}`),
+    }
+    vi.stubGlobal('document', { documentElement: { classList } })
+    vi.stubGlobal('getComputedStyle', () => {
+      steps.push('settle')
+      return { color: '' }
+    })
+
+    switchAtOnce(() => steps.push('apply'))
+
+    expect(steps).toEqual(['add theme-switching', 'apply', 'settle', 'remove theme-switching'])
   })
 })

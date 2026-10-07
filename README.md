@@ -85,6 +85,7 @@ Each one is also under `/pt`, in Brazilian Portuguese.
 
 - **A BFF, not a proxy.** Nitro routes read two upstream services with contradictory shapes and hand the client one contract, parsed with Zod at the boundary.
 - **The server compresses for itself.** Nothing stands in front of it, so pages and answers go out in brotli or gzip as they are written, and the build ships its scripts and styles already packed. That nearly halved every page's LCP on the emulated phone.
+- **Scripts run by hash.** Every page sends a Content-Security-Policy that runs the app's own files and the inline scripts it hashed, and nothing else. Hashes rather than nonces: the front page is cached, and a nonce shared by every reader of it would be no nonce at all.
 - **The domain comes first.** `shared/domain` owes nothing to the upstream shape: Nutri-Score and NOVA follow the public health bodies that define them.
 - **Filter state lives in the URL.** No store and no watcher, so sharing, bookmarking and Back work for free.
 - **An export holds every match, or it does not happen.** The search index stops at 10,000 rows, so a larger search asks for one more filter instead of saving an arbitrary slice. The CSV streams as upstream pages arrive, and a failure halfway cuts the download, so a partial file never passes for a whole one.

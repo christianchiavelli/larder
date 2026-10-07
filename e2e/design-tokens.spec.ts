@@ -155,7 +155,9 @@ test('the chosen grade is marked in a neutral colour, in both themes', async ({ 
     .click()
   await expect(page).toHaveURL(/nutriScore=a/)
 
-  await page.addStyleTag({ content: '*, *::before, *::after { transition: none !important }' })
+  // The class the app holds transitions back with while the theme switches: an inline style
+  // would be refused by the page's Content-Security-Policy.
+  await page.evaluate(() => document.documentElement.classList.add('theme-switching'))
 
   const measure = () =>
     page

@@ -41,14 +41,16 @@ test.describe('theme', () => {
 
   test('the theme toggle is reachable and labelled in both states', async ({ page }) => {
     await page.goto('/products')
+    await hydrated(page)
 
     const toggle = page.getByRole('button', { name: /switch to (dark|light) theme/i })
     await expect(toggle).toBeVisible()
 
-    const before = await page.locator('html').getAttribute('class')
+    const isDark = () => page.locator('html').evaluate((html) => html.classList.contains('dark'))
+    const before = await isDark()
     await toggle.click()
 
-    await expect(page.locator('html')).not.toHaveClass(new RegExp(before ?? '^$'))
+    await expect.poll(isDark).toBe(!before)
     await expect(page.getByRole('button', { name: /switch to (dark|light) theme/i })).toBeVisible()
   })
 

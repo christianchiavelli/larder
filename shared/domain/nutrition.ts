@@ -1,3 +1,4 @@
+import './zod-config'
 import { z } from 'zod'
 
 export const NUTRI_SCORE_GRADES = ['a', 'b', 'c', 'd', 'e'] as const

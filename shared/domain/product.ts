@@ -1,3 +1,4 @@
+import './zod-config'
 import { z } from 'zod'
 import { novaGroupSchema, nutriScoreSchema, nutrientProfileSchema } from './nutrition'
 import { taxonomyTagSchema } from './taxonomy'

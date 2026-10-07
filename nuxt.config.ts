@@ -80,6 +80,16 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
+    // Pages also get a Content-Security-Policy of their own, from
+    // server/plugins/content-security-policy.ts.
+    '/**': {
+      headers: {
+        'x-content-type-options': 'nosniff',
+        'referrer-policy': 'strict-origin-when-cross-origin',
+        'permissions-policy': 'camera=(), microphone=(), geolocation=()',
+        'cross-origin-opener-policy': 'same-origin',
+      },
+    },
     '/': { swr: 3600 },
     '/pt': { swr: 3600 },
   },
