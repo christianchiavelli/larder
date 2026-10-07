@@ -11,8 +11,17 @@ const { t } = useI18n()
 
 <template>
   <nav :aria-label="t('ui.breadcrumb')" class="min-w-0 text-label">
-    <ol class="flex min-w-0 flex-wrap items-center gap-1.5">
-      <li v-for="(item, index) in items" :key="index" class="flex min-w-0 items-center gap-1.5">
+    <!--
+      One line however long the page's name: the steps above keep their width, and the name is
+      cut short instead of dropping below them.
+    -->
+    <ol class="flex min-w-0 items-center gap-1.5">
+      <li
+        v-for="(item, index) in items"
+        :key="index"
+        class="flex items-center gap-1.5"
+        :class="index < items.length - 1 ? 'shrink-0' : 'min-w-0'"
+      >
         <NuxtLink
           v-if="item.to && index < items.length - 1"
           :to="item.to"
