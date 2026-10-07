@@ -1,5 +1,6 @@
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import { hydrated } from './support/hydration'
+import { holdRequests } from './support/network'
 
 test.describe('product directory', () => {
   test('renders results on the server, before any JavaScript runs', async ({ browser }) => {
@@ -285,6 +286,35 @@ test.describe('filter suggestions', () => {
 
     await expect(page).toHaveURL(/q=choc/)
     await expect(page).not.toHaveURL(/(category|brand|country|label)=/)
+  })
+})
+
+test.describe('the directory while its search loads', () => {
+  test('holds each filter group at the size its options will take', async ({ page }) => {
+    await page.goto('/')
+    await hydrated(page)
+    const release = await holdRequests(page, '/api/products')
+
+    await page.getByRole('searchbox', { name: 'Search the catalogue' }).fill('chocolate')
+    await page.getByRole('button', { name: 'Search' }).click()
+    await expect(page).toHaveURL(/q=chocolate/)
+
+    const groups = page.locator('aside fieldset')
+    const boxes = () =>
+      groups.evaluateAll((fieldsets) =>
+        fieldsets.map((fieldset) => {
+          const box = fieldset.getBoundingClientRect()
+          return [box.top + window.scrollY, box.height]
+        }),
+      )
+    const waiting = await boxes()
+
+    release()
+    await expect(
+      page.getByRole('group', { name: 'Brand' }).getByRole('checkbox').first(),
+    ).toBeVisible()
+
+    expect(await boxes()).toEqual(waiting)
   })
 })
 
