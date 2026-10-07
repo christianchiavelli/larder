@@ -47,6 +47,7 @@ test.describe('product directory', () => {
 
   test('clears every filter at once', async ({ page }) => {
     await page.goto('/products?nutriScore=a&nova=4&sort=popularity')
+    await hydrated(page)
 
     await page.getByRole('button', { name: /clear all/i }).click()
 
@@ -60,6 +61,7 @@ test.describe('product directory', () => {
   ]) {
     test(`filters to the products marked ${value}`, async ({ page }) => {
       await page.goto('/products')
+      await hydrated(page)
 
       await page.getByRole('button', { name: label }).first().click()
       await expect(page).toHaveURL(new RegExp(`nutriScore=${value}`))
@@ -89,6 +91,7 @@ test.describe('product directory', () => {
 
   test('changes the page size and starts again from page one', async ({ page }) => {
     await page.goto('/products?page=5')
+    await hydrated(page)
 
     await page.getByLabel('Per page').selectOption('48')
 

@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises'
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test, type Download, type Locator, type Page } from '@playwright/test'
 import { parse } from 'csv-parse/sync'
+import { hydrated } from './support/hydration'
 import { transitionsSettled } from './support/motion'
 import { holdRequests } from './support/network'
 
@@ -17,6 +18,7 @@ function exportDialog(page: Page): Locator {
 }
 
 async function openExport(page: Page): Promise<Locator> {
+  await hydrated(page)
   await page.getByRole('button', { name: 'Export CSV' }).click()
 
   const dialog = exportDialog(page)

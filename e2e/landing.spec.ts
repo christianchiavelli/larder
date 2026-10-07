@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { hydrated } from './support/hydration'
 
 test.describe('the landing page', () => {
   test('renders on the server, before any JavaScript runs', async ({ browser }) => {
@@ -16,6 +17,7 @@ test.describe('the landing page', () => {
 
   test('hands the search term to the directory', async ({ page }) => {
     await page.goto('/')
+    await hydrated(page)
 
     await page.getByRole('searchbox', { name: 'Search the catalogue' }).fill('chocolate')
     await page.getByRole('button', { name: 'Search' }).click()
@@ -26,6 +28,7 @@ test.describe('the landing page', () => {
 
   test('submits from the keyboard', async ({ page }) => {
     await page.goto('/')
+    await hydrated(page)
 
     const box = page.getByRole('searchbox', { name: 'Search the catalogue' })
     await box.fill('chocolate')
