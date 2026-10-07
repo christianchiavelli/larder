@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useQuery } from '@pinia/colada'
+import { NUTRIENT_KEYS } from '#shared/domain/nutrition'
 import { productDisplayName } from '#shared/domain/product'
 
 definePageMeta({
@@ -78,9 +79,9 @@ const isNotFound = computed(
             class="flex size-28 shrink-0 items-center justify-center overflow-hidden rounded-card border border-edge-subtle bg-surface-media"
             :style="{ viewTransitionName: `product-image-${code}` }"
           >
-            <UiSkeleton v-if="isLoading" class="size-full" />
+            <UiSkeleton v-if="!product" class="size-full" />
             <img
-              v-else-if="product?.image"
+              v-else-if="product.image"
               :src="product.image.small ?? product.image.large ?? product.image.thumb ?? undefined"
               :srcset="
                 srcSet([
@@ -98,19 +99,18 @@ const isNotFound = computed(
             <UiImageFallback v-else size="lg" :label="t('product.noImage', { name: title })" />
           </div>
 
-          <div class="flex min-w-0 flex-1 flex-col gap-1">
-            <UiSkeleton v-if="isLoading" class="h-8 w-2/3" />
-            <h1 v-else class="reveal text-title text-ink">{{ title }}</h1>
+          <div v-if="product" class="flex min-w-0 flex-1 flex-col gap-1">
+            <h1 class="reveal text-title text-ink">{{ title }}</h1>
 
-            <p v-if="product?.brands.length" class="text-body text-ink-muted">
+            <p v-if="product.brands.length" class="text-body text-ink-muted">
               {{ product.brands.join(', ') }}
             </p>
 
-            <p v-if="product?.quantity" class="text-label text-ink-subtle">
+            <p v-if="product.quantity" class="text-label text-ink-subtle">
               {{ product.quantity }}
             </p>
 
-            <ul v-if="product?.categories.length" class="mt-1 flex flex-wrap gap-1.5">
+            <ul v-if="product.categories.length" class="mt-1 flex flex-wrap gap-1.5">
               <li v-for="category in product.categories.slice(-4)" :key="category.id">
                 <UiChip
                   tone="neutral"
@@ -122,13 +122,37 @@ const isNotFound = computed(
             </ul>
           </div>
 
-          <div v-if="!isLoading && product" class="flex shrink-0 gap-4">
+          <!--
+            A usual header, line for line in the same type, so what sits below it is already where
+            the record will leave it. Opening with the list's copy of the product instead would
+            show one version and then another: the search index and the record disagree on most
+            products (docs/upstream-api.md).
+          -->
+          <div v-else class="flex min-w-0 flex-1 flex-col gap-1" aria-hidden="true">
+            <UiSkeleton class="h-[1lh] w-2/3 text-title" />
+            <UiSkeleton class="h-[1lh] w-1/3 text-body" />
+            <UiSkeleton class="h-[1lh] w-16 text-label" />
+            <!-- Shaped like the chips, list items and all: a chip sits on a line taller than it. -->
+            <ul class="mt-1 flex flex-wrap gap-1.5">
+              <li v-for="index in 4" :key="index">
+                <span
+                  class="inline-flex animate-pulse rounded-pill border border-transparent bg-surface-sunken px-2.5 py-1 text-caption"
+                >
+                  <span class="w-20">&nbsp;</span>
+                </span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="flex shrink-0 gap-4">
             <div class="flex flex-col items-center gap-1">
-              <ProductNutriScoreBadge :grade="product.nutriScore" size="lg" />
+              <ProductNutriScoreBadge v-if="product" :grade="product.nutriScore" size="lg" />
+              <UiSkeleton v-else class="size-10" />
               <span class="text-caption text-ink-subtle">Nutri-Score</span>
             </div>
             <div class="flex flex-col items-center gap-1">
-              <ProductNovaBadge :group="product.novaGroup" size="lg" />
+              <ProductNovaBadge v-if="product" :group="product.novaGroup" size="lg" />
+              <UiSkeleton v-else class="size-10" />
               <span class="text-caption text-ink-subtle">NOVA</span>
             </div>
           </div>
@@ -138,11 +162,18 @@ const isNotFound = computed(
           <UiSurfaceCard class="lg:col-span-2">
             <h2 class="mb-3 text-heading text-ink">{{ t('product.nutrition') }}</h2>
 
-            <div v-if="isLoading" class="flex flex-col gap-2">
-              <UiSkeleton v-for="index in 6" :key="index" class="h-6 w-full" />
-            </div>
+            <ProductNutrientTable v-if="product" :nutrients="product.nutrients" />
 
-            <ProductNutrientTable v-else-if="product" :nutrients="product.nutrients" />
+            <!-- A bar for each row the table will have, at a row's height. -->
+            <div v-else class="text-label">
+              <div
+                v-for="index in NUTRIENT_KEYS.length + 1"
+                :key="index"
+                class="border-b border-edge-subtle py-2 last:border-0"
+              >
+                <UiSkeleton class="h-[1lh]" />
+              </div>
+            </div>
           </UiSurfaceCard>
 
           <div class="flex flex-col gap-4">
@@ -155,12 +186,8 @@ const isNotFound = computed(
                     {{ t('product.ingredients') }}
                   </dt>
                   <dd class="text-ink">
-                    <span
-                      v-if="
-                        product?.ingredientCount !== null && product?.ingredientCount !== undefined
-                      "
-                      data-numeric
-                    >
+                    <UiSkeleton v-if="!product" class="h-[1lh] w-8" />
+                    <span v-else-if="product.ingredientCount !== null" data-numeric>
                       {{ product.ingredientCount }}
                     </span>
                     <span v-else class="text-ink-subtle">{{ t('product.notReported') }}</span>
@@ -172,7 +199,8 @@ const isNotFound = computed(
                     {{ t('product.additives') }}
                   </dt>
                   <dd>
-                    <ul v-if="product?.additives.length" class="mt-1 flex flex-wrap gap-1">
+                    <UiSkeleton v-if="!product" class="h-[1lh] w-24" />
+                    <ul v-else-if="product.additives.length" class="mt-1 flex flex-wrap gap-1">
                       <li v-for="additive in product.additives" :key="additive.id">
                         <UiChip tone="muted">{{ additive.label }}</UiChip>
                       </li>

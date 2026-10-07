@@ -86,6 +86,19 @@ This is not fixable from our side. Picking "whichever looks most like a product 
 
 So the mapper applies one rule consistently, `product_name_en` then `product_name`, and the divergence is accepted as a property of the data. The end-to-end test for directory navigation asserts the barcode, not the heading, because the heading is genuinely allowed to differ.
 
+## The search index stopped in December 2024
+
+The most recently edited product the index holds was changed on 18 December 2024, and 95 of the 100 most scanned products were last indexed that month, none later. v2 serves every edit since.
+
+```
+GET /search?sort_by=-last_modified_t&fields=code,last_modified_t,last_indexed_datetime
+  8711327373105   modified 2024-12-18T04:27:01Z   indexed 2024-12-18T04:27:03
+```
+
+So the directory reads the catalogue as it stood then, and the product page reads it as it stands now. Of sixteen products from four directory searches, fourteen differed between the two in something the product page's header shows, six of them in the Nutri-Score.
+
+That is why a product page does not open with the copy its list already holds, the usual way to skip a loading state: on most products it would show one version and then swap in another, grades included. It holds a skeleton shaped like a usual header instead, so the record lands without moving anything below it.
+
 ## Country facets are named by synonym
 
 The name the search facet attaches to a country is one of the taxonomy's synonyms rather than its English name, and which one it picks looks arbitrary:

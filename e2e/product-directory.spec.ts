@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Locator, type Page } from '@playwright/test'
 
 test.describe('product directory', () => {
   test('renders results on the server, before any JavaScript runs', async ({ browser }) => {
@@ -294,6 +294,81 @@ test.describe('filter suggestions', () => {
 
     await expect(page).toHaveURL(/q=choc/)
     await expect(page).not.toHaveURL(/(category|brand|country|label)=/)
+  })
+})
+
+test.describe('a product page while its record loads', () => {
+  /** A record of the usual shape: a name on one line, a brand, a quantity and four categories. */
+  const usualRecord = (code: string) => ({
+    code,
+    name: 'Hazelnut spread',
+    brands: ['Larder'],
+    categories: [
+      { id: 'en:spreads', label: 'Spreads' },
+      { id: 'en:sweet-spreads', label: 'Sweet spreads' },
+      { id: 'en:hazelnut-spreads', label: 'Hazelnut spreads' },
+      { id: 'en:cocoa-and-hazelnuts-spreads', label: 'Cocoa and hazelnuts spreads' },
+    ],
+    nutriScore: 'e',
+    novaGroup: 4,
+    image: null,
+    nutrients: {
+      energyKcal: 539,
+      fat: 30.9,
+      saturatedFat: 10.6,
+      carbohydrates: 57.5,
+      sugars: 56.3,
+      fiber: null,
+      proteins: 6.3,
+      salt: 0.107,
+      sodium: 0.0428,
+    },
+    quantity: '400 g',
+    countries: [],
+    labels: [],
+    additives: [],
+    servingSize: null,
+    ingredientsText: null,
+    ingredientCount: 7,
+    sourceUrl: `https://world.openfoodfacts.org/product/${code}`,
+    lastModified: null,
+  })
+
+  /** Answers every product record the browser asks for with the usual one, once released. */
+  async function holdProductRecords(page: Page) {
+    let release!: () => void
+    const released = new Promise<void>((resolve) => (release = resolve))
+    await page.route(/\/api\/products\/\d+(\?.*)?$/, async (route) => {
+      await released
+      const code = new URL(route.request().url()).pathname.split('/').pop()!
+      await route.fulfill({ json: usualRecord(code) })
+    })
+    return release
+  }
+
+  const topOf = (locator: Locator) =>
+    locator.evaluate((element) => element.getBoundingClientRect().top + window.scrollY)
+
+  test('holds the shape the record will take, and claims nothing before it lands', async ({
+    page,
+  }) => {
+    await page.goto('/products')
+    await page.waitForLoadState('networkidle')
+    const release = await holdProductRecords(page)
+
+    await page.getByTestId('product-row').first().locator('h3 a').click()
+
+    const nutrition = page.getByRole('heading', { name: 'Nutrition' })
+    await expect(nutrition).toBeVisible()
+    // What only the record can tell waits for it, instead of saying there is none.
+    await expect(page.getByText('Not reported')).toHaveCount(0)
+    await expect(page.getByText('None listed')).toHaveCount(0)
+    const before = await topOf(nutrition)
+
+    release()
+    await expect(page.getByRole('heading', { level: 1, name: 'Hazelnut spread' })).toBeVisible()
+
+    expect(await topOf(nutrition)).toBe(before)
   })
 })
 
