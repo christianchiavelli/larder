@@ -57,6 +57,7 @@ export default defineConfig({
         NITRO_PORT: String(PORT),
         NUXT_OPEN_FOOD_FACTS_SEARCH_BASE: `${UPSTREAM}/search`,
         NUXT_OPEN_FOOD_FACTS_PRODUCT_BASE: `${UPSTREAM}/world`,
+        NUXT_PUBLIC_OPEN_FOOD_FACTS_IMAGE_ORIGIN: UPSTREAM,
         NUXT_PUBLIC_I18N_BASE_URL: `http://localhost:${PORT}`,
       },
     },
