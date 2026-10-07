@@ -84,12 +84,14 @@ Each one is also under `/pt`, in Brazilian Portuguese.
 ## How it is built
 
 - **A BFF, not a proxy.** Nitro routes read two upstream services with contradictory shapes and hand the client one contract, parsed with Zod at the boundary.
+- **The server compresses for itself.** Nothing stands in front of it, so pages and answers go out in brotli or gzip as they are written, and the build ships its scripts and styles already packed. That nearly halved every page's LCP on the emulated phone.
 - **The domain comes first.** `shared/domain` owes nothing to the upstream shape: Nutri-Score and NOVA follow the public health bodies that define them.
 - **Filter state lives in the URL.** No store and no watcher, so sharing, bookmarking and Back work for free.
 - **An export holds every match, or it does not happen.** The search index stops at 10,000 rows, so a larger search asks for one more filter instead of saving an arbitrary slice. The CSV streams as upstream pages arrive, and a failure halfway cuts the download, so a partial file never passes for a whole one.
 - **The dialog is the platform's own.** A native `<dialog>` keeps the page inert and returns focus, and its pickers are popovers placed with CSS anchor positioning, with no library for either.
 - **Two languages, one address each.** Nothing redirects by the browser's language, so a shared link opens in the language it was sent in, and numbers and dates follow the page: 3,585,939 or 3.585.939. The catalogue's own Portuguese is European and uneven, so countries are named from CLDR, product names and ingredients are Portuguese only where a record has them, and categories, labels and additives keep their English names, which every Portuguese page says.
 - **Missing data is a value, never a zero.** A nutrient nobody reported shows a dash, and a product with no photograph says so.
+- **Loading claims nothing and moves nothing.** A product page waits in a skeleton built line for line like its header, instead of saying "none" before the record has spoken, so the record lands without moving what is below it. It does not open with the list's copy of the product: the search index stopped in December 2024 and disagrees with the record on most products.
 - **The design system is a Nuxt layer**, and its boundary is enforced: nothing under `layers/ui` knows that food is being catalogued.
 - **One theme, read from tokens.** Components and charts read the same custom properties, so a colour is never written twice.
 
