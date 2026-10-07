@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
+import { hydrated } from './support/hydration'
 import { transitionsSettled } from './support/motion'
 import { holdRequests } from './support/network'
 
@@ -19,6 +20,7 @@ test.describe('when a search matches nothing', () => {
     page,
   }) => {
     await page.goto(NOTHING_MATCHES)
+    await hydrated(page)
     const release = await holdRequests(page, '/api/products')
 
     await page.getByRole('button', { name: 'Clear all filters' }).click()
