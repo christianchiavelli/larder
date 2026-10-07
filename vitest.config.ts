@@ -25,6 +25,7 @@ export default defineVitestConfig({
         // the end-to-end tests check the status codes, languages and head they produce.
         'app/composables/use-error-status.ts',
         'app/composables/use-app-head.ts',
+        'app/composables/use-photo-preconnect.ts',
       ],
       thresholds: {
         statements: 95,

@@ -35,6 +35,9 @@ export default defineNuxtConfig({
     exportConcurrency: 2,
     public: {
       siteName: 'Larder',
+      // Where the catalogue's photos come from, for the pages to connect early and the content
+      // security policy to let in. The Web Vitals point it at their recording of the photos.
+      openFoodFacts: { imageOrigin: 'https://images.openfoodfacts.org' },
       // Where the app is served, so each page links its other language by a whole URL, as
       // search engines read them. NUXT_PUBLIC_I18N_BASE_URL points them anywhere else.
       i18n: { baseUrl: 'http://localhost:3000' },

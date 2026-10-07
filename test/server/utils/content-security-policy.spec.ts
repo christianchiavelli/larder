@@ -39,7 +39,7 @@ describe('inlineScriptHashes', () => {
 })
 
 describe('contentSecurityPolicy', () => {
-  const policy = contentSecurityPolicy([HELLO_HASH])
+  const policy = contentSecurityPolicy([HELLO_HASH], 'https://images.openfoodfacts.org')
   const directive = (name: string) =>
     policy
       .split('; ')
@@ -50,7 +50,7 @@ describe('contentSecurityPolicy', () => {
     expect(directive('script-src')).toBe(`'self' ${HELLO_HASH}`)
   })
 
-  it('lets the product photographs in, from Open Food Facts only', () => {
+  it('lets the product photographs in, from where the catalogue keeps them only', () => {
     expect(directive('img-src')).toBe("'self' https://images.openfoodfacts.org")
   })
 

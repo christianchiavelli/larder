@@ -34,6 +34,7 @@ const title = computed(() =>
 )
 
 useHead(() => ({ title: title.value }))
+usePhotoPreconnect()
 
 const modifiedLabel = computed(() =>
   product.value?.lastModified ? format.date(product.value.lastModified) : null,
@@ -89,6 +90,7 @@ const isNotFound = computed(
               :alt="t('product.imageAlt', { name: title })"
               width="112"
               height="112"
+              fetchpriority="high"
               decoding="async"
               class="size-full object-contain"
             />

@@ -19,14 +19,17 @@ export function inlineScriptHashes(html: string): string[] {
   return [...hashes]
 }
 
-export function contentSecurityPolicy(scriptHashes: readonly string[]): string {
+export function contentSecurityPolicy(
+  scriptHashes: readonly string[],
+  imageOrigin: string,
+): string {
   const directives: Record<string, string[]> = {
     'default-src': ["'self'"],
     'script-src': ["'self'", ...scriptHashes],
     'style-src': ["'self'"],
     // Vue writes style bindings into the server-rendered page as attributes.
     'style-src-attr': ["'unsafe-inline'"],
-    'img-src': ["'self'", 'https://images.openfoodfacts.org'],
+    'img-src': ["'self'", imageOrigin],
     'object-src': ["'none'"],
     'base-uri': ["'none'"],
     'form-action': ["'self'"],

@@ -6,12 +6,17 @@ import { contentSecurityPolicy, inlineScriptHashes } from '~~/server/utils/conte
 export default defineNitroPlugin((nitroApp) => {
   if (import.meta.dev) return
 
+  const { imageOrigin } = useRuntimeConfig().public.openFoodFacts
+
   nitroApp.hooks.hook('render:response', (response) => {
     const headers = response.headers
     if (typeof response.body !== 'string' || !headers?.['content-type']?.startsWith('text/html'))
       return
 
-    headers['content-security-policy'] = contentSecurityPolicy(inlineScriptHashes(response.body))
+    headers['content-security-policy'] = contentSecurityPolicy(
+      inlineScriptHashes(response.body),
+      imageOrigin,
+    )
     delete headers['x-powered-by']
   })
 })

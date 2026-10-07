@@ -5,6 +5,7 @@ const { t } = useI18n()
 const format = useFormat()
 
 useHead(() => ({ title: t('products.title') }))
+usePhotoPreconnect()
 
 definePageMeta({
   viewTransition: true,

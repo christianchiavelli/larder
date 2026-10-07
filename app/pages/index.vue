@@ -16,6 +16,8 @@ const { t } = useI18n()
 const format = useFormat()
 const localePath = useLocalePath()
 
+usePhotoPreconnect()
+
 const query = computed(() => ({ ...EMPTY_PRODUCT_QUERY, sort: 'popularity' as const }))
 const { state, asyncStatus } = useProductSearch(query)
 
