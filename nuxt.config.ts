@@ -45,15 +45,19 @@ export default defineNuxtConfig({
   },
 
   fonts: {
+    // Google first, rather than pinned on each family: a family pinned to a provider takes that
+    // provider's fallback, the bare generic name, which no installed font answers to (fontless
+    // 0.2). Text then waits in Georgia and Arial as they are, wider than Lora and Open Sans, and
+    // rewraps when the fonts arrive. Unpinned, the fallbacks below are sized to each family.
+    priority: ['google'],
     families: [
-      { name: 'Open Sans', provider: 'google', weights: [400, 600, 700] },
-      { name: 'Lora', provider: 'google', weights: [400, 600] },
+      { name: 'Open Sans', weights: [400, 600, 700] },
+      { name: 'Lora', weights: [400, 600] },
     ],
     defaults: {
-      fallbacks: {
-        'sans-serif': ['Helvetica Neue', 'Arial'],
-        serif: ['Georgia', 'Times New Roman'],
-      },
+      // Georgia first, the nearest to Lora of the serifs a laptop or a phone already has, and
+      // Noto Serif for Android, which has neither of the others. Sans keeps fontless's own list.
+      fallbacks: { serif: ['Georgia', 'Times New Roman', 'Noto Serif'] },
     },
   },
 
