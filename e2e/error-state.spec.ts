@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test, type Page } from '@playwright/test'
+import { hydrated } from './support/hydration'
 import { transitionsSettled } from './support/motion'
 import { RUNS_LOCALLY, SOURCE_DOWN_BASE_URL } from './support/servers'
 
@@ -19,6 +20,7 @@ function failRequests(page: Page, matches: (url: URL) => boolean) {
 async function openDirectory(page: Page, path = '/products') {
   await page.goto(path)
   await expect(page.getByTestId('product-row').first()).toBeVisible()
+  await hydrated(page)
 }
 
 async function searchFor(page: Page, term: string) {

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { hydrated } from './support/hydration'
 
 function collectErrors(page: Page): string[] {
   const errors: string[] = []
@@ -17,8 +18,7 @@ test.describe('theme', () => {
       const errors = collectErrors(page)
 
       await page.goto('/products')
-      await page.getByTestId('product-row').first().waitFor()
-      await page.waitForLoadState('networkidle')
+      await hydrated(page)
 
       expect(errors.filter((error) => /hydrat/i.test(error))).toEqual([])
 
@@ -78,8 +78,7 @@ test.describe('theme', () => {
 test.describe('select', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/products')
-    // A choice made before the page hydrates goes nowhere, and under load that came first.
-    await page.waitForLoadState('networkidle')
+    await hydrated(page)
   })
 
   test('is a real select, operable by keyboard', async ({ page }) => {
@@ -156,6 +155,7 @@ test.describe('the see more button', () => {
   test('stops offering itself once the end is reached', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 })
     await page.goto('/overview')
+    await expect(fab(page)).toBeVisible()
 
     for (let step = 0; step < 8 && (await fab(page).isVisible()); step++) {
       await fab(page).click()

@@ -112,7 +112,8 @@ test.describe('design tokens reach the browser', () => {
     const lightSurface = await computeUtility(page, 'bg-surface-raised', 'background-color')
     const lightNutri = await computeUtility(page, 'bg-nutri-a', 'background-color')
 
-    await page.evaluate(() => document.documentElement.classList.add('dark'))
+    await page.emulateMedia({ colorScheme: 'dark' })
+    await expect(page.locator('html')).toHaveClass(/\bdark\b/)
 
     const darkSurface = await computeUtility(page, 'bg-surface-raised', 'background-color')
     const darkNutri = await computeUtility(page, 'bg-nutri-a', 'background-color')

@@ -490,7 +490,11 @@ test.describe('the export dialog as a modal', () => {
     expect(closed.violations).toEqual([])
 
     await dialog.getByRole('button', { name: /^Brand/ }).click()
-    await dialog.getByRole('combobox', { name: 'Search brands' }).fill('lindt')
+    const lookedUp = page.waitForResponse((response) => response.url().includes('/api/suggest?'))
+    const search = dialog.getByRole('combobox', { name: 'Search brands' })
+    await search.fill('lindt')
+    await lookedUp
+    await expect(search.locator('..').getByTestId('spinner')).toBeHidden()
     await expect(dialog.getByRole('option').first()).toBeVisible()
 
     await transitionsSettled(page)

@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test'
+import { hydrated } from './support/hydration'
 
 test.describe('product directory', () => {
   test('renders results on the server, before any JavaScript runs', async ({ browser }) => {
@@ -183,9 +184,12 @@ test.describe('product directory', () => {
 test.describe('filter suggestions', () => {
   const search = (page: Page) => page.getByRole('combobox', { name: 'Search products' })
 
-  test('suggests taxonomy filters once the term is long enough', async ({ page }) => {
+  test.beforeEach(async ({ page }) => {
     await page.goto('/products')
+    await hydrated(page)
+  })
 
+  test('suggests taxonomy filters once the term is long enough', async ({ page }) => {
     const input = search(page)
     await expect(input).toHaveAttribute('aria-expanded', 'false')
 
@@ -199,8 +203,6 @@ test.describe('filter suggestions', () => {
   })
 
   test('asks for suggestions when the typing pauses, not for every letter', async ({ page }) => {
-    await page.goto('/products')
-
     const asked: string[] = []
     page.on('request', (request) => {
       const url = new URL(request.url())
@@ -214,7 +216,6 @@ test.describe('filter suggestions', () => {
   })
 
   test('mixes taxonomies instead of showing one of them', async ({ page }) => {
-    await page.goto('/products')
     await search(page).fill('choc')
 
     await expect(page.getByRole('listbox')).toBeVisible()
@@ -227,8 +228,6 @@ test.describe('filter suggestions', () => {
   })
 
   test('applies a suggestion as a filter, by keyboard', async ({ page }) => {
-    await page.goto('/products')
-
     const input = search(page)
     await input.fill('choc')
     await expect(page.getByRole('listbox')).toBeVisible()
@@ -246,8 +245,6 @@ test.describe('filter suggestions', () => {
   })
 
   test('applies a brand suggestion to a dimension that matches', async ({ page }) => {
-    await page.goto('/products')
-
     const input = search(page)
     await input.fill('olivari')
     await expect(page.getByRole('listbox')).toBeVisible()
@@ -261,8 +258,6 @@ test.describe('filter suggestions', () => {
   })
 
   test('applies a suggestion by pointer', async ({ page }) => {
-    await page.goto('/products')
-
     await search(page).fill('choc')
     await expect(page.getByRole('listbox')).toBeVisible()
     await page.getByRole('option').first().click()
@@ -271,8 +266,6 @@ test.describe('filter suggestions', () => {
   })
 
   test('closes on Escape without applying anything', async ({ page }) => {
-    await page.goto('/products')
-
     const input = search(page)
     await input.fill('choc')
     await expect(page.getByRole('listbox')).toBeVisible()
@@ -284,8 +277,6 @@ test.describe('filter suggestions', () => {
   })
 
   test('leaves Enter to the free-text search when nothing is highlighted', async ({ page }) => {
-    await page.goto('/products')
-
     const input = search(page)
     await input.fill('choc')
     await expect(page.getByRole('listbox')).toBeVisible()
@@ -353,7 +344,7 @@ test.describe('a product page while its record loads', () => {
     page,
   }) => {
     await page.goto('/products')
-    await page.waitForLoadState('networkidle')
+    await hydrated(page)
     const release = await holdProductRecords(page)
 
     await page.getByTestId('product-row').first().locator('h3 a').click()
