@@ -82,14 +82,9 @@ const totalLabel = computed(() => {
               :title="t('products.noMatch')"
               :description="t('products.noMatchHint')"
             >
-              <button
-                v-if="showingFilters"
-                type="button"
-                class="inline-flex h-9 items-center justify-center rounded-control bg-accent px-4 text-label text-ink-on-accent transition-colors hover:bg-accent-hover"
-                @click="clearFilters()"
-              >
+              <UiButton v-if="showingFilters" @click="clearFilters()">
                 {{ t('products.clearFilters') }}
-              </button>
+              </UiButton>
             </UiEmptyState>
 
             <template v-else>

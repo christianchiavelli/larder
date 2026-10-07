@@ -273,24 +273,21 @@ function onDownload(event: MouseEvent) {
         </div>
 
         <div class="ml-auto flex gap-2 max-sm:ml-0">
-          <button
-            type="button"
-            class="inline-flex h-9 items-center justify-center rounded-control border border-edge-strong bg-surface-raised px-4 text-label text-ink transition-colors hover:bg-surface-hover max-sm:h-11 max-sm:flex-1"
-            @click="open = false"
-          >
+          <UiButton variant="secondary" class="max-sm:h-11 max-sm:flex-1" @click="open = false">
             {{ t('export.cancel') }}
-          </button>
-          <a
+          </UiButton>
+          <UiButton
+            tag="a"
             :href="isDownloadable ? href : undefined"
             :role="isDownloadable ? undefined : 'link'"
             :aria-disabled="isDownloadable ? undefined : 'true'"
             download
-            class="inline-flex h-9 items-center justify-center gap-2 rounded-control bg-accent px-4 text-label text-ink-on-accent transition-colors hover:bg-accent-hover aria-disabled:cursor-not-allowed aria-disabled:opacity-45 aria-disabled:hover:bg-accent max-sm:h-11 max-sm:flex-1"
+            class="aria-disabled:cursor-not-allowed aria-disabled:opacity-45 aria-disabled:hover:bg-accent max-sm:h-11 max-sm:flex-1"
             @click="onDownload"
           >
             <UiIcon name="download" class="size-3.5" />
             {{ t('export.download') }}
-          </a>
+          </UiButton>
         </div>
       </div>
     </template>

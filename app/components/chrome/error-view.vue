@@ -19,11 +19,6 @@ const { t } = useI18n()
 const localePath = useLocalePath()
 
 const notFound = computed(() => props.statusCode === 404)
-
-const PRIMARY =
-  'inline-flex h-9 items-center justify-center rounded-control bg-accent px-4 text-label text-ink-on-accent transition-colors hover:bg-accent-hover'
-const SECONDARY =
-  'inline-flex h-9 items-center justify-center rounded-control border border-edge-strong bg-surface-raised px-4 text-label text-ink transition-colors hover:bg-surface-hover'
 </script>
 
 <template>
@@ -42,10 +37,8 @@ const SECONDARY =
       </template>
 
       <div class="flex flex-wrap justify-center gap-2">
-        <NuxtLink :to="localePath('/products')" :class="PRIMARY">
-          {{ t('errors.notFound.search') }}
-        </NuxtLink>
-        <NuxtLink :to="localePath('/')" :class="SECONDARY">{{ t('errors.home') }}</NuxtLink>
+        <UiButton :to="localePath('/products')">{{ t('errors.notFound.search') }}</UiButton>
+        <UiButton variant="secondary" :to="localePath('/')">{{ t('errors.home') }}</UiButton>
       </div>
     </UiEmptyState>
 
@@ -57,7 +50,7 @@ const SECONDARY =
       :retrying="retrying"
       @retry="$emit('retry')"
     >
-      <NuxtLink :to="localePath('/')" :class="SECONDARY">{{ t('errors.home') }}</NuxtLink>
+      <UiButton variant="secondary" :to="localePath('/')">{{ t('errors.home') }}</UiButton>
     </UiErrorState>
   </div>
 </template>
