@@ -84,6 +84,13 @@ export default defineNuxtConfig({
     '/pt': { swr: 3600 },
   },
 
+  nitro: {
+    // The built scripts and styles are packed once, at the best brotli and gzip there are, and
+    // sent as each browser accepts. Pages and answers are packed as they go out, by the
+    // plugin in server/plugins/compression.ts.
+    compressPublicAssets: true,
+  },
+
   experimental: {
     viewTransition: true,
   },
