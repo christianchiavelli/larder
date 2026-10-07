@@ -1,37 +1,37 @@
 {
   "measured": "2026-10-07",
   "runs": [
-    "https://github.com/christianchiavelli/larder/actions/runs/37574671538",
-    "https://github.com/christianchiavelli/larder/actions/runs/37575363462"
+    "https://github.com/christianchiavelli/larder/actions/runs/37672526434",
+    "https://github.com/christianchiavelli/larder/actions/runs/37675415522"
   ],
   "pages": {
     "front": {
       "name": "The front page",
       "path": "/",
-      "LCP": 1650,
+      "LCP": 1640,
       "CLS": 0.0052,
       "INP": 36
     },
     "directory": {
       "name": "The directory",
       "path": "/products",
-      "LCP": 1688,
+      "LCP": 1678,
       "CLS": 0.0026,
       "INP": 40
     },
     "overview": {
       "name": "The overview",
       "path": "/overview",
-      "LCP": 1624,
+      "LCP": 1644,
       "CLS": 0.0052,
       "INP": 24
     },
     "product": {
       "name": "A product page",
       "path": "/products/3017620425035",
-      "LCP": 1686,
+      "LCP": 1690,
       "CLS": 0.0159,
-      "INP": 24
+      "INP": 28
     }
   }
 }

@@ -115,12 +115,12 @@ Every push also measures LCP, CLS and INP on the phone and connection Lighthouse
 
 | Page           | LCP    | CLS   | INP   |
 | -------------- | ------ | ----- | ----- |
-| The front page | 1.65 s | 0.005 | 36 ms |
-| The directory  | 1.69 s | 0.003 | 40 ms |
-| The overview   | 1.62 s | 0.005 | 24 ms |
-| A product page | 1.69 s | 0.016 | 24 ms |
+| The front page | 1.64 s | 0.005 | 36 ms |
+| The directory  | 1.68 s | 0.003 | 40 ms |
+| The overview   | 1.64 s | 0.005 | 24 ms |
+| A product page | 1.69 s | 0.016 | 28 ms |
 
-Measured on 7 October 2026, the median of two runs in CI ([1](https://github.com/christianchiavelli/larder/actions/runs/37574671538), [2](https://github.com/christianchiavelli/larder/actions/runs/37575363462)).
+Measured on 7 October 2026, the median of two runs in CI ([1](https://github.com/christianchiavelli/larder/actions/runs/37672526434), [2](https://github.com/christianchiavelli/larder/actions/runs/37675415522)).
 <!-- /web-vitals -->
 
 ---
