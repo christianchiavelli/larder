@@ -109,6 +109,8 @@ pnpm run vitals           # the Core Web Vitals of each page, against a producti
 
 Vitest covers the domain, services, mappers and URL state. Playwright covers what only a browser can: whether a Tailwind utility resolves, whether a chart renders its hover state, whether the page hydrates cleanly, and whether every page, whole, passes axe in both themes. The story checks put each component on its own, so a contrast or labelling fault shows on the component that has it, not on whichever page happens to render it.
 
+The workflow is checked too: actionlint for its syntax, expressions and scripts, and zizmor for the ways a workflow leaks its token. Every job only reads the code, every action is pinned to a commit, and no checkout keeps the token.
+
 Every push also measures LCP, CLS and INP on the phone and connection Lighthouse emulates for mobile, against Open Food Facts as it answered once, photos included, and fails when a page measures worse than its baseline. The recording keeps the catalogue's latency out of the numbers, that of the server a product page's photo comes from among it; `pnpm run vitals:record` takes a new one.
 
 <!-- web-vitals -->
