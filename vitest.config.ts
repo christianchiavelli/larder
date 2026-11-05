@@ -26,12 +26,34 @@ export default defineVitestConfig({
         'app/composables/use-error-status.ts',
         'app/composables/use-app-head.ts',
         'app/composables/use-photo-preconnect.ts',
+        // A VueUse wrapper that reads and writes the document. What it decides — when the
+        // theme is dark, and how a switch happens without a transition per colour — is checked
+        // where it can be seen: theme-bootstrap.spec.ts for the script that runs before the
+        // first paint, and the end-to-end scans of both themes.
+        'app/composables/use-theme.ts',
       ],
+      // One global average says nothing about where the risk is: a hundred untested branches in
+      // a composable and a hundred in the domain average out to the same number. These floors
+      // are set per area, so the code that decides what a figure means has to be tested, while
+      // the wiring around it is allowed a covered fault-path or two.
+      //
+      // Each sits about two points under what the suite reaches today, which is the margin that
+      // keeps the gate a floor rather than a ceiling: a new file with a couple of untested
+      // branches should not fail a build that is otherwise in good shape.
       thresholds: {
-        statements: 95,
-        branches: 94,
-        functions: 96,
-        lines: 95,
+        statements: 93,
+        branches: 91,
+        functions: 94,
+        lines: 93,
+
+        // Pure, no I/O, and the thing every other layer trusts: nothing here ships untested.
+        'shared/domain/**': { statements: 99, branches: 96, functions: 100, lines: 100 },
+        'server/services/**': { statements: 94, branches: 89, functions: 99, lines: 95 },
+        'server/upstream/**': { statements: 96, branches: 95, functions: 95, lines: 96 },
+        'server/utils/**': { statements: 90, branches: 91, functions: 92, lines: 90 },
+        'app/api/**': { statements: 100, branches: 100, functions: 100, lines: 100 },
+        'app/composables/**': { statements: 95, branches: 89, functions: 93, lines: 95 },
+        'layers/ui/app/utils/**': { statements: 99, branches: 99, functions: 99, lines: 99 },
       },
     },
   },
