@@ -6,12 +6,14 @@
  */
 
 /**
- * The build's own files, and the route Nuxt renders a failure through: most of the traffic,
- * and none of it a reader asked for. `/__nuxt_error` goes here because a request that failed
- * is reported by `failureRecord` with the path that actually failed — leaving it in would
- * report the failure twice, once under a made-up route and a status of 200.
+ * The build's own files, the route Nuxt renders a failure through, and the health route:
+ * most of the traffic, and none of it a reader asked for. `/__nuxt_error` goes here because
+ * a request that failed is reported by `failureRecord` with the path that actually failed —
+ * leaving it in would report the failure twice, once under a made-up route and a status of
+ * 200. `/api/health` goes here because the container asks it every ten seconds, which over a
+ * day is eight thousand lines saying nothing happened.
  */
-const QUIET_PREFIXES = ['/_nuxt/', '/_fonts/', '/favicon', '/__nuxt_error'] as const
+const QUIET_PREFIXES = ['/_nuxt/', '/_fonts/', '/favicon', '/__nuxt_error', '/api/health'] as const
 
 export function isWorthLogging(path: string): boolean {
   return !QUIET_PREFIXES.some((prefix) => path.startsWith(prefix))

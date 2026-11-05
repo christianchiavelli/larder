@@ -25,6 +25,10 @@ describe('isWorthLogging', () => {
   it('drops the route a failure is rendered through, so it is not reported twice', () => {
     expect(isWorthLogging('/__nuxt_error')).toBe(false)
   })
+
+  it('drops the health route, which the container asks every ten seconds', () => {
+    expect(isWorthLogging('/api/health')).toBe(false)
+  })
 })
 
 describe('loggedPath', () => {
