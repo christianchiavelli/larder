@@ -146,9 +146,7 @@ test.describe('product directory', () => {
   })
 
   test("follows a product's category back to the directory, filtered by it", async ({ page }) => {
-    // The one page that is opened to be clicked straight away rather than read: it waits for
-    // the whole load, so the transition has finished and the link is where it will stay.
-    await page.goto('/products/3017620425035')
+    await open(page, '/products/3017620425035')
 
     const chip = page.locator('main header').getByRole('link').first()
     const href = await chip.getAttribute('href')
@@ -156,7 +154,10 @@ test.describe('product directory', () => {
 
     await chip.click()
 
-    await expect(page).toHaveURL((url) => url.pathname + url.search === href)
+    // `expect.poll` rather than `toHaveURL(predicate)`: the predicate form reported the
+    // address below as received and still never matched it, with the two strings plainly
+    // equal. Polling compares the same two strings with nothing of its own in between.
+    await expect.poll(() => new URL(page.url()).pathname + new URL(page.url()).search).toBe(href)
     await expect(page.getByTestId('product-row').first()).toBeVisible()
   })
 
