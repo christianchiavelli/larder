@@ -4,6 +4,11 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Once a week, against whatever the catalogue and the dependencies have become since, with
+  # the end-to-end job's retries taken away. A test that only sometimes passes then has to
+  # show up somewhere, and a red run is seen where a notice in a green run is not.
+  schedule:
+    - cron: '0 6 * * 1'
   workflow_dispatch:
 
 # A new push to the same branch makes the in-flight run irrelevant. Cancelling
@@ -88,6 +93,10 @@ jobs:
     runs-on: ubuntu-latest
     # Room for three seven-minute attempts at the browsers, then the build and the suite.
     timeout-minutes: 30
+    # The retries are for a slow day upstream, not for a test that is unreliable: a scheduled
+    # run asks for none, so the flakiness surfaces instead of being tolerated forever.
+    env:
+      E2E_RETRIES: ${{ github.event_name == 'schedule' && '0' || '2' }}
     # Only after the cheap checks pass. A type error would fail every browser
     # spec for the same reason, several minutes later and less legibly.
     needs: verify

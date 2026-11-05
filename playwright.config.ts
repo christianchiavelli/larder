@@ -10,13 +10,23 @@ import {
 
 const FAILING_UPSTREAM = `http://localhost:${FAILING_UPSTREAM_PORT}`
 
+/**
+ * Two tries after the first on CI, so a slow day at the catalogue does not block a push.
+ *
+ * The weekly run asks for none (`E2E_RETRIES=0` in `ci.yml`), because the tolerance exists
+ * for somebody else's bad day and not for a test that only sometimes passes: with the
+ * retries on, such a test is reported as a notice inside a green run, and nobody reads it.
+ */
+const RETRIES =
+  process.env.E2E_RETRIES !== undefined ? Number(process.env.E2E_RETRIES) : process.env.CI ? 2 : 0
+
 export default defineConfig({
   testDir: './e2e',
   // The Web Vitals have a config of their own (playwright.vitals.config.ts).
   testIgnore: 'vitals/**',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  retries: RETRIES,
   workers: process.env.CI ? 2 : undefined,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : [['list']],
 
