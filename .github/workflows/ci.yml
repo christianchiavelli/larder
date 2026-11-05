@@ -106,12 +106,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # Only Chromium. The specs here check application behaviour and whether
-      # CSS utilities were generated at all, neither of which varies by engine,
-      # and a full matrix would triple the runtime to re-answer the same
-      # question.
+      # Chromium for the whole suite, WebKit for the accessibility scan. The app leans on a
+      # native <dialog>, popovers placed by CSS anchor positioning and view transitions, which
+      # is where the engines actually differ, so the one suite that would show it runs there
+      # too. Firefox is left out, and the full matrix with it.
       - name: Install Playwright
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm exec playwright install --with-deps chromium webkit
 
       # Production build, because the design-token regression these specs
       # guard against involves Tailwind's source scanning, which behaves

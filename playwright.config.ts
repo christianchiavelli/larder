@@ -37,6 +37,20 @@ export default defineConfig({
         /(filter-round-trip|export-contract|compression|security-headers)\.spec\.ts/,
       ],
     },
+    {
+      // WebKit is Safari, and every browser on a phone or a tablet that is not Android. This
+      // app leans on the newest parts of the platform — a native <dialog>, popovers placed by
+      // CSS anchor positioning, view transitions — which is exactly where the engines differ,
+      // so the claim that a spec cannot vary by engine is the one worth testing.
+      //
+      // The accessibility scan is the suite it runs: a difference in any of those shows up
+      // there as a page a reader cannot use, it covers every page in both themes, and it is
+      // one file rather than the seventeen, which keeps the extra engine to a couple of
+      // minutes instead of tripling the job.
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
+      testMatch: /accessibility\.spec\.ts/,
+    },
   ],
 
   webServer: RUNS_LOCALLY
