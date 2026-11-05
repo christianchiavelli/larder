@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import { hydrated } from './support/hydration'
 import { holdRequests } from './support/network'
+import { fontsSettled, open } from './support/navigation'
 
 test.describe('product directory', () => {
   test('renders results on the server, before any JavaScript runs', async ({ browser }) => {
@@ -461,6 +462,10 @@ test.describe('the product page columns', () => {
   const CODE = '3017620425035'
 
   async function measure(page: Page) {
+    // Every height below is a finished one: a font that lands after this would move the
+    // text and change the number that is about to be asserted.
+    await fontsSettled(page)
+
     return page.evaluate(() => {
       const card = (heading: string) =>
         [...document.querySelectorAll('h2')]
@@ -483,7 +488,7 @@ test.describe('the product page columns', () => {
 
   test('the right column fills the height of the nutrition card', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
-    await page.goto(`/products/${CODE}`)
+    await open(page, `/products/${CODE}`)
     await page.getByRole('heading', { name: 'Source' }).waitFor()
 
     const measured = await measure(page)
@@ -494,7 +499,7 @@ test.describe('the product page columns', () => {
 
   test('nothing is stretched once the columns stack', async ({ page }) => {
     await page.setViewportSize({ width: 400, height: 900 })
-    await page.goto(`/products/${CODE}`)
+    await open(page, `/products/${CODE}`)
     await page.getByRole('heading', { name: 'Source' }).waitFor()
 
     const measured = await measure(page)
@@ -504,7 +509,7 @@ test.describe('the product page columns', () => {
 
   test('the ingredients list spans the full row', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
-    await page.goto(`/products/${CODE}`)
+    await open(page, `/products/${CODE}`)
 
     const ingredients = page.getByRole('heading', { name: 'Ingredients list' }).locator('xpath=..')
     const nutrition = page.getByRole('heading', { name: 'Nutrition' }).locator('xpath=..')

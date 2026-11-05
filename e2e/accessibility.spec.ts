@@ -2,6 +2,7 @@ import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
 import { hydrated } from './support/hydration'
 import { transitionsSettled } from './support/motion'
+import { open } from './support/navigation'
 
 // Whole pages, as a visitor lands on them. The other scans look at the region a test is
 // about, so a faint footer or filter legend passed them all; here it would not.
@@ -24,7 +25,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
 
     for (const [name, path] of PAGES) {
       test(`${name} meets WCAG AA`, async ({ page }) => {
-        await page.goto(path)
+        await open(page, path)
         // The mark the app sets once it has hydrated, rather than the network falling quiet:
         // a page that is still hydrating scans as a page nobody has looked at, and a quiet
         // network is neither necessary nor sufficient for it.
