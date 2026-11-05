@@ -1,0 +1,76 @@
+# Dependencies move on their own, but nothing merges on its own: every update
+# arrives as a pull request and meets the same gate as a hand-written change —
+# format, lint, types, coverage, the browser specs and the Web Vitals baselines.
+# A bump that breaks a page cannot reach `main` quietly.
+version: 2
+
+updates:
+  # One lockfile at the root, so one entry covers the app, the layer and the
+  # scripts alike.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: America/Sao_Paulo
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore
+      include: scope
+
+    # A release published an hour ago is the one nobody has run yet. Waiting a
+    # week means adopting it after other people have found what is wrong with
+    # it, which is the cheapest supply-chain check there is.
+    cooldown:
+      default-days: 7
+      semver-major-days: 30
+
+    groups:
+      # A security fix is never held back and never batched with routine work,
+      # so it lands alone, on its own merits, the day it is published.
+      security:
+        applies-to: security-updates
+        patterns:
+          - '*'
+      # Routine bumps arrive as one pull request a week rather than forty.
+      minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - minor
+          - patch
+
+    ignore:
+      # Held at exactly 6.0.3 by the override in pnpm-workspace.yaml, because
+      # typescript-eslint refuses to load against 7 — its supported range stops
+      # at 6.1 — and pnpm then isolates a copy ESLint cannot parse. A pull
+      # request that moved it would be undone by the override on the next
+      # install, so it is not opened at all. Remove this when typescript-eslint
+      # ships TS 7 support (their issue #10940).
+      - dependency-name: typescript
+
+  # Every action is pinned to a commit, with the release it belongs to in a
+  # comment beside it. Dependabot reads that comment, so the pin survives the
+  # bump and no action ever floats on a tag.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: America/Sao_Paulo
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: ci
+      include: scope
+
+    groups:
+      security:
+        applies-to: security-updates
+        patterns:
+          - '*'
+      minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - minor
+          - patch
