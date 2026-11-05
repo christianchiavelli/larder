@@ -175,11 +175,18 @@ test.describe('product directory', () => {
     })
 
     await page.goto('/products')
+    await hydrated(page)
+
+    // The click starts a search. Its answer is what settles the page; the whole network going
+    // quiet is neither, and on a page that never asks for anything again never arrives at all.
+    const answered = page.waitForResponse(
+      (response) => new URL(response.url()).pathname === '/api/products',
+    )
     await page
       .getByRole('button', { name: /Nutri-Score A,/ })
       .first()
       .click()
-    await page.waitForLoadState('networkidle')
+    await answered
 
     expect(errors).toEqual([])
   })

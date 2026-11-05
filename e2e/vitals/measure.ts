@@ -203,7 +203,11 @@ export async function measure(
     if (throttled) await throttle(page)
 
     await page.goto(visit.path)
-    // Nothing in the page asks for anything once it has hydrated, so a quiet network means it has.
+    // Left waiting on a quiet network rather than the hydration mark the other specs use, and
+    // deliberately: a Vital is measured on a page at rest, which a quiet network is the
+    // definition of. The mark arrives once the app has hydrated, before the photographs and
+    // the fonts it was measured against have landed, so reading it here would time a page that
+    // is still filling in. The baselines were recorded this way.
     await page.waitForLoadState('networkidle')
     await settle(page)
     const { LCP } = await page.evaluate(() => window.vitals)
