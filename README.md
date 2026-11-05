@@ -93,7 +93,7 @@ Each one is also under `/pt`, in Brazilian Portuguese.
 - **Two languages, one address each.** Nothing redirects by the browser's language, so a shared link opens in the language it was sent in, and numbers and dates follow the page: 3,585,939 or 3.585.939. The catalogue's own Portuguese is European and uneven, so countries are named from CLDR, product names and ingredients are Portuguese only where a record has them, and categories, labels and additives keep their English names, which every Portuguese page says.
 - **Missing data is a value, never a zero.** A nutrient nobody reported shows a dash, and a product with no photograph says so.
 - **A product opens whole.** From a list, the page waits for its record, the list staying on screen under a progress bar, so a name that runs to three lines on a phone cannot push the page down as it lands. It does not open with the list's copy of the product instead: the search index stopped in December 2024 and disagrees with the record on most products, names included. A record more than three seconds late opens on a skeleton built line for line like the header, which claims nothing before the record has spoken.
-- **The design system is a Nuxt layer**, and its boundary is enforced: nothing under `layers/ui` knows that food is being catalogued.
+- **The design system is a Nuxt layer**, and its components know nothing that food is being catalogued. The one domain thing it carries is the regulated Nutri-Score and NOVA palette, defined beside the other tokens because moving it out meant moving Tailwind's entry point with it ([ADR 3](docs/adr/0003-the-design-system-is-a-nuxt-layer.md)).
 - **One theme, read from tokens.** Components and charts read the same custom properties, so a colour is never written twice.
 
 ---
@@ -129,7 +129,7 @@ Measured on 7 October 2026, the median of two runs in CI ([1](https://github.com
 
 ## Reading further
 
-[docs/upstream-api.md](docs/upstream-api.md) compares the two upstream contracts, probed live, because the published documentation lags behind them. The reasoning behind each change is in the commit that made it.
+[docs/upstream-api.md](docs/upstream-api.md) compares the two upstream contracts, probed live, because the published documentation lags behind them. The reasoning behind each change is in the commit that made it, and the decisions worth arguing with are in [docs/adr](docs/adr/README.md).
 
 ---
 
