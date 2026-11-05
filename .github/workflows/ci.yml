@@ -86,7 +86,8 @@ jobs:
   e2e:
     name: E2E
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    # Room for three seven-minute attempts at the browsers, then the build and the suite.
+    timeout-minutes: 30
     # Only after the cheap checks pass. A type error would fail every browser
     # spec for the same reason, several minutes later and less legibly.
     needs: verify
@@ -110,8 +111,21 @@ jobs:
       # native <dialog>, popovers placed by CSS anchor positioning and view transitions, which
       # is where the engines actually differ, so the one suite that would show it runs there
       # too. Firefox is left out, and the full matrix with it.
+      #
+      # WebKit brings a large apt set of its own — speech and audio libraries, one of them
+      # 13 MB — and on one run a single download from the Ubuntu mirror stalled for five
+      # minutes and left the job sitting there until its own timeout killed everything. Each
+      # attempt now gives up after seven, so a bad mirror costs a retry instead of the run.
       - name: Install Playwright
-        run: pnpm exec playwright install --with-deps chromium webkit
+        run: |
+          for attempt in 1 2 3; do
+            if timeout 420 pnpm exec playwright install --with-deps chromium webkit; then
+              exit 0
+            fi
+            echo "::warning::attempt ${attempt} did not finish; asking again"
+          done
+          echo "::error::Playwright's browsers could not be installed in three attempts"
+          exit 1
 
       # Production build, because the design-token regression these specs
       # guard against involves Tailwind's source scanning, which behaves
