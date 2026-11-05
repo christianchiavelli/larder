@@ -207,3 +207,39 @@ jobs:
           name: web-vitals
           path: vitals-report/
           retention-days: 90
+
+  # The image is built and started here, not merely described. A Dockerfile that nothing runs
+  # rots quietly: a dependency moves, the build stops working, and nobody finds out until
+  # somebody needs the image — the day it matters most.
+  #
+  # It is started through compose, so compose.yaml is checked with it. `up --wait` returns
+  # only once the healthcheck in the Dockerfile has said the app is serving, which is the one
+  # claim about the image worth testing: that it comes up and answers.
+  container:
+    name: Container
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # After the cheap checks, for the same reason as the end-to-end job.
+    needs: verify
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Plain docker rather than a build action: the runner already has it, and an action
+      # would be one more pin to keep current for a command that is not going to change.
+      - name: Build the image
+        run: docker compose build
+
+      - name: Start it, and wait for the healthcheck to answer
+        run: docker compose up --detach --wait
+
+      - name: Ask it for the page a reader would open, and for its health
+        run: |
+          curl --fail --silent --show-error --output /dev/null http://localhost:3000/
+          curl --fail --silent --show-error --output /dev/null http://localhost:3000/api/health
+
+      - name: Stop it
+        if: always()
+        run: docker compose down
