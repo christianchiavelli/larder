@@ -45,7 +45,7 @@ Regenerate with `pnpm run screenshots`, which builds the app, serves it to itsel
 
 ## Setup
 
-Node.js 22.13 or newer and pnpm. No API key or account.
+Node.js 24 and pnpm. No API key or account.
 
 ```bash
 pnpm install
