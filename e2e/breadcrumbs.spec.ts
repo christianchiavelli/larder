@@ -1,10 +1,11 @@
 import { expect, test } from '@playwright/test'
+import { open } from './support/navigation'
 
 const PRODUCT = '/products/3017620425035'
 
 test.describe('breadcrumbs', () => {
   test('is a labelled landmark, not a row of links', async ({ page }) => {
-    await page.goto(PRODUCT)
+    await open(page, PRODUCT)
 
     const trail = page.getByRole('navigation', { name: 'Breadcrumb' })
     await expect(trail).toBeVisible()
@@ -12,7 +13,7 @@ test.describe('breadcrumbs', () => {
   })
 
   test('marks the current page and leaves it unlinked', async ({ page }) => {
-    await page.goto(PRODUCT)
+    await open(page, PRODUCT)
 
     const trail = page.getByRole('navigation', { name: 'Breadcrumb' })
     const current = trail.locator('[aria-current="page"]')
@@ -24,7 +25,7 @@ test.describe('breadcrumbs', () => {
   })
 
   test('carries the product name once it arrives', async ({ page }) => {
-    await page.goto(PRODUCT)
+    await open(page, PRODUCT)
 
     const heading = page.getByRole('heading', { level: 1 })
     await expect(heading).not.toHaveText('Product')
@@ -34,7 +35,7 @@ test.describe('breadcrumbs', () => {
   })
 
   test('steps back up to the directory', async ({ page }) => {
-    await page.goto(PRODUCT)
+    await open(page, PRODUCT)
 
     await page.getByRole('navigation', { name: 'Breadcrumb' }).getByRole('link').click()
 
@@ -43,7 +44,7 @@ test.describe('breadcrumbs', () => {
   })
 
   test('shows the directory above a product reached from the front page', async ({ page }) => {
-    await page.goto('/')
+    await open(page, '/')
     await page.locator('a[href^="/products/"]').first().click()
 
     const trail = page.getByRole('navigation', { name: 'Breadcrumb' })
@@ -51,7 +52,7 @@ test.describe('breadcrumbs', () => {
   })
 
   test('separates the link from the current page by weight, not only colour', async ({ page }) => {
-    await page.goto(PRODUCT)
+    await open(page, PRODUCT)
 
     const trail = page.getByRole('navigation', { name: 'Breadcrumb' })
     const weight = (locator: ReturnType<typeof trail.locator>) =>
@@ -65,7 +66,7 @@ test.describe('breadcrumbs', () => {
 
   test('clips the current page rather than the link, on a narrow viewport', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 })
-    await page.goto(PRODUCT)
+    await open(page, PRODUCT)
 
     const trail = page.getByRole('navigation', { name: 'Breadcrumb' })
     const link = trail.getByRole('link')
