@@ -5,6 +5,7 @@ import { parse } from 'csv-parse/sync'
 import { hydrated } from './support/hydration'
 import { transitionsSettled } from './support/motion'
 import { holdRequests } from './support/network'
+import { open } from './support/navigation'
 
 async function records(download: Download): Promise<Record<string, string>[]> {
   const text = await readFile(await download.path(), 'utf8')
@@ -45,7 +46,7 @@ async function pickCategory(dialog: Locator, term: string, option: string) {
 
 test.describe('exporting the directory', () => {
   test('opens on the search the directory is showing', async ({ page }) => {
-    await page.goto('/products?q=spread&brand=nutella&nutriScore=e')
+    await open(page, '/products?q=spread&brand=nutella&nutriScore=e')
 
     const dialog = await openExport(page)
 
@@ -58,7 +59,7 @@ test.describe('exporting the directory', () => {
   })
 
   test('downloads exactly as many products as it counted', async ({ page }) => {
-    await page.goto('/products?brand=nutella')
+    await open(page, '/products?brand=nutella')
 
     const dialog = await openExport(page)
     const counted = await settledCount(dialog)
@@ -77,7 +78,7 @@ test.describe('exporting the directory', () => {
   test('holds the download back while the search is too big, and says what to do', async ({
     page,
   }) => {
-    await page.goto('/products?q=chocolate')
+    await open(page, '/products?q=chocolate')
 
     const dialog = await openExport(page)
 
@@ -91,7 +92,7 @@ test.describe('exporting the directory', () => {
   })
 
   test('narrows a search that is too big until every match fits', async ({ page }) => {
-    await page.goto('/products?q=chocolate')
+    await open(page, '/products?q=chocolate')
     const dialog = await openExport(page)
     await expect(dialog.getByTestId('export-too-many')).toBeVisible()
 
@@ -109,7 +110,7 @@ test.describe('exporting the directory', () => {
   })
 
   test('leaves the directory behind it as it was', async ({ page }) => {
-    await page.goto('/products?q=chocolate')
+    await open(page, '/products?q=chocolate')
     const dialog = await openExport(page)
 
     await pickCategory(dialog, 'bonbons', 'Bonbons')
@@ -121,7 +122,7 @@ test.describe('exporting the directory', () => {
   })
 
   test('starts over from the directory every time it opens', async ({ page }) => {
-    await page.goto('/products?brand=nutella')
+    await open(page, '/products?brand=nutella')
     let dialog = await openExport(page)
 
     await dialog.getByRole('button', { name: 'Remove Nutella' }).click()
@@ -133,7 +134,7 @@ test.describe('exporting the directory', () => {
   })
 
   test('holds the download back until the count has caught up', async ({ page }) => {
-    await page.goto('/products?brand=nutella')
+    await open(page, '/products?brand=nutella')
     const dialog = await openExport(page)
     await expect(downloadLink(dialog)).toHaveAttribute('href', '/api/products.csv?brand=nutella')
 
@@ -161,7 +162,7 @@ test.describe('exporting the directory', () => {
   })
 
   test('leaves the page number behind and keeps the sort', async ({ page }) => {
-    await page.goto('/products?brand=nutella&sort=popularity&page=2&pageSize=48')
+    await open(page, '/products?brand=nutella&sort=popularity&page=2&pageSize=48')
 
     const dialog = await openExport(page)
 
@@ -172,7 +173,7 @@ test.describe('exporting the directory', () => {
   })
 
   test('offers nothing to export when nothing matches', async ({ page }) => {
-    await page.goto('/products?q=qzxvqzxvqzxv')
+    await open(page, '/products?q=qzxvqzxvqzxv')
 
     await expect(page.getByText('No products match these filters')).toBeVisible()
     await expect(page.getByRole('button', { name: /Export/ })).toHaveCount(0)
@@ -183,6 +184,7 @@ test.describe('exporting the directory', () => {
     const context = await browser.newContext({ javaScriptEnabled: false })
     const page = await context.newPage()
 
+    // No JavaScript means no hydration mark to wait for, so this one opens the page itself.
     await page.goto('/products?brand=nutella&nutriScore=e')
 
     const [download] = await Promise.all([
@@ -197,7 +199,7 @@ test.describe('exporting the directory', () => {
   })
 
   test('links the full dataset from the footer of every page', async ({ page }) => {
-    await page.goto('/')
+    await open(page, '/')
 
     await expect(
       page.getByRole('contentinfo').getByRole('link', { name: 'Download the full dataset' }),
@@ -216,7 +218,7 @@ test.describe('the pickers in the export dialog', () => {
   test('list what the search already holds before a word is typed, with a count for each', async ({
     page,
   }) => {
-    await page.goto('/products?q=chocolate')
+    await open(page, '/products?q=chocolate')
     const dialog = await openExport(page)
 
     const list = await openCountries(dialog)
@@ -229,7 +231,7 @@ test.describe('the pickers in the export dialog', () => {
   })
 
   test('read no selection as every value, and say so without a checkbox', async ({ page }) => {
-    await page.goto('/products?q=chocolate')
+    await open(page, '/products?q=chocolate')
     const dialog = await openExport(page)
     const list = await openCountries(dialog)
     const picker = dialog.getByRole('dialog', { name: 'Country' })
@@ -251,7 +253,7 @@ test.describe('the pickers in the export dialog', () => {
   })
 
   test('keep offering the other values of a dimension once one is picked', async ({ page }) => {
-    await page.goto('/products?q=chocolate')
+    await open(page, '/products?q=chocolate')
     const dialog = await openExport(page)
     const list = await openCountries(dialog)
     const values = list.getByRole('option')
@@ -267,7 +269,7 @@ test.describe('the export dialog while it works', () => {
   test('spins inside the word field, and beside the count, until the count is back', async ({
     page,
   }) => {
-    await page.goto('/products?brand=nutella')
+    await open(page, '/products?brand=nutella')
     const dialog = await openExport(page)
     await settledCount(dialog)
 
@@ -289,7 +291,7 @@ test.describe('the export dialog while it works', () => {
   test('spins beside the count alone when the change did not come from the word field', async ({
     page,
   }) => {
-    await page.goto('/products?brand=nutella')
+    await open(page, '/products?brand=nutella')
     const dialog = await openExport(page)
     await settledCount(dialog)
 
@@ -304,7 +306,7 @@ test.describe('the export dialog while it works', () => {
   })
 
   test('spins inside the search field of a list while it looks the term up', async ({ page }) => {
-    await page.goto('/products?brand=nutella')
+    await open(page, '/products?brand=nutella')
     const dialog = await openExport(page)
 
     const release = await holdRequests(page, '/api/suggest')
@@ -325,7 +327,7 @@ test.describe('the export dialog while it works', () => {
   test('says it is searching while the person types, never that nothing matches yet', async ({
     page,
   }) => {
-    await page.goto('/products?brand=nutella')
+    await open(page, '/products?brand=nutella')
     const dialog = await openExport(page)
 
     const release = await holdRequests(page, '/api/suggest')
@@ -343,7 +345,7 @@ test.describe('the export dialog while it works', () => {
 
   test('keeps a spinner turning for a reader who asked for less motion', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
-    await page.goto('/products?brand=nutella')
+    await open(page, '/products?brand=nutella')
     const dialog = await openExport(page)
 
     const release = await holdRequests(page, '/api/products/count')
@@ -359,7 +361,7 @@ test.describe('the export dialog while it works', () => {
   })
 
   test('moves on the motion tokens the rest of the project uses', async ({ page }) => {
-    await page.goto('/products?brand=nutella')
+    await open(page, '/products?brand=nutella')
     const dialog = await openExport(page)
 
     const enter = await page.evaluate(() => {
@@ -387,7 +389,7 @@ test.describe('the export dialog while it works', () => {
 
 test.describe('the export dialog as a modal', () => {
   test('takes focus when it opens and hands it back when it closes', async ({ page }) => {
-    await page.goto('/products?brand=nutella')
+    await open(page, '/products?brand=nutella')
     const trigger = page.getByRole('button', { name: 'Export CSV' })
 
     await trigger.focus()
@@ -403,7 +405,7 @@ test.describe('the export dialog as a modal', () => {
   })
 
   test('keeps the page behind it out of reach', async ({ page }) => {
-    await page.goto('/products?brand=nutella')
+    await open(page, '/products?brand=nutella')
     await openExport(page)
 
     for (let press = 0; press < 30; press++) {
@@ -424,7 +426,7 @@ test.describe('the export dialog as a modal', () => {
   }) => {
     test.skip(isMobile, 'a phone scrolls by touch, not by wheel')
 
-    await page.goto('/products?brand=nutella')
+    await open(page, '/products?brand=nutella')
     const dialog = await openExport(page)
 
     await page.mouse.move(4, 400)
@@ -440,7 +442,7 @@ test.describe('the export dialog as a modal', () => {
   })
 
   test('closes on a click outside it', async ({ page }) => {
-    await page.goto('/products?brand=nutella')
+    await open(page, '/products?brand=nutella')
     const dialog = await openExport(page)
 
     await page.mouse.click(4, 4)
@@ -449,7 +451,7 @@ test.describe('the export dialog as a modal', () => {
   })
 
   test('closes the list with Escape, and only the list', async ({ page }) => {
-    await page.goto('/products?brand=nutella')
+    await open(page, '/products?brand=nutella')
     const dialog = await openExport(page)
     const trigger = dialog.getByRole('button', { name: /^Category/ })
 
@@ -465,7 +467,7 @@ test.describe('the export dialog as a modal', () => {
   })
 
   test('picks an option from the keyboard alone', async ({ page }) => {
-    await page.goto('/products?q=chocolate')
+    await open(page, '/products?q=chocolate')
     const dialog = await openExport(page)
 
     await dialog.getByRole('button', { name: /^Category/ }).focus()
@@ -483,7 +485,7 @@ test.describe('the export dialog as a modal', () => {
   })
 
   test('has no accessibility violations, with or without a list open', async ({ page }) => {
-    await page.goto('/products?q=chocolate')
+    await open(page, '/products?q=chocolate')
     const dialog = await openExport(page)
     await expect(dialog.getByTestId('export-too-many')).toBeVisible()
 
@@ -507,7 +509,7 @@ test.describe('the export dialog as a modal', () => {
   test('rises from the bottom as a sheet on a phone', async ({ page, isMobile }) => {
     test.skip(!isMobile, 'the sheet is the phone layout')
 
-    await page.goto('/products?brand=nutella')
+    await open(page, '/products?brand=nutella')
     const dialog = await openExport(page)
     const viewport = page.viewportSize()!
 

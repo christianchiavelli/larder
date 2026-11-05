@@ -1,11 +1,12 @@
 import { expect, test, type Page } from '@playwright/test'
 import { hydrated } from './support/hydration'
+import { open } from './support/navigation'
 
 const PAGES = ['/', '/products', '/products/3017620425035', '/overview', '/pt', '/no-such-page']
 
 /** Opens `path` and returns what the page's policy blocked on the way, once it has hydrated. */
 async function violationsOn(page: Page, path: string): Promise<string[]> {
-  await page.goto(path)
+  await open(page, path)
   // Hydrating means the app's own scripts ran, under the policy.
   await hydrated(page)
   return page.evaluate(() => (window as unknown as { violations: string[] }).violations)

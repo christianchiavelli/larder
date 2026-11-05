@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { open } from './support/navigation'
 
 interface Point {
   x: number
@@ -58,7 +59,7 @@ async function findBarInterior(page: Page, canvasIndex: number): Promise<Point |
 
 test.describe('charts', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/overview')
+    await open(page, '/overview')
     await page.locator('figure canvas').first().waitFor()
     await page.waitForTimeout(1500)
   })

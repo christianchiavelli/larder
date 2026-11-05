@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { hydrated } from './support/hydration'
+import { open } from './support/navigation'
 
 function collectErrors(page: Page): string[] {
   const errors: string[] = []
@@ -17,7 +18,7 @@ test.describe('theme', () => {
       const page = await context.newPage()
       const errors = collectErrors(page)
 
-      await page.goto('/products')
+      await open(page, '/products')
       await hydrated(page)
 
       expect(errors.filter((error) => /hydrat/i.test(error))).toEqual([])
@@ -34,13 +35,13 @@ test.describe('theme', () => {
       localStorage.setItem('larder-theme', 'dark')
     })
 
-    await page.goto('/products')
+    await open(page, '/products')
 
     await expect(page.locator('html')).toHaveClass(/dark/)
   })
 
   test('the theme toggle is reachable and labelled in both states', async ({ page }) => {
-    await page.goto('/products')
+    await open(page, '/products')
     await hydrated(page)
 
     const toggle = page.getByRole('button', { name: /switch to (dark|light) theme/i })
@@ -55,7 +56,7 @@ test.describe('theme', () => {
   })
 
   test('the theme toggle shows exactly one icon, in both themes', async ({ page }) => {
-    await page.goto('/products')
+    await open(page, '/products')
 
     for (const theme of ['light', 'dark']) {
       await page.evaluate(
@@ -79,7 +80,7 @@ test.describe('theme', () => {
 
 test.describe('select', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/products')
+    await open(page, '/products')
     await hydrated(page)
   })
 
@@ -103,7 +104,7 @@ test.describe('select', () => {
   })
 
   test('restores its value from the URL', async ({ page }) => {
-    await page.goto('/products?sort=popularity')
+    await open(page, '/products?sort=popularity')
 
     await expect(page.getByLabel('Sort')).toHaveValue('popularity')
   })
@@ -134,7 +135,7 @@ test.describe('the see more button', () => {
 
   test('parks each section in turn at its own scroll margin', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 })
-    await page.goto('/overview')
+    await open(page, '/overview')
     await expect(fab(page)).toBeVisible()
 
     const visited: number[] = []
@@ -156,7 +157,7 @@ test.describe('the see more button', () => {
 
   test('stops offering itself once the end is reached', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 })
-    await page.goto('/overview')
+    await open(page, '/overview')
     await expect(fab(page)).toBeVisible()
 
     for (let step = 0; step < 8 && (await fab(page).isVisible()); step++) {
@@ -169,7 +170,7 @@ test.describe('the see more button', () => {
 
   test('is absent on a page with no sections', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 })
-    await page.goto('/products')
+    await open(page, '/products')
     await expect(page.getByTestId('product-row').first()).toBeVisible()
 
     await expect(fab(page)).toBeHidden()
@@ -177,7 +178,7 @@ test.describe('the see more button', () => {
 
   test('is absent when the whole page already fits', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 2400 })
-    await page.goto('/overview')
+    await open(page, '/overview')
     await expect(page.getByRole('heading', { name: 'Nutri-Score distribution' })).toBeVisible()
 
     await expect(fab(page)).toBeHidden()

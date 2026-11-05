@@ -1,11 +1,13 @@
 import { expect, test } from '@playwright/test'
 import { hydrated } from './support/hydration'
+import { open } from './support/navigation'
 
 test.describe('the landing page', () => {
   test('renders on the server, before any JavaScript runs', async ({ browser }) => {
     const context = await browser.newContext({ javaScriptEnabled: false })
     const page = await context.newPage()
 
+    // No JavaScript means no hydration mark to wait for, so this one opens the page itself.
     await page.goto('/')
 
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
@@ -16,7 +18,7 @@ test.describe('the landing page', () => {
   })
 
   test('hands the search term to the directory', async ({ page }) => {
-    await page.goto('/')
+    await open(page, '/')
     await hydrated(page)
 
     await page.getByRole('searchbox', { name: 'Search the catalogue' }).fill('chocolate')
@@ -27,7 +29,7 @@ test.describe('the landing page', () => {
   })
 
   test('submits from the keyboard', async ({ page }) => {
-    await page.goto('/')
+    await open(page, '/')
     await hydrated(page)
 
     const box = page.getByRole('searchbox', { name: 'Search the catalogue' })
@@ -38,7 +40,7 @@ test.describe('the landing page', () => {
   })
 
   test('opens the directory unfiltered when nothing was typed', async ({ page }) => {
-    await page.goto('/')
+    await open(page, '/')
 
     await page.getByRole('button', { name: 'Search' }).click()
 
@@ -51,7 +53,7 @@ test.describe('the landing page', () => {
     ['No grade on record', /nutriScore=unknown/],
   ] as const) {
     test(`the ${label} example returns products`, async ({ page }) => {
-      await page.goto('/')
+      await open(page, '/')
 
       await page.getByRole('link', { name: new RegExp(label) }).click()
 
@@ -61,7 +63,7 @@ test.describe('the landing page', () => {
   }
 
   test('each example states its own size', async ({ page }) => {
-    await page.goto('/')
+    await open(page, '/')
 
     const counts = page.locator('li a [data-numeric]')
 
@@ -72,7 +74,7 @@ test.describe('the landing page', () => {
   })
 
   test('opens a product from the grid', async ({ page }) => {
-    await page.goto('/')
+    await open(page, '/')
 
     const first = page.locator('li a[href^="/products/"]').first()
     const href = await first.getAttribute('href')
@@ -82,7 +84,7 @@ test.describe('the landing page', () => {
   })
 
   test('states the size of the catalogue from the data', async ({ page }) => {
-    await page.goto('/')
+    await open(page, '/')
 
     const size = page.locator('h1 + p [data-numeric]')
 

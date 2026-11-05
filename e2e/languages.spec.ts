@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { open } from './support/navigation'
 
 const ABSOLUTE = /^https?:\/\/[^/]+/
 
@@ -11,6 +12,7 @@ test.describe('languages', () => {
     const context = await browser.newContext({ javaScriptEnabled: false })
     const page = await context.newPage()
 
+    // No JavaScript means no hydration mark to wait for, so this one opens the page itself.
     await page.goto('/pt')
 
     await expect(page.locator('html')).toHaveAttribute('lang', 'pt-BR')
@@ -26,7 +28,7 @@ test.describe('languages', () => {
     const context = await browser.newContext({ locale: 'pt-BR' })
     const page = await context.newPage()
 
-    await page.goto('/')
+    await open(page, '/')
 
     await expect(page).toHaveURL(/\/$/)
     await expect(page.locator('html')).toHaveAttribute('lang', 'en')
@@ -35,7 +37,7 @@ test.describe('languages', () => {
   })
 
   test('points each page at its other language by a whole URL', async ({ page }) => {
-    await page.goto('/pt/products')
+    await open(page, '/pt/products')
 
     const href = (hreflang: string) =>
       page.locator(`link[rel="alternate"][hreflang="${hreflang}"]`).getAttribute('href')
@@ -49,7 +51,7 @@ test.describe('languages', () => {
   })
 
   test('switches to the same page in the other language, filters and all', async ({ page }) => {
-    await page.goto('/products?nutriScore=a')
+    await open(page, '/products?nutriScore=a')
 
     // Each link names its language in that language, after the code it shows.
     await languageSwitch(page, 'Language')
@@ -72,7 +74,7 @@ test.describe('languages', () => {
   })
 
   test('marks the language being read as the current one', async ({ page }) => {
-    await page.goto('/pt/overview')
+    await open(page, '/pt/overview')
 
     const current = languageSwitch(page, 'Idioma').locator('[aria-current="true"]')
 
@@ -82,13 +84,13 @@ test.describe('languages', () => {
   })
 
   test('writes numbers the Brazilian way, in both directions of the count', async ({ page }) => {
-    await page.goto('/pt/products')
+    await open(page, '/pt/products')
 
     await expect(page.getByTestId('result-summary')).toHaveText(
       '10.000+ produtos (a fonte para de contar em 10.000)',
     )
 
-    await page.goto('/products')
+    await open(page, '/products')
 
     await expect(page.getByTestId('result-summary')).toHaveText(
       '10,000+ products (upstream stops counting at 10,000)',
@@ -96,13 +98,13 @@ test.describe('languages', () => {
   })
 
   test('names countries in Portuguese, the rest of the catalogue in English', async ({ page }) => {
-    await page.goto('/pt/products')
+    await open(page, '/pt/products')
 
     const countries = page.getByRole('group', { name: 'País' })
     await expect(countries.getByText('França', { exact: true })).toBeVisible()
     await expect(page.getByTestId('language-note')).toBeVisible()
 
-    await page.goto('/products')
+    await open(page, '/products')
 
     await expect(
       page.getByRole('group', { name: 'Country' }).getByText('France', { exact: true }),
@@ -111,7 +113,7 @@ test.describe('languages', () => {
   })
 
   test('opens a product in the language it was linked from', async ({ page }) => {
-    await page.goto('/pt/products')
+    await open(page, '/pt/products')
 
     await page.getByTestId('product-row').first().getByRole('link').first().click()
 

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { open } from './support/navigation'
 
 async function selectors(page: Page): Promise<string[]> {
   return page.evaluate(() => {
@@ -43,7 +44,7 @@ const TRANSPARENT = 'rgba(0, 0, 0, 0)'
 
 test.describe('design tokens reach the browser', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/products')
+    await open(page, '/products')
   })
 
   test('layer-only colour utilities resolve', async ({ page }) => {
@@ -124,7 +125,7 @@ test.describe('design tokens reach the browser', () => {
 })
 
 test('the grade filter frame is concentric with the badge inside it', async ({ page }) => {
-  await page.goto('/products')
+  await open(page, '/products')
 
   const measured = await page
     .getByRole('button', { name: /Nutri-Score A,/ })
@@ -148,7 +149,7 @@ test('the grade filter frame is concentric with the badge inside it', async ({ p
 })
 
 test('the chosen grade is marked in a neutral colour, in both themes', async ({ page }) => {
-  await page.goto('/products')
+  await open(page, '/products')
   await page
     .getByRole('button', { name: /Nutri-Score A,/ })
     .first()
@@ -217,7 +218,7 @@ test('every badge the app colours itself is readable on its own fill', async ({
   expect(product, 'no product came back to check').toBeTruthy()
 
   for (const url of ['/products', `/products/${product.code}`]) {
-    await page.goto(url)
+    await open(page, url)
     await page.locator('[role="img"]').first().waitFor()
 
     const measured = await page.locator('[role="img"]').evaluateAll((nodes) =>
@@ -259,7 +260,7 @@ test('every badge the app colours itself is readable on its own fill', async ({
 })
 
 test('the hero draws its light', async ({ page }) => {
-  await page.goto('/')
+  await open(page, '/')
 
   const fields = await page
     .locator('.light-field')

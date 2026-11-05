@@ -8,6 +8,7 @@ test.describe('product directory', () => {
     const context = await browser.newContext({ javaScriptEnabled: false })
     const page = await context.newPage()
 
+    // No JavaScript means no hydration mark to wait for, so this one opens the page itself.
     await page.goto('/products')
 
     await expect(page.getByRole('heading', { name: 'Products', level: 1 })).toBeVisible()
@@ -17,7 +18,7 @@ test.describe('product directory', () => {
   })
 
   test('puts filter state in the URL and restores it on reload', async ({ page }) => {
-    await page.goto('/products')
+    await open(page, '/products')
 
     await page
       .getByRole('button', { name: /Nutri-Score A,/ })
@@ -34,7 +35,7 @@ test.describe('product directory', () => {
   })
 
   test('switches a filter back off again', async ({ page }) => {
-    await page.goto('/products')
+    await open(page, '/products')
 
     const grade = page.getByRole('button', { name: /Nutri-Score A,/ }).first()
 
@@ -47,7 +48,7 @@ test.describe('product directory', () => {
   })
 
   test('clears every filter at once', async ({ page }) => {
-    await page.goto('/products?nutriScore=a&nova=4&sort=popularity')
+    await open(page, '/products?nutriScore=a&nova=4&sort=popularity')
     await hydrated(page)
 
     await page.getByRole('button', { name: /clear all/i }).click()
@@ -61,7 +62,7 @@ test.describe('product directory', () => {
     { label: 'Nutri-Score not applicable', value: 'not-applicable' },
   ]) {
     test(`filters to the products marked ${value}`, async ({ page }) => {
-      await page.goto('/products')
+      await open(page, '/products')
       await hydrated(page)
 
       await page.getByRole('button', { name: label }).first().click()
@@ -81,7 +82,7 @@ test.describe('product directory', () => {
   }
 
   test('restores state from a pasted link without visiting the page first', async ({ page }) => {
-    await page.goto('/products?nutriScore=a&sort=popularity')
+    await open(page, '/products?nutriScore=a&sort=popularity')
 
     await expect(page.getByLabel('Sort')).toHaveValue('popularity')
     await expect(page.getByRole('button', { name: /Nutri-Score A,/ }).first()).toHaveAttribute(
@@ -91,7 +92,7 @@ test.describe('product directory', () => {
   })
 
   test('changes the page size and starts again from page one', async ({ page }) => {
-    await page.goto('/products?page=5')
+    await open(page, '/products?page=5')
     await hydrated(page)
 
     await page.getByLabel('Per page').selectOption('48')
@@ -102,7 +103,7 @@ test.describe('product directory', () => {
   })
 
   test('supports the back button', async ({ page }) => {
-    await page.goto('/products')
+    await open(page, '/products')
 
     await page
       .getByRole('button', { name: /Nutri-Score A,/ })
@@ -115,7 +116,7 @@ test.describe('product directory', () => {
   })
 
   test('marks an approximate total as approximate', async ({ page }) => {
-    await page.goto('/products')
+    await open(page, '/products')
 
     const summary = page.getByTestId('result-summary')
     await expect(summary).toContainText(/\d/)
@@ -127,14 +128,14 @@ test.describe('product directory', () => {
   })
 
   test('recovers from a hand-edited URL instead of erroring', async ({ page }) => {
-    await page.goto('/products?nutriScore=z&nova=99&sort=by-vibes&page=999999')
+    await open(page, '/products?nutriScore=z&nova=99&sort=by-vibes&page=999999')
 
     await expect(page.getByRole('heading', { name: 'Products', level: 1 })).toBeVisible()
     await expect(page.getByLabel('Sort')).toHaveValue('relevance')
   })
 
   test('navigates to the product the card links to', async ({ page }) => {
-    await page.goto('/products')
+    await open(page, '/products')
 
     const firstProduct = page.getByTestId('product-row').first().locator('h3 a')
     const href = await firstProduct.getAttribute('href')
@@ -145,6 +146,8 @@ test.describe('product directory', () => {
   })
 
   test("follows a product's category back to the directory, filtered by it", async ({ page }) => {
+    // The one page that is opened to be clicked straight away rather than read: it waits for
+    // the whole load, so the transition has finished and the link is where it will stay.
     await page.goto('/products/3017620425035')
 
     const chip = page.locator('main header').getByRole('link').first()
@@ -153,14 +156,12 @@ test.describe('product directory', () => {
 
     await chip.click()
 
-    await expect(page).toHaveURL(
-      (url) => decodeURIComponent(url.pathname + url.search) === decodeURIComponent(href!),
-    )
+    await expect(page).toHaveURL((url) => url.pathname + url.search === href)
     await expect(page.getByTestId('product-row').first()).toBeVisible()
   })
 
   test('reports a barcode that does not exist without breaking the page', async ({ page }) => {
-    const response = await page.goto('/products/00000000000001')
+    const response = await open(page, '/products/00000000000001')
 
     expect(response?.status()).toBe(404)
     await expect(
@@ -175,7 +176,7 @@ test.describe('product directory', () => {
       if (message.type() === 'error') errors.push(message.text())
     })
 
-    await page.goto('/products')
+    await open(page, '/products')
     await hydrated(page)
 
     // The click starts a search. Its answer is what settles the page; the whole network going
@@ -197,7 +198,7 @@ test.describe('filter suggestions', () => {
   const search = (page: Page) => page.getByRole('combobox', { name: 'Search products' })
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/products')
+    await open(page, '/products')
     await hydrated(page)
   })
 
@@ -302,7 +303,7 @@ test.describe('filter suggestions', () => {
 
 test.describe('the directory while its search loads', () => {
   test('holds each filter group at the size its options will take', async ({ page }) => {
-    await page.goto('/')
+    await open(page, '/')
     await hydrated(page)
     const release = await holdRequests(page, '/api/products')
 
@@ -410,7 +411,7 @@ test.describe('opening a product from the list', () => {
     test(`keeps the list until the record is here, then opens whole, in ${language}`, async ({
       page,
     }) => {
-      await page.goto(directory)
+      await open(page, directory)
       await hydrated(page)
       const release = await holdProductRecords(page, longNamedRecord)
 
@@ -437,7 +438,7 @@ test.describe('opening a product from the list', () => {
   test('opens on the shape a late record will take, and claims nothing before it lands', async ({
     page,
   }) => {
-    await page.goto('/products')
+    await open(page, '/products')
     await hydrated(page)
     const release = await holdProductRecords(page)
 
@@ -525,7 +526,7 @@ test.describe('the product page columns', () => {
 
 test.describe('the Nutri-Score filter row', () => {
   test('draws every value at the same height and type size', async ({ page }) => {
-    await page.goto('/products')
+    await open(page, '/products')
 
     const chips = await page.getByRole('group', { name: 'Nutri-Score' }).evaluate((fieldset) =>
       [...fieldset.querySelectorAll('[role="img"]')].map((node) => {

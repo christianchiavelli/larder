@@ -3,6 +3,7 @@ import { expect, test, type Page } from '@playwright/test'
 import { hydrated } from './support/hydration'
 import { transitionsSettled } from './support/motion'
 import { RUNS_LOCALLY, SOURCE_DOWN_BASE_URL } from './support/servers'
+import { open } from './support/navigation'
 
 const RATE_LIMITED = {
   statusCode: 429,
@@ -18,7 +19,7 @@ function failRequests(page: Page, matches: (url: URL) => boolean) {
 }
 
 async function openDirectory(page: Page, path = '/products') {
-  await page.goto(path)
+  await open(page, path)
   await expect(page.getByTestId('product-row').first()).toBeVisible()
   await hydrated(page)
 }
@@ -158,7 +159,7 @@ test.describe('when the data source is down on the first visit', () => {
         if (/hydration/i.test(message.text())) mismatches.push(message.text())
       })
 
-      const response = await page.goto(path)
+      const response = await open(page, path)
 
       expect(response?.status()).toBe(429)
       await expect(page.getByRole('navigation', { name: 'Primary' })).toBeVisible()
