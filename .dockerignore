@@ -1,0 +1,39 @@
+# Left out of the build context: what the build writes, what the tools write,
+# and what only a machine that runs the tests needs. Everything the build does
+# read stays in — app, server, shared, layers, i18n, modules, public and the
+# configuration at the root.
+.dockerignore
+
+# Installed inside the image, from the lockfile.
+node_modules
+
+# Build output, which the image produces for itself.
+.output
+.nuxt
+.nitro
+.data
+.cache
+dist
+storybook-static
+
+# What the checks leave behind.
+coverage
+playwright-report
+test-results
+.playwright
+vitals-report
+
+# Tests: the image runs the app, not the suite that proves it.
+test
+e2e
+
+# Screenshots are for the README, and a catalogue recording is a test fixture.
+docs/screenshots
+
+# Not the build's business.
+.git
+.github
+.idea
+.vscode
+*.log
+.DS_Store
