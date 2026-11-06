@@ -91,8 +91,8 @@ jobs:
   e2e:
     name: E2E
     runs-on: ubuntu-latest
-    # Room for three seven-minute attempts at the browsers, then the build and the suite.
-    timeout-minutes: 30
+    # Room for two ten-minute attempts at the browsers, then the build and the suite.
+    timeout-minutes: 35
     # The retries are for a slow day upstream, not for a test that is unreliable: a scheduled
     # run asks for none, so the flakiness surfaces instead of being tolerated forever.
     env:
@@ -121,19 +121,26 @@ jobs:
       # is where the engines actually differ, so the one suite that would show it runs there
       # too. Firefox is left out, and the full matrix with it.
       #
-      # WebKit brings a large apt set of its own — speech and audio libraries, one of them
-      # 13 MB — and on one run a single download from the Ubuntu mirror stalled for five
-      # minutes and left the job sitting there until its own timeout killed everything. Each
-      # attempt now gives up after seven, so a bad mirror costs a retry instead of the run.
+      # WebKit brings an apt set of its own — fonts, speech and audio libraries, 114 MB over
+      # 181 packages — and the Ubuntu mirror behind it is not always quick. Each attempt gets
+      # ten minutes and there are two of them.
+      #
+      # The cleanup between them is the part that matters. `timeout` ends `pnpm`, and `apt-get`
+      # is a child of it, not of the shell: it survives, still holding the dpkg lock, and the
+      # next attempt dies in eight seconds with "Could not get lock" — which is exactly what
+      # happened the first time this loop was written, so the retry never had a chance to run.
       - name: Install Playwright
         run: |
-          for attempt in 1 2 3; do
-            if timeout 420 pnpm exec playwright install --with-deps chromium webkit; then
+          for attempt in 1 2; do
+            if timeout --kill-after=30 600 pnpm exec playwright install --with-deps chromium webkit; then
               exit 0
             fi
-            echo "::warning::attempt ${attempt} did not finish; asking again"
+            echo "::warning::attempt ${attempt} did not finish; releasing the package lock and asking again"
+            sudo pkill -9 -f apt-get || true
+            sudo pkill -9 -f dpkg || true
+            sleep 5
           done
-          echo "::error::Playwright's browsers could not be installed in three attempts"
+          echo "::error::Playwright's browsers could not be installed in two attempts"
           exit 1
 
       # Production build, because the design-token regression these specs
