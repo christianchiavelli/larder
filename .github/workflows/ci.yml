@@ -91,8 +91,21 @@ jobs:
   e2e:
     name: E2E
     runs-on: ubuntu-latest
-    # Room for two ten-minute attempts at the browsers, then the build and the suite.
-    timeout-minutes: 35
+    # The job runs inside Playwright's own image, which carries Chromium, WebKit and every
+    # system library under them. So nothing here runs apt, and nothing downloads a browser:
+    # the install used to pull 114 MB over 181 packages from the Ubuntu mirror on every run,
+    # and that mirror was the only thing that could fail this job before a test had run. It
+    # did, twice, and once in a way the retry could not recover from.
+    #
+    # The tag has to match the `@playwright/test` version in package.json exactly, or
+    # Playwright cannot find the browsers it was installed with. Moving one means moving the
+    # other, and the failure when they disagree says only "Executable doesn't exist".
+    #
+    # `--ipc=host` is what Playwright asks for Chromium, which runs out of memory without it.
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27
+      options: --ipc=host
+    timeout-minutes: 20
     # The retries are for a slow day upstream, not for a test that is unreliable: a scheduled
     # run asks for none, so the flakiness surfaces instead of being tolerated forever.
     env:
@@ -115,33 +128,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      # Chromium for the whole suite, WebKit for the accessibility scan. The app leans on a
-      # native <dialog>, popovers placed by CSS anchor positioning and view transitions, which
-      # is where the engines actually differ, so the one suite that would show it runs there
-      # too. Firefox is left out, and the full matrix with it.
-      #
-      # WebKit brings an apt set of its own — fonts, speech and audio libraries, 114 MB over
-      # 181 packages — and the Ubuntu mirror behind it is not always quick. Each attempt gets
-      # ten minutes and there are two of them.
-      #
-      # The cleanup between them is the part that matters. `timeout` ends `pnpm`, and `apt-get`
-      # is a child of it, not of the shell: it survives, still holding the dpkg lock, and the
-      # next attempt dies in eight seconds with "Could not get lock" — which is exactly what
-      # happened the first time this loop was written, so the retry never had a chance to run.
-      - name: Install Playwright
-        run: |
-          for attempt in 1 2; do
-            if timeout --kill-after=30 600 pnpm exec playwright install --with-deps chromium webkit; then
-              exit 0
-            fi
-            echo "::warning::attempt ${attempt} did not finish; releasing the package lock and asking again"
-            sudo pkill -9 -f apt-get || true
-            sudo pkill -9 -f dpkg || true
-            sleep 5
-          done
-          echo "::error::Playwright's browsers could not be installed in two attempts"
-          exit 1
 
       # Production build, because the design-token regression these specs
       # guard against involves Tailwind's source scanning, which behaves
