@@ -12,3 +12,4 @@ They are not edited after the fact. A decision that changes gets a new record th
 | [4](0004-the-domain-is-isomorphic.md) | The domain is isomorphic, and owes nothing upstream | 2026-09-14 |
 | [5](0005-the-coverage-floor-is-set-by-area.md) | The coverage floor is set by area | 2026-11-04 |
 | [6](0006-an-export-holds-every-match.md) | An export holds every match, or it does not happen | 2026-09-25 |
+| [7](0007-the-suite-opens-a-page-at-the-document.md) | The suite opens a page at the document, not at the load event | 2026-11-05 |
