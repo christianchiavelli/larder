@@ -15,8 +15,11 @@ services:
     environment:
       # The address the app is opened at. Each page links its other language by a
       # whole URL, so this has to be the one a reader is actually on (README).
-      # Override it without editing this file: NUXT_PUBLIC_I18N_BASE_URL=... .
-      NUXT_PUBLIC_I18N_BASE_URL: ${NUXT_PUBLIC_I18N_BASE_URL:-http://localhost:3000}
+      #
+      # It follows the port below rather than naming one of its own: moved to another
+      # port and left saying 3000, every language link on the site would point at a
+      # port nothing is listening on. Setting this outright still wins.
+      NUXT_PUBLIC_I18N_BASE_URL: ${NUXT_PUBLIC_I18N_BASE_URL:-http://localhost:${LARDER_PORT:-3000}}
     ports:
       # Bound to the loopback address, so it is on this machine and not on the
       # network it is plugged into. LARDER_PORT moves it off a busy 3000.
