@@ -1,12 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { RUNS_LOCALLY, SOURCE_DOWN_BASE_URL } from './support/servers'
 
-/**
- * The route the container asks every ten seconds. Its one job is to answer whether this
- * process is serving, so it must not depend on anything whose failure is somebody else's:
- * a catalogue that is down is already said on every page, and reporting it here would turn
- * another service's outage into a container of ours that reads as sick.
- */
+// The route the container polls: it answers for this process only, never for the catalogue.
 test.describe('the health route', () => {
   test('says it is well, and how long this process has been up', async ({ request }) => {
     const response = await request.get('/api/health')

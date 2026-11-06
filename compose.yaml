@@ -1,8 +1,4 @@
-# Larder on one machine: `docker compose up --wait --build`, then
-# http://localhost:3000.
-#
-# The app is a server, not a folder of files: its pages and its API routes read
-# Open Food Facts as they are asked, so there is nothing here to serve statically.
+# Larder on one machine: `docker compose up --wait --build`, then http://localhost:3000.
 name: larder
 
 services:
@@ -13,14 +9,9 @@ services:
     init: true
     restart: unless-stopped
     environment:
-      # The address the app is opened at. Each page links its other language by a
-      # whole URL, so this has to be the one a reader is actually on (README).
-      #
-      # It follows the port below rather than naming one of its own: moved to another
-      # port and left saying 3000, every language link on the site would point at a
-      # port nothing is listening on. Setting this outright still wins.
+      # Each page links its other language by a whole URL, so this must be the address a
+      # reader is on. It follows the port below, or the links would point at 3000 anywhere else.
       NUXT_PUBLIC_I18N_BASE_URL: ${NUXT_PUBLIC_I18N_BASE_URL:-http://localhost:${LARDER_PORT:-3000}}
     ports:
-      # Bound to the loopback address, so it is on this machine and not on the
-      # network it is plugged into. LARDER_PORT moves it off a busy 3000.
+      # Loopback only, so it is on this machine and not on the network it is plugged into.
       - '127.0.0.1:${LARDER_PORT:-3000}:3000'

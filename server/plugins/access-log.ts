@@ -7,14 +7,8 @@ import {
   loggedPath,
 } from '~~/server/utils/access-log'
 
-/**
- * A line per answer, and an id to find it by afterwards, so a page somebody reported can be
- * looked up instead of guessed at. The id is taken from the request when the caller brought
- * one, so a proxy or a browser that already assigned it keeps the same one all the way down.
- *
- * It hangs off the request rather than off a handler, so nothing is only visible from inside
- * one: a request that never reaches a route, or one whose route throws, still gets a line.
- */
+// A line per answer, with an id a reader can quote back. It hangs off the request rather than
+// a handler, so a request that never reaches a route still gets one.
 export default defineNitroPlugin((nitroApp) => {
   nitroApp.hooks.hook('request', (event) => {
     const requestId = getRequestHeader(event, 'x-request-id') || randomUUID()
@@ -41,9 +35,8 @@ export default defineNitroPlugin((nitroApp) => {
     )
   })
 
-  // A failure is reported here rather than by the answer above, because the answer arrives
-  // from the route Nuxt renders errors through, under a path of its own and a status of 200.
-  // Reported that way a 404 reads as a page that worked; this says which request failed.
+  // Reported here, not above: the answer arrives from the route Nuxt renders errors through,
+  // under a path of its own and a status of 200, which would read a 404 as a page that worked.
   nitroApp.hooks.hook('error', (error, { event }) => {
     if (!event) return
 

@@ -154,9 +154,7 @@ test.describe('product directory', () => {
 
     await chip.click()
 
-    // `expect.poll` rather than `toHaveURL(predicate)`: the predicate form reported the
-    // address below as received and still never matched it, with the two strings plainly
-    // equal. Polling compares the same two strings with nothing of its own in between.
+    // `toHaveURL` with a predicate never matched here, on an address it printed as received.
     await expect.poll(() => new URL(page.url()).pathname + new URL(page.url()).search).toBe(href)
     await expect(page.getByTestId('product-row').first()).toBeVisible()
   })
@@ -180,8 +178,7 @@ test.describe('product directory', () => {
     await open(page, '/products')
     await hydrated(page)
 
-    // The click starts a search. Its answer is what settles the page; the whole network going
-    // quiet is neither, and on a page that never asks for anything again never arrives at all.
+    // Wait for the answer the click starts, not for the whole network to fall quiet.
     const answered = page.waitForResponse(
       (response) => new URL(response.url()).pathname === '/api/products',
     )
@@ -464,8 +461,7 @@ test.describe('the product page columns', () => {
   const CODE = '3017620425035'
 
   async function measure(page: Page) {
-    // Every height below is a finished one: a font that lands after this would move the
-    // text and change the number that is about to be asserted.
+    // Measured after the fonts land, or the number moves under the assertion.
     await fontsSettled(page)
 
     return page.evaluate(() => {

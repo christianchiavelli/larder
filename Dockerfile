@@ -1,7 +1,5 @@
 # syntax=docker/dockerfile:1
-# The app: Nuxt's Nitro server. `nuxt build` puts every dependency the server
-# imports into .output, so the image holds that output and Node and nothing else.
-# Build from the repository root: docker build -t larder .
+# Nuxt's Nitro server. Build from the repository root: docker build -t larder .
 
 ARG NODE_IMAGE=node:24.22.2-alpine@sha256:8a32c8cf649a49915a66e81e7a609223c708d0adabf288ee3f4077d765542f85
 
@@ -14,13 +12,11 @@ COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 RUN corepack enable pnpm && corepack install
 
 FROM pnpm AS build
-# What gets downloaded depends on the lockfile alone, so this layer outlives
-# every source edit below it.
+# Downloading depends on the lockfile alone, so this layer outlives source edits.
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
     pnpm fetch --store-dir /pnpm/store
 COPY . .
-# The install runs the `postinstall` in package.json, which is `nuxt prepare`:
-# it needs the source, which is why it comes after the copy and not with fetch.
+# postinstall is `nuxt prepare`, which needs the source, so the install comes after the copy.
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
     pnpm install --offline --frozen-lockfile --store-dir /pnpm/store
 RUN pnpm run build
@@ -30,12 +26,11 @@ ENV NODE_ENV=production \
     HOST=0.0.0.0 \
     PORT=3000
 WORKDIR /app
-# Owned by root and only read by the server, which runs as `node`.
+# Owned by root, only read by the server, which runs as `node`.
 COPY --from=build /repo/.output ./
 USER node
 EXPOSE 3000
-# Asks the app's own health route, which reads no upstream: a catalogue that is
-# down should not get this container restarted, since the pages already say so.
+# Liveness only: it reads no upstream, so a catalogue outage is not this container's.
 HEALTHCHECK --interval=10s --timeout=5s --start-period=15s --start-interval=2s --retries=3 \
     CMD ["node", "-e", "fetch(`http://127.0.0.1:${process.env.PORT}/api/health`).then(async (r) => process.exit(r.ok && (await r.json()).status === 'ok' ? 0 : 1), () => process.exit(1))"]
 CMD ["node", "server/index.mjs"]

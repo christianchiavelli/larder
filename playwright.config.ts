@@ -10,13 +10,8 @@ import {
 
 const FAILING_UPSTREAM = `http://localhost:${FAILING_UPSTREAM_PORT}`
 
-/**
- * Two tries after the first on CI, so a slow day at the catalogue does not block a push.
- *
- * The weekly run asks for none (`E2E_RETRIES=0` in `ci.yml`), because the tolerance exists
- * for somebody else's bad day and not for a test that only sometimes passes: with the
- * retries on, such a test is reported as a notice inside a green run, and nobody reads it.
- */
+// Two retries on CI so a slow day upstream does not block a push; the weekly run asks for
+// none, so a flaky test surfaces instead of passing as a notice in a green run.
 const RETRIES =
   process.env.E2E_RETRIES !== undefined ? Number(process.env.E2E_RETRIES) : process.env.CI ? 2 : 0
 

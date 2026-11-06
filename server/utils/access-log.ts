@@ -1,25 +1,12 @@
-/**
- * Lines for whatever ends up reading the server's log.
- *
- * The query string is left out on purpose: on the pages that matter it is the reader's own
- * search terms, and a log is not the place to keep those.
- */
-
-/**
- * The build's own files, the route Nuxt renders a failure through, and the health route:
- * most of the traffic, and none of it a reader asked for. `/__nuxt_error` goes here because
- * a request that failed is reported by `failureRecord` with the path that actually failed —
- * leaving it in would report the failure twice, once under a made-up route and a status of
- * 200. `/api/health` goes here because the container asks it every ten seconds, which over a
- * day is eight thousand lines saying nothing happened.
- */
+// Not worth a line: the build's own files, the route a failure is rendered through (reported
+// by `failureRecord` with the path that failed), and the health route the container polls.
 const QUIET_PREFIXES = ['/_nuxt/', '/_fonts/', '/favicon', '/__nuxt_error', '/api/health'] as const
 
 export function isWorthLogging(path: string): boolean {
   return !QUIET_PREFIXES.some((prefix) => path.startsWith(prefix))
 }
 
-/** The path alone, without the query and without a trailing slash that would split one route in two. */
+/** The path alone: the query is the reader's own search terms, and a trailing slash would split one route in two. */
 export function loggedPath(url: string): string {
   const query = url.indexOf('?')
   const path = query === -1 ? url : url.slice(0, query)

@@ -26,9 +26,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
     for (const [name, path] of PAGES) {
       test(`${name} meets WCAG AA`, async ({ page }) => {
         await open(page, path)
-        // The mark the app sets once it has hydrated, rather than the network falling quiet:
-        // a page that is still hydrating scans as a page nobody has looked at, and a quiet
-        // network is neither necessary nor sufficient for it.
+        // The mark the app sets once hydrated: a page still hydrating scans as one nobody looked at.
         await hydrated(page)
         await transitionsSettled(page)
 

@@ -8,11 +8,8 @@ export default defineVitestConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json-summary'],
-      // What is measured, and what is deliberately not: `server/api` and `server/plugins` are
-      // left out. A route parses its query and calls a service, and the service is measured
-      // here; measuring the route would mean fabricating an event to prove a line of wiring.
-      // What the route itself does is checked where it can be seen — `e2e/health.spec.ts`
-      // answers the health route, and the specs assert the status codes the others return.
+      // `server/api` and `server/plugins` are out on purpose: a route parses its query and
+      // calls a service, and the service is measured here. The e2e specs check the routes.
       include: [
         'shared/**/*.ts',
         'server/services/**/*.ts',
@@ -37,14 +34,8 @@ export default defineVitestConfig({
         // first paint, and the end-to-end scans of both themes.
         'app/composables/use-theme.ts',
       ],
-      // One global average says nothing about where the risk is: a hundred untested branches in
-      // a composable and a hundred in the domain average out to the same number. These floors
-      // are set per area, so the code that decides what a figure means has to be tested, while
-      // the wiring around it is allowed a covered fault-path or two.
-      //
-      // Each sits about two points under what the suite reaches today, which is the margin that
-      // keeps the gate a floor rather than a ceiling: a new file with a couple of untested
-      // branches should not fail a build that is otherwise in good shape.
+      // Floors per area, each about two points under what it reaches. A global average hides
+      // where the risk is; and set at the limit it becomes a ceiling instead of a floor.
       thresholds: {
         statements: 93,
         branches: 91,
