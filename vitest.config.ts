@@ -8,6 +8,11 @@ export default defineVitestConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json-summary'],
+      // What is measured, and what is deliberately not: `server/api` and `server/plugins` are
+      // left out. A route parses its query and calls a service, and the service is measured
+      // here; measuring the route would mean fabricating an event to prove a line of wiring.
+      // What the route itself does is checked where it can be seen — `e2e/health.spec.ts`
+      // answers the health route, and the specs assert the status codes the others return.
       include: [
         'shared/**/*.ts',
         'server/services/**/*.ts',
