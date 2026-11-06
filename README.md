@@ -52,6 +52,14 @@ pnpm install
 pnpm dev
 ```
 
+Or in a container, which is how it would run if it were ever served from somewhere:
+
+```bash
+docker compose up --wait --build     # then http://localhost:3000
+```
+
+The image is built in two stages: the dependencies come from the lockfile into a cached store, `nuxt build` runs against them offline, and only `.output` is carried into the runtime image, which runs as `node` and answers a health check at `/api/health`. `LARDER_PORT` moves it off a busy 3000, and the language links follow it. `ci.yml` builds and starts it on every push, so the file cannot quietly stop working.
+
 `pnpm storybook` opens the design system on its own: the tokens, every component in the layer, and the badges, nutrient table and charts of a product, drawn from real catalogue figures in both themes.
 
 The scripts run on Node.js 24, pinned in `package.json` under `devEngines` and downloaded on the first install.
